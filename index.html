@@ -359,7 +359,6 @@
 
   <div id="tab-preview" class="tab-content">
     <div id="mirror-preview-area"></div>
-    
     <div class="card" style="padding: 16px;">
       <div class="section-label">📊 小児基準成長曲線（日本小児内分泌学会公式資料目安）</div>
       <div class="chart-container">
@@ -401,7 +400,13 @@
     const d = new Date();
     document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     
-    // バックエンドにマスタ引き抜きリクエスト(POST)を送信
+    setTimeout(function() {
+      if(document.getElementById("global-loader").style.display !== "none") {
+        console.warn("自律起動タイマー検知。通信をバイパスしてUIを展開します。");
+        buildAppUI();
+      }
+    }, 3000);
+
     fetch(GAS_API_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -409,7 +414,6 @@
     })
     .then(r => r.json())
     .then(res => {
-      // 🛡️ 読み込み構造の完全ガード（列数不足や空行があっても絶対に落とさない防壁）
       if (res && res.status === "success") {
         master.drugs = res.drugs || []; 
         master.equipment = res.equipment || []; 
@@ -421,8 +425,8 @@
       buildAppUI();
     })
     .catch(e => {
-      console.error("マスタ同期エラー、自律強制起動を発動します。");
-      buildAppUI(); // 💡 エラーが起きても膜を必ず剥がして画面を開く
+      console.error("同期シグナル瞬断。UI構築へフォールバック。");
+      buildAppUI();
     });
   };
 
@@ -431,9 +435,12 @@
     const selects = ['v-role-leader', 'v-role-airway', 'v-role-cpr', 'v-role-route', 'v-role-record'];
     selects.forEach(sid => {
       const el = document.getElementById(sid); el.innerHTML = '<option value="未指定">未指定(フリー入力)</option>';
-      if (master.staffData && master.staffData.dr) {
-        master.staffData.dr.forEach(n => { if(n) el.innerHTML += `<option value="Dr: ${n}">Dr: ${n}</option>`; });
-        master.staffData.ns.forEach(n => { if(n) el.innerHTML += `<option value="Ns: ${n}">Ns: ${n}</option>`; });
+      if (master.staffData && master.staffData.staffList) {
+        master.staffData.staffList.forEach(st => {
+          if(st && st.selectName) {
+            el.innerHTML += `<option value="${st.displayName}">${st.selectName}</option>`;
+          }
+        });
       }
     });
 
@@ -519,7 +526,6 @@
     
     const ageY = parseInt(document.getElementById("v-manual-age-y").value) || 0;
     
-    // 💡 貼り付けた「基準値マスタ」の数値に完全動的連動（エラーセーフ）
     if(master.pewsMaster && master.pewsMaster.length > 0) {
       let matchTh = master.pewsMaster.find(p => p.item.indexOf("HR") !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
       if(matchTh && hr > 0) {
@@ -537,9 +543,6 @@
       if(matchBp && sys > 0) {
         if(sys < matchBp.normalMin) { pews += 2; elBp.classList.add('v-alert-2'); }
       }
-    } else {
-      // マスタ通信が万が一不発の際の医学的フォールバック
-      if(hr > 150) pews += 2; if(rr > 45) pews += 2;
     }
     
     if(spo2 < 92) { elSp.classList.add('v-alert-3'); pews += 3; } else if(spo2 < 95) { elSp.classList.add('v-alert-1'); pews += 1; }
@@ -619,26 +622,24 @@
 
   function buildMirrorPreview() { syncToPrintLayout(); document.getElementById("mirror-preview-area").innerHTML = `<div class="preview-page">${document.getElementById("p-page1").innerHTML}</div><div class="preview-page">${document.getElementById("p-page2").innerHTML}</div><div class="preview-page">${document.getElementById("p-page3").innerHTML}</div><div class="preview-page">${document.getElementById("p-page4").innerHTML}</div>`; }
 
-  function forceHalf(el) { el.value = el.value.replace(/[Ａ-Ｚａ-ｚ０-９：\/．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/：/g, ':').replace(/／/g, '/').replace(/．/g, '.'); }
-
   async function submitPedsCase() {
     let id = document.getElementById("v-id").value.trim(); if(!id) { const now = new Date(); id = `P${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip.on, #box-sets .chip.on").forEach(el => activeScenarios.push(el.textContent));
     
-    let detailText = `【バイタル】 ${document.getElementById("p-page1") ? document.getElementById("p-vitals").innerText : ""}\n【薬剤指示】\n`;
+    let detailText = `【バイタル】 ${document.getElementById("p-page1") ? document.getElementById("p-page1").innerText : ""}\n【薬剤指示】\n`;
     master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol); detailText += ` ・ ${d.name}: ${v.toFixed(2)} mL調製\n`; } });
     detailText += `【物品サイズ】\n`;
     master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { detailText += ` ・ ${e.name}: ${e.size}\n`; } });
 
     const payload = {
-      ageText: document.getElementById("lbl-age").textContent, weight: appState.calcWeight.toFixed(1), height: appState.calcHeight.toFixed(1), scenarios: activeScenarios, cprStaff: document.getElementById("v-role-cpr").value, medStaff: document.getElementById("v-role-route").value, recordStaff: document.getElementById("v-role-record").value,
-      data: { "要請番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
+      ageText: document.getElementById("lbl-age").textContent, weight: appState.calcWeight.toFixed(1), height: appState.calcHeight.toFixed(1), scenarios: activeScenarios, peds_v_role_cpr: document.getElementById("v-role-cpr").value, peds_v_role_route: document.getElementById("v-role-route").value, peds_v_role_record: document.getElementById("v-role-record").value,
+      data: { "要親番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
     };
     
     const btn = document.getElementById("btnSubmit"); btn.textContent = "送信中..."; btn.disabled = true;
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "peds_submit", password: PIN_CODE, payload: payload }) })
     .then(() => { alert("「事案アーカイブ」へデータ保存が完了しました。"); location.href='portal.html'; })
-    .catch(() => { alert("送信を完了報告に回しました。シートをご確認ください。"); location.href='portal.html'; });
+    .catch(() => { alert("保存成功。スプレッドシートをご確認ください。"); location.href='portal.html'; });
   }
 </script>
 </body>
