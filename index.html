@@ -42,7 +42,7 @@
     .chip.med { background: var(--card); border-color: var(--blue); color: var(--ink); }
     .chip.med.on { background: var(--med-blue); border-color: var(--blue); color: var(--med-blue-text); }
 
-    /* GCSセグメント（StrokeNotify完全準拠・最適化版） */
+    /* GCSセグメント */
     .gcs-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--line); }
     .gcs-title { font-size: 14px; font-weight: bold; width: 30px; color: var(--brand); }
     .gcs-seg { flex: 1; display: flex; background: #e5e5ea; border-radius: 8px; overflow: hidden; margin-left: 8px; }
@@ -226,43 +226,11 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzdmgxL3GL-x7sANo05V4nujuZ9CzKTZIuQ-KMNJlawOAJdcMTMZH37c4S0xdSXRFnr/exec";
+  // 埋め込み済みのウェブアプリURL
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   const PIN_CODE = "5740";
 
-  var master = {
-    drugs: [
-      {category:"蘇生薬", name:"アドレナリン", stdDose:0.01, unit:"mg/kg", concMg:1, concVol:1, maxDose:1, note:"10倍希釈して使用推奨"},
-      {category:"抗痙攣薬", name:"ミダゾラム", stdDose:0.1, unit:"mg/kg", concMg:5, concVol:1, maxDose:5, note:"第一選択(ドルミカム)"},
-      {category:"抗痙攣薬", name:"ホスフェニトイン", stdDose:22.5, unit:"mg/kg", concMg:750, concVol:10, maxDose:1500, note:"第二選択(ホストイン)"},
-      {category:"鎮静・麻酔", name:"ロクロニウム", stdDose:0.6, unit:"mg/kg", concMg:50, concVol:5, maxDose:50, note:"迅速導入・筋弛緩"},
-      {category:"ステロイド", name:"ヒドロコルチゾン", stdDose:10, unit:"mg/kg", concMg:100, concVol:2, maxDose:100, note:"ショック・アナフィラキシー"}
-    ],
-    equipment: [
-      {category:"A(気道)", name:"気管チューブ(カフあり)", size:"3.0 mm", minW:0, maxW:4.9},
-      {category:"A(気道)", name:"気管チューブ(カフあり)", size:"3.5 mm", minW:5.0, maxW:9.9},
-      {category:"A(気道)", name:"気管チューブ(カフあり)", size:"4.0 mm", minW:10.0, maxW:14.9},
-      {category:"A(気道)", name:"気管チューブ(カフあり)", size:"4.5 mm", minW:15.0, maxW:19.9},
-      {category:"A(気道)", name:"気管チューブ(カフあり)", size:"5.0 mm", minW:20.0, maxW:29.9},
-      {category:"A(気道)", name:"喉頭鏡ブレード(Miller直)", size:"0 サイズ", minW:0, maxW:2.9},
-      {category:"A(気道)", name:"喉頭鏡ブレード(Miller直)", size:"1 サイズ", minW:3.0, maxW:9.9},
-      {category:"A(気道)", name:"喉頭鏡ブレード(Miller直)", size:"2 サイズ", minW:10.0, maxW:29.9},
-      {category:"B(呼吸)", name:"BVM(バッグバルブ)", size:"乳児用 (250mL)", minW:0, maxW:9.9},
-      {category:"B(呼吸)", name:"BVM(バッグバルブ)", size:"小児用 (500mL)", minW:10.0, maxW:29.9},
-      {category:"B(呼吸)", name:"吸引カテーテル", size:"6 Fr", minW:0, maxW:4.9},
-      {category:"B(呼吸)", name:"吸引カテーテル", size:"8 Fr", minW:5.0, maxW:14.9},
-      {category:"B(呼吸)", name:"吸引カテーテル", size:"10 Fr", minW:15.0, maxW:29.9},
-      {category:"C(循環)", name:"末梢静脈留置針", size:"24 G", minW:0, maxW:9.9},
-      {category:"C(循環)", name:"末梢静脈留置針", size:"22 G", minW:10.0, maxW:29.9}
-    ],
-    scenarios: [
-      {name:"CPA(心肺停止)", type:"シナリオ", items:["アドレナリン","気管チューブ(カフあり)","喉頭鏡ブレード(Miller直)","BVM(バッグバルブ)","末梢静脈留置針"]},
-      {name:"痙攣重積", type:"シナリオ", items:["ミダゾラム","ホスフェニトイン","吸引カテーテル","末梢静脈留置針"]},
-      {name:"アナフィラキシー", type:"シナリオ", items:["アドレナリン","ヒドロコルチゾン","末梢静脈留置針"]},
-      {name:"気道緊急(挿管)", type:"シナリオ", items:["ロクロニウム","ミダゾラム","気管チューブ(カフあり)","喉頭鏡ブレード(Miller直)","BVM(バッグバルブ)"]}
-    ],
-    staff: []
-  };
-
+  var master = { drugs: [], equipment: [], scenarios: [], staff: [] };
   var appState = { calcWeight: 10, checkedItems: {}, gcs: { e: 4, v: 5, m: 6 } };
 
   window.onload = function() {
@@ -279,7 +247,7 @@
         }
       }
       buildAppUI();
-    }).withFailureHandler(function(){ buildAppUI(); }).fetchInit();
+    }).withFailureHandler(function(){ buildAppUI(); }).getMasterData();
   };
 
   function buildAppUI() {
@@ -326,7 +294,6 @@
     calcPeds();
   }
 
-  // GCS セグメント変更処理
   function setGCS(type, val) {
     appState.gcs[type] = val;
     const group = document.getElementById(`gcs-${type}-group`);
@@ -381,7 +348,7 @@
     document.getElementById("p-ample").textContent = `A: ${document.getElementById("v-amp-a").value || "-"} / M: ${document.getElementById("v-amp-m").value || "-"} / P: ${document.getElementById("v-amp-p").value || "-"} / L: ${document.getElementById("v-amp-l").value || "-"}`;
 
     const gcsSum = appState.gcs.e + appState.gcs.v + appState.gcs.m;
-    document.getElementById("p-vitals").innerHTML = `HR: ${document.getElementById("v-vit-hr").value || "-"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "-"}% ｜ BP: ${document.getElementById("v-vit-bp").value || "-"} ｜ BT: ${document.getElementById("v-vit-bt").value || "-"}℃<br><b>GCS:</b> ${gcsSum}点 (E${appState.gcs.e}V${appState.gcs.m}M${appState.gcs.m}) ｜ <b>JCS:</b> ${document.getElementById("v-vit-jcs").value || "-"}`;
+    document.getElementById("p-vitals").innerHTML = `HR: ${document.getElementById("v-vit-hr").value || "-"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "-"}% ｜ BP: ${document.getElementById("v-vit-bp").value || "-"} ｜ BT: ${document.getElementById("v-vit-bt").value || "-"}℃<br><b>GCS:</b> ${gcsSum}点 (E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}) ｜ <b>JCS:</b> ${document.getElementById("v-vit-jcs").value || "-"}`;
 
     ['leader', 'airway', 'cpr', 'route', 'record'].forEach(role => {
       document.getElementById(`p-role-${role}`).textContent = document.getElementById(`v-role-${role}`).value || "未アサイン";
