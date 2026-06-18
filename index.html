@@ -114,6 +114,7 @@
 </div>
 
 <main>
+  <!-- 1. 基本情報 -->
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -159,6 +160,7 @@
     <button class="submit-btn" onclick="switchTab('sec2')" style="background:var(--blue);">次へ (経緯・AMPLE) ➔</button>
   </div>
 
+  <!-- 2. 経緯・AMPLE -->
   <div id="tab-sec2" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -274,6 +276,7 @@
     <button class="submit-btn" onclick="switchTab('sec3')" style="background:var(--blue);">次へ (バイタル・PEWS) ➔</button>
   </div>
 
+  <!-- 3. バイタル・PEWS -->
   <div id="tab-sec3" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -331,6 +334,7 @@
     </div>
   </div>
 
+  <!-- 4. チーム編成 -->
   <div id="tab-sec4" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -345,6 +349,7 @@
     </div>
   </div>
 
+  <!-- 5. プロトコル・セット -->
   <div id="tab-sec5" class="tab-content">
     <div class="card status-area standard" id="protocol-status-card" style="padding:12px; text-align:center; font-weight:bold;">
       ステータス: <span id="lbl-protocol-state">フルセット標準 (Standard)</span>
@@ -357,6 +362,7 @@
     </div>
   </div>
 
+  <!-- 6. 一括プレビュー -->
   <div id="tab-preview" class="tab-content">
     <div id="mirror-preview-area"></div>
     <div class="card" style="padding: 16px;">
@@ -402,10 +408,10 @@
     
     setTimeout(function() {
       if(document.getElementById("global-loader").style.display !== "none") {
-        console.warn("自律起動タイマー検知。通信をバイパスしてUIを展開します。");
+        console.warn("自律起動タイマー検知。安全保護モードで開通させます。");
         buildAppUI();
       }
-    }, 3000);
+    }, 2500);
 
     fetch(GAS_API_URL, {
       method: "POST",
@@ -513,7 +519,7 @@
   function selectPat(chip, dim, status) { const parent = chip.parentElement; for(let i=0; i<parent.children.length; i++) { parent.children[i].classList.remove('on'); } chip.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
   function selectLChip(chip) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c => c.classList.remove('on')); chip.classList.add('on'); syncToPrintLayout(); }
   function updateProtocolStatusCard() { const card = document.getElementById("protocol-status-card"); const label = document.getElementById("lbl-protocol-state"); if(appState.isCustomized) { card.className = "card status-area custom"; label.textContent = "プロトコル一部変更あり (Custom)"; } else { card.className = "card status-area standard"; label.textContent = "フルセット標準 (Standard)"; } }
-  function syncAVPU(jcs) { const avpu = document.getElementById("v-vit-avpu"); if(jcs === "0") avpu.value = "A"; else if(["1","2","3","10"].indexOf(jcs) !== -1) avpu.value = "V"; else if(["20","30","100","200"].indexOf(jcs) !== -1) avpu.value = "P"; else avpu.value = "U"; triggerPEWS(); }
+  function syncAVPU(jcs) { const avpu = document.getElementById("v-vit-avpu"); if(jcs === "0") avpu.value = "A"; else if(["1","2","3","10"].indexOf(jcs) !== -1) avpu.value = "V"; else if(["20","30","100","200"].indexOf(jcs) !== -1) p= "P"; else avpu.value = "U"; triggerPEWS(); }
   function setGCS(type, val) { appState.gcs[type] = val; const group = document.getElementById(`gcs-${type}-group`); const buttons = group.getElementsByClassName('gcs-btn'); for (let i = 0; i < buttons.length; i++) { buttons[i].classList.toggle('active', parseInt(buttons[i].textContent) === val); } const total = appState.gcs.e + appState.gcs.v + appState.gcs.m; document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`; triggerPEWS(); }
 
   function triggerPEWS() {
@@ -608,7 +614,7 @@
     document.getElementById("p-page1").innerHTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付 / ETA</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>基準計算体重</th><td class="p-large-text" style="color:var(--brand);">${wt.toFixed(1)} kg</td></tr><tr><th>目安身長</th><td>${ht.toFixed(1)} cm</td><th>PAT 評価</th><td>A:${appState.pat.a}/B:${appState.pat.b}/C:${appState.pat.c}</td></tr><tr><th>搬入前バイタル</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">デバイス: ${document.getElementById("v-ox-device").value} ｜ 流量: ${document.getElementById("v-ox-flow").value}</td></tr><tr><th>搬入前処置・経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療室スタッフ配置</div><table class="p-table"><tr><th>リーダー</th><td>${document.getElementById("v-role-leader").value}</td><th>気道管理</th><td>${document.getElementById("v-role-airway").value}</td></tr><tr><th>胸骨圧迫</th><td>${document.getElementById("v-role-cpr").value}</td><th>ルート・調製</th><td>${document.getElementById("v-role-route").value}</td></tr><tr><th>記録・家族</th><td colspan="3">${document.getElementById("v-role-record").value}</td></tr></table></div>`;
 
     // 2枚目
-    let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * wt) / (d.concMg / d.concVol); dRows2 += `<tr><td><b>${d.name}</b>規格</td><td class="p-large-text" style="color:var(--blue);">${v.toFixed(2)} mL</td><td>ボトル規格原液からシリンジに【 <b>${v.toFixed(2)} mL</b> 】を単体吸引準備。</td></tr>`; } });
+    let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * wt) / (d.concMg / d.concVol); dRows2 += `<tr><td><b>${d.name}</b>規格</td><td class="p-large-text" style="color:var(--blue);">${v.toFixed(2)} mL</td><td>ボトル規格原液からシリンジに【 ${v.toFixed(2)} mL 】を単体吸引準備。</td></tr>`; } });
     document.getElementById("p-page2").innerHTML = ` <div class="p-title">小児救急事前準備作戦盤 【2. 薬剤準備シリンジ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt.toFixed(1)} kg</b></div><table class="p-table"><thead><tr><th>指示薬剤名</th><th style="width:25%;">シリンジ実吸引液量</th><th>調製手順</th></tr></thead><tbody>${dRows2 || '<tr><td colspan="3" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
     // 3枚目
@@ -622,6 +628,8 @@
 
   function buildMirrorPreview() { syncToPrintLayout(); document.getElementById("mirror-preview-area").innerHTML = `<div class="preview-page">${document.getElementById("p-page1").innerHTML}</div><div class="preview-page">${document.getElementById("p-page2").innerHTML}</div><div class="preview-page">${document.getElementById("p-page3").innerHTML}</div><div class="preview-page">${document.getElementById("p-page4").innerHTML}</div>`; }
 
+  function forceHalf(el) { el.value = el.value.replace(/[Ａ-Ｚａ-ｚ０-９：\/．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/：/g, ':').replace(/／/g, '/').replace(/．/g, '.'); }
+
   async function submitPedsCase() {
     let id = document.getElementById("v-id").value.trim(); if(!id) { const now = new Date(); id = `P${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip.on, #box-sets .chip.on").forEach(el => activeScenarios.push(el.textContent));
@@ -632,8 +640,8 @@
     master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { detailText += ` ・ ${e.name}: ${e.size}\n`; } });
 
     const payload = {
-      ageText: document.getElementById("lbl-age").textContent, weight: appState.calcWeight.toFixed(1), height: appState.calcHeight.toFixed(1), scenarios: activeScenarios, peds_v_role_cpr: document.getElementById("v-role-cpr").value, peds_v_role_route: document.getElementById("v-role-route").value, peds_v_role_record: document.getElementById("v-role-record").value,
-      data: { "要親番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
+      ageText: document.getElementById("lbl-age").textContent, weight: appState.calcWeight.toFixed(1), height: appState.calcHeight.toFixed(1), scenarios: activeScenarios, cprStaff: document.getElementById("v-role-cpr").value, medStaff: document.getElementById("v-role-route").value, recordStaff: document.getElementById("v-role-record").value,
+      data: { "要請番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
     };
     
     const btn = document.getElementById("btnSubmit"); btn.textContent = "送信中..."; btn.disabled = true;
