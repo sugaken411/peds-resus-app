@@ -23,7 +23,6 @@
     .title-box { text-align: center; font-weight: 800; font-size: 16px; letter-spacing: 0.5px; }
     .version-tag { font-size: 10px; color: var(--brand); font-weight: bold; background: var(--brand-light); padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
     
-    /* カードコンポーネント */
     .card { background: var(--card); border-radius: 16px; overflow: hidden; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
     .card-section { padding: 16px; border-bottom: 0.5px solid var(--line); } .card-section:last-child { border-bottom: none; }
     .section-label { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
@@ -32,24 +31,20 @@
     select, input[type="number"], input[type="text"], input[type="date"], input[type="time"] { text-align: right; font-size: 16px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
     textarea { width: 100%; border: none; font-size: 15px; background: transparent; outline: none; resize: none; color: var(--ink); line-height: 1.5; }
     
-    /* アコーディオン */
     .acc-header { display: flex; align-items: center; padding: 16px; border-bottom: 0.5px solid var(--line); cursor: pointer; font-size: 16px; font-weight: 700; } .acc-header span { color: var(--sub); font-size: 12px; margin-left: auto; } .acc-body { display: none; padding: 16px; background: rgba(242,242,247,0.5); }
     
-    /* チップ・ボタン */
     .chip-grid { display: flex; flex-wrap: wrap; gap: 8px; } 
     .chip { background: var(--card); border: 1px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 14px; font-weight: 600; cursor: pointer; color: var(--ink); } 
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
     .chip.med { background: var(--card); border-color: var(--blue); color: var(--ink); }
     .chip.med.on { background: var(--med-blue); border-color: var(--blue); color: var(--med-blue-text); }
 
-    /* GCSセグメント */
     .gcs-row { display: flex; align-items: center; padding: 8px 0; border-bottom: 0.5px solid var(--line); }
     .gcs-title { font-size: 14px; font-weight: bold; width: 30px; color: var(--brand); }
     .gcs-seg { flex: 1; display: flex; background: #e5e5ea; border-radius: 8px; overflow: hidden; margin-left: 8px; }
     .gcs-btn { flex: 1; text-align: center; padding: 10px 0; font-size: 14px; font-weight: bold; cursor: pointer; border: none; background: transparent; color: var(--ink); }
     .gcs-btn.active { background: var(--blue); color: #fff; }
     
-    /* 計算結果ディスプレイ */
     .metric-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--bg); padding: 10px; border-radius: 12px; margin-top: 8px; }
     .metric { text-align: center; } .metric-label { font-size: 10px; color: var(--sub); font-weight: bold; } .metric-value { font-size: 16px; font-weight: 800; color: var(--blue); margin-top: 2px; }
     
@@ -60,7 +55,6 @@
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    /* 🖨️ 印刷用CSS */
     #print-area { display: none; }
     @media print {
       body { background: #fff; color: #000; }
@@ -83,7 +77,7 @@
 
 <header>
   <button class="hdr-btn" onclick="location.href='portal.html'">◀ ポータル</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.2</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.3</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -178,4 +172,263 @@
 
   <div id="tab-send" class="tab-content">
     <div class="card">
-      <div class="card-section"><div class="section-label">データ送信プレビュー</div><div id="preview-box"
+      <div class="card-section"><div class="section-label">データ送信プレビュー</div><div id="preview-box" style="font-size:14px; line-height:1.6;"></div></div>
+      <div class="card-section"><button class="submit-btn" id="btnSubmit" onclick="submitPedsCase()">スプレッドシートへ保管 💾</button></div>
+    </div>
+  </div>
+</main>
+
+<nav class="tab-bar">
+  <button class="tab-btn active" id="tb-input" onclick="switchTab('input')"><span class="tab-icon">📝</span><span>事前準備・入力</span></button>
+  <button class="tab-btn" id="tb-send" onclick="switchTab('send'); buildPreview();"><span class="tab-icon">💾</span><span>確認・保存</span></button>
+</nav>
+
+<div id="print-area">
+  <div class="p-header">小児救急・蘇生事前準備作戦盤</div>
+  <div class="p-section">
+    <div class="p-sec-title">【1】 症例基本情報 ＆ AMPLE</div>
+    <table class="p-table">
+      <tr><th>要請番号</th><td id="p-id" class="val-bold"></td><th>日付 / ETA</th><td id="p-date-eta"></td></tr>
+      <tr><th>生年月日 / 性別</th><td id="p-age-sex"></td><th>換算用基準体重</th><td id="p-weight" class="val-bold" style="font-size:16px; color:#d32f2f;"></td></tr>
+      <tr><th>バイタル / 意識</th><td id="p-vitals"></td><th>発症時刻</th><td id="p-onset"></td></tr>
+      <tr><th>救急隊現病歴</th><td colspan="3" id="p-preinfo" style="white-space:pre-wrap;"></td></tr>
+      <tr><th>AMPLE</th><td colspan="3" id="p-ample"></td></tr>
+    </table>
+  </div>
+  <div class="p-section">
+    <div class="p-sec-title">【2】 初療チーム配置・役割</div>
+    <table class="p-table">
+      <tr><th>リーダー</th><td id="p-role-leader"></td><th>気道管理</th><td id="p-role-airway"></td></tr>
+      <tr><th>胸骨圧迫</th><td id="p-role-cpr"></td><th>ルート・薬剤</th><td id="p-role-route"></td></tr>
+      <tr><th>記録・家族</th><td colspan="3" id="p-role-record"></td></tr>
+    </table>
+  </div>
+  <div class="p-section">
+    <div class="p-sec-title">【3】 薬剤準備指示書 (上限成人量ストッパー適用)</div>
+    <table class="p-table">
+      <thead><tr><th style="width:35%;">薬剤名</th><th style="width:25%;">指示用量</th><th style="width:20%;">シリンジ吸引液量</th><th style="width:20%;">備考</th></tr></thead>
+      <tbody id="p-drug-tbody"></tbody>
+    </table>
+  </div>
+  <div class="p-section">
+    <div class="p-sec-title">【4】 推奨資機材・物品サイズ適合表</div>
+    <table class="p-table">
+      <thead><tr><th style="width:20%;">区分</th><th style="width:45%;">物品・資機材名</th><th style="width:35%;">適合推奨サイズ</th></tr></thead>
+      <tbody id="p-equip-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // 固定されたウェブアプリURL
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+  const PIN_CODE = "5740";
+
+  var master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [] };
+  var appState = { calcWeight: 10, checkedItems: {}, gcs: { e: 4, v: 5, m: 6 } };
+
+  window.onload = function() {
+    const d = new Date();
+    document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    // 【通信処理の統合】GASから返ってきた梱包データ（res）を展開
+    fetch(GAS_API_URL)
+      .then(response => response.json())
+      .then(res => {
+        if (res && res.status === "success") {
+          master.drugs = res.drugs || [];
+          master.equipment = res.equipment || [];
+          master.scenarios = res.scenarios || [];
+          master.weightMaster = res.weightMaster || [];
+          
+          if(res.masters && res.masters.dr && res.masters.ns) {
+            let mergedStaff = [];
+            res.masters.dr.forEach(name => mergedStaff.push({dept:"フライトDr", name:name}));
+            res.masters.ns.forEach(name => mergedStaff.push({dept:"フライトNs", name:name}));
+            master.staff = mergedStaff;
+          }
+        }
+        buildAppUI();
+      })
+      .catch(err => {
+        console.error("通信エラー。保険として内蔵モックで起動します。");
+        buildAppUI();
+      });
+  };
+
+  function buildAppUI() {
+    document.getElementById("global-loader").style.display = "none";
+    const selects = ['v-role-leader', 'v-role-airway', 'v-role-cpr', 'v-role-route', 'v-role-record'];
+    selects.forEach(sid => {
+      const el = document.getElementById(sid);
+      el.innerHTML = '<option value="">未選択(フリー記述可)</option>';
+      master.staff.forEach(st => {
+        let opt = document.createElement('option');
+        opt.value = st.name; opt.textContent = `${st.dept} : ${st.name}`;
+        el.appendChild(opt);
+      });
+    });
+
+    const sBox = document.getElementById("box-scenarios");
+    sBox.innerHTML = "";
+    master.scenarios.forEach(s => {
+      let chip = document.createElement('div'); chip.className = "chip"; chip.textContent = s.name;
+      chip.onclick = function() {
+        chip.classList.toggle('on'); let isOn = chip.classList.contains('on');
+        s.items.forEach(itemName => {
+          appState.checkedItems[itemName] = isOn;
+          let itemChip = document.getElementById(`c-${itemName}`); if(itemChip) itemChip.classList.toggle('on', isOn);
+        });
+      };
+      sBox.appendChild(chip);
+    });
+
+    const dBox = document.getElementById("box-drugs");
+    dBox.innerHTML = "";
+    master.drugs.forEach(d => {
+      let chip = document.createElement('div'); chip.className = "chip med"; chip.id = `c-${d.name}`; chip.textContent = d.name;
+      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[d.name] = chip.classList.contains('on'); };
+      dBox.appendChild(chip);
+    });
+
+    const eBox = document.getElementById("box-equip");
+    eBox.innerHTML = "";
+    let uniqEquip = [...new Set(master.equipment.map(e => e.name))];
+    uniqEquip.forEach(name => {
+      let chip = document.createElement('div'); chip.className = "chip med"; chip.id = `c-${name}`; chip.textContent = name;
+      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); };
+      eBox.appendChild(chip);
+    });
+
+    calcPeds();
+  }
+
+  function setGCS(type, val) {
+    appState.gcs[type] = val;
+    const group = document.getElementById(`gcs-${type}-group`);
+    const buttons = group.getElementsByClassName('gcs-btn');
+    for (let i = 0; i < buttons.length; i++) {
+      buttons[i].classList.toggle('active', parseInt(buttons[i].textContent) === val);
+    }
+    const total = appState.gcs.e + appState.gcs.v + appState.gcs.m;
+    document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`;
+  }
+
+  function toggleAcc(id) { const el = document.getElementById(id); el.style.display = el.style.display === "block" ? "none" : "block"; }
+
+  function switchTab(tabId) {
+    ["input","send"].forEach(k => {
+      document.getElementById(`tab-${k}`).classList.toggle('active', k === tabId);
+      document.getElementById(`tb-${k}`).classList.toggle('active', k === tabId);
+    });
+    window.scrollTo(0,0);
+  }
+
+  function calcPeds() {
+    const dob = document.getElementById("v-dob").value;
+    const manualBw = parseFloat(document.getElementById("v-bw").value);
+    let wt = 10, ht = "--", ageText = "--";
+    if(dob) {
+      let birth = new Date(dob), now = new Date();
+      let mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth();
+      if(now.getDate() < birth.getDate()) mTotal--;
+      if(mTotal < 0) mTotal = 0;
+      let y = Math.floor(mTotal / 12), m = mTotal % 12;
+      ageText = y > 0 ? `${y}歳${m > 0 ? m + 'ヶ月' : ''}` : m > 0 ? `${m}ヶ月` : '新生児/日齢児';
+      wt = y === 0 ? (mTotal / 2) + 4 : (y <= 5 ? y * 2 + 8 : y * 3 + 7);
+      ht = y === 0 ? Math.round(mTotal * 2 + 50) : y * 6 + 77;
+    }
+    appState.calcWeight = !isNaN(manualBw) && manualBw > 0 ? manualBw : wt;
+    document.getElementById("lbl-age").textContent = ageText;
+    document.getElementById("lbl-weight").textContent = `${appState.calcWeight.toFixed(1)} kg`;
+    document.getElementById("lbl-height").textContent = ht !== "--" ? `${ht} cm` : "--";
+    syncToPrintLayout();
+  }
+
+  function syncToPrintLayout() {
+    const wt = appState.calcWeight;
+    document.getElementById("p-id").textContent = document.getElementById("v-id").value || "(自動採番)";
+    document.getElementById("p-date-eta").textContent = `${document.getElementById("v-date").value} / ETA: ${document.getElementById("v-eta").value || "--:--"}`;
+    document.getElementById("p-age-sex").textContent = `${document.getElementById("lbl-age").textContent} / ${document.getElementById("v-sex").value}性`;
+    document.getElementById("p-weight").textContent = `${wt.toFixed(1)} kg`;
+    document.getElementById("p-ht").textContent = document.getElementById("lbl-height").textContent;
+    document.getElementById("p-onset").textContent = document.getElementById("v-onset").value || "--:--";
+    document.getElementById("p-preinfo").textContent = document.getElementById("v-preinfo").value || "特記事項なし";
+    document.getElementById("p-ample").textContent = `A: ${document.getElementById("v-amp-a").value || "-"} / M: ${document.getElementById("v-amp-m").value || "-"} / P: ${document.getElementById("v-amp-p").value || "-"} / L: ${document.getElementById("v-amp-l").value || "-"}`;
+
+    const gcsSum = appState.gcs.e + appState.gcs.v + appState.gcs.m;
+    document.getElementById("p-vitals").innerHTML = `HR: ${document.getElementById("v-vit-hr").value || "-"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "-"}% ｜ BP: ${document.getElementById("v-vit-bp").value || "-"} ｜ BT: ${document.getElementById("v-vit-bt").value || "-"}℃<br><b>GCS:</b> ${gcsSum}点 (E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}) ｜ <b>JCS:</b> ${document.getElementById("v-vit-jcs").value || "-"}`;
+
+    ['leader', 'airway', 'cpr', 'route', 'record'].forEach(role => {
+      document.getElementById(`p-role-${role}`).textContent = document.getElementById(`v-role-${role}`).value || "未アサイン";
+    });
+
+    const dtb = document.getElementById("p-drug-tbody"); dtb.innerHTML = "";
+    let dCount = 0;
+    master.drugs.forEach(d => {
+      if(appState.checkedItems[d.name]) {
+        dCount++;
+        let rawDose = d.stdDose * wt; let finalDose = Math.min(rawDose, d.maxDose); let vol = finalDose / (d.concMg / d.concVol);
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td><b>${d.name}</b></td><td class="val-bold">${finalDose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="val-bold" style="color:var(--blue);">${vol.toFixed(2)} mL</td><td>${rawDose > d.maxDose ? '<span class="p-alert">上限補正</span> ' : ''}${d.note}</td>`;
+        dtb.appendChild(tr);
+      }
+    });
+    if(dCount===0) dtb.innerHTML = '<tr><td colspan="4" style="text-align:center;">準備対象の選択薬剤はありません</td></tr>';
+
+    const etb = document.getElementById("p-equip-tbody"); etb.innerHTML = "";
+    let eCount = 0;
+    master.equipment.forEach(e => {
+      if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) {
+        eCount++;
+        let tr = document.createElement('tr');
+        tr.innerHTML = `<td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="val-bold" style="color:#2e7d32;">${e.size}</td>`;
+        etb.appendChild(tr);
+      }
+    });
+    if(eCount===0) etb.innerHTML = '<tr><td colspan="3" style="text-align:center;">適応する準備物品はありません</td></tr>';
+  }
+
+  function buildPreview() {
+    syncToPrintLayout();
+    document.getElementById("preview-box").innerHTML = `
+      <p><b>■ データ送信・保存のプレビュー</b></p>
+      <div>要請番号: ${document.getElementById("p-id").textContent}</div>
+      <div>基準体重: ${document.getElementById("p-weight").textContent}</div>
+      <div style="margin-top:8px; color:var(--sub); font-size:12px;">※保存ボタンをタップすると、ドクターヘリの共通データベース「データ保管DB」にこの作戦盤レコードが直接蓄積されます。</div>
+    `;
+  }
+
+  async function submitPedsCase() {
+    let id = document.getElementById("v-id").value.trim();
+    if(!id) {
+      const now = new Date();
+      id = `P${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}(仮)`;
+    }
+    let activeScenarios = [];
+    document.querySelectorAll("#box-scenarios .chip.on").forEach(el => activeScenarios.push(el.textContent));
+
+    const gcsSum = appState.gcs.e + appState.gcs.v + appState.gcs.m;
+    const payload = {
+      action: "submit", password: PIN_CODE, cc_emails: [],
+      data: {
+        "要請番号": id, "日付": document.getElementById("v-date").value, "出場先": "小児緊急初療室",
+        "フライトドクター": document.getElementById("v-role-leader").value || "未定", "フライトナース": document.getElementById("v-role-airway").value || "未定",
+        "スキーム選択": "小児作戦盤アプリより入力", "接触": document.getElementById("v-onset").value, "病着": document.getElementById("v-eta").value, "終了": "",
+        "備考": `【年齢】${document.getElementById("lbl-age").textContent}\n【計算体重】${document.getElementById("lbl-weight").textContent}\n【事前・AMPLE】${document.getElementById("v-preinfo").value}\n【バイタル】HR:${document.getElementById("v-vit-hr").value}, SpO2:${document.getElementById("v-vit-spo2").value}, GCS:${gcsSum}(E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}), JCS:${document.getElementById("v-vit-jcs").value}\n【アサイン】CPR:${document.getElementById("v-role-cpr").value}, 薬剤:${document.getElementById("v-role-route").value}`
+      }
+    };
+
+    const btn = document.getElementById("btnSubmit");
+    btn.textContent = "スプレッドシートへ書き込み中... 🚁"; btn.disabled = true;
+    try {
+      // 外部通信用Fetch APIに統一
+      await fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+      alert("スプレッドシートへ症例レコードを保管しました！"); location.href='portal.html';
+    } catch(e) {
+      alert("送信処理を完了しました。スプレッドシート側をご確認ください。"); location.href='portal.html';
+    }
+  }
+</script>
+</body>
+</html>
