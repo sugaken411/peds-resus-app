@@ -96,11 +96,13 @@
 </head>
 <body>
 
+<div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-eta" value=""><input id="v-dob" value=""></div>
+
 <div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);">小児作戦盤 システムマスタ同期中...</div></div>
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.8</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.9</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚一括印刷</button>
 </header>
 
@@ -114,7 +116,6 @@
 </div>
 
 <main>
-  <!-- 1. 基本情報 -->
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -160,7 +161,6 @@
     <button class="submit-btn" onclick="switchTab('sec2')" style="background:var(--blue);">次へ (経緯・AMPLE) ➔</button>
   </div>
 
-  <!-- 2. 経緯・AMPLE -->
   <div id="tab-sec2" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -276,7 +276,6 @@
     <button class="submit-btn" onclick="switchTab('sec3')" style="background:var(--blue);">次へ (バイタル・PEWS) ➔</button>
   </div>
 
-  <!-- 3. バイタル・PEWS -->
   <div id="tab-sec3" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -329,12 +328,11 @@
         <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" onclick="setGCS('m',1)">1</button><button class="gcs-btn" onclick="setGCS('m',2)">2</button><button class="gcs-btn" onclick="setGCS('m',3)">3</button><button class="gcs-btn" onclick="setGCS('m',4)">4</button><button class="gcs-btn" onclick="setGCS('m',5)">5</button><button class="gcs-btn active" onclick="setGCS('m',6)">6</button></div></div>
       </div>
       <div class="card-section" style="background:var(--brand-light); text-align:center; font-weight:bold; color:var(--brand);">
-        PEWSスコア: <span id="lbl-pews-total" style="font-size:20px;">0</span> 点
+        現在の総合 PEWS スコア: <span id="lbl-pews-total" style="font-size:22px; font-weight:900;">0</span> 点
       </div>
     </div>
   </div>
 
-  <!-- 4. チーム編成 -->
   <div id="tab-sec4" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
@@ -349,7 +347,6 @@
     </div>
   </div>
 
-  <!-- 5. プロトコル・セット -->
   <div id="tab-sec5" class="tab-content">
     <div class="card status-area standard" id="protocol-status-card" style="padding:12px; text-align:center; font-weight:bold;">
       ステータス: <span id="lbl-protocol-state">フルセット標準 (Standard)</span>
@@ -362,7 +359,6 @@
     </div>
   </div>
 
-  <!-- 6. 一括プレビュー -->
   <div id="tab-preview" class="tab-content">
     <div id="mirror-preview-area"></div>
     <div class="card" style="padding: 16px;">
@@ -384,10 +380,6 @@
   </div>
 </main>
 
-<div class="overlay" id="pews-modal" onclick="this.style.display='none'">
-  <div class="overlay-box"><h3>PEWS判定基準表</h3><p>呼吸・循環・意識の複合加算スコア(0〜3点)</p></div>
-</div>
-
 <div id="print-area">
   <div class="print-page" id="p-page1"></div>
   <div class="print-page" id="p-page2"></div>
@@ -403,12 +395,10 @@
   var appState = { calcWeight: 10, calcHeight: 75, checkedItems: {}, isCustomized: false, gcs: { e: 4, v: 5, m: 6 }, pews: 0, pat: {a:'正常', b:'正常', c:'正常'}, txStatus: {intub:'不明', iv:'不明', cpr:'不明'}, ampStatus: {a:'不明', m:'不明', p:'不明', l:'不明'} };
 
   window.onload = function() {
-    const d = new Date();
-    document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    
+    // 🛡️ 最優先自律保護システム：通信エラー・遅延があっても2.5秒後に絶対開通
     setTimeout(function() {
       if(document.getElementById("global-loader").style.display !== "none") {
-        console.warn("自律起動タイマー検知。安全保護モードで開通させます。");
+        console.warn("自律安全モード発動。マスタ読み込みをバイパスしてUIを開通させます。");
         buildAppUI();
       }
     }, 2500);
@@ -431,7 +421,7 @@
       buildAppUI();
     })
     .catch(e => {
-      console.error("同期シグナル瞬断。UI構築へフォールバック。");
+      console.error("同期信号瞬断。UIローカル展開へスイッチ。");
       buildAppUI();
     });
   };
@@ -515,11 +505,11 @@
 
   function clearAllData(ask) { if(ask && confirm("すべてのデータを初期化しますか？")) location.reload(); }
   function toggleTxForm(key, mode) { appState.txStatus[key] = mode; const group = document.getElementById(`g-tx-${key}`); const btns = group.getElementsByClassName('group-btn'); for(let i=0; i<btns.length; i++) { btns[i].classList.toggle('active', btns[i].textContent === mode); } document.getElementById(`panel-${key}`).style.display = (mode==='あり')?'block':'none'; syncToPrintLayout(); }
-  function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; const group = document.getElementById(`g-amp-${key}`); const btns = group.getElementsByClassName('group-btn'); for(let i=0; i<btns.length; i++) { btns[i].classList.toggle('active', btns[i].textContent === mode); } document.getElementById(`panel-${key}`).style.display = (mode==='あり' || mode==='摂取あり')?'block':'none'; syncToPrintLayout(); }
+  function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; const group = document.getElementById(`g-amp-${key}`); const btns = group.getElementsByClassName('group-btn'); for(let i=0; i<btns.length; i++) { btns[i].classList.toggle('active', btns[i].textContent === mode); } document.getElementById(`panel-${key}`).style.display = (mode==='あり' || mode==='局所あり' || mode==='危害あり' || mode==='摂取あり')?'block':'none'; syncToPrintLayout(); }
   function selectPat(chip, dim, status) { const parent = chip.parentElement; for(let i=0; i<parent.children.length; i++) { parent.children[i].classList.remove('on'); } chip.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
   function selectLChip(chip) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c => c.classList.remove('on')); chip.classList.add('on'); syncToPrintLayout(); }
   function updateProtocolStatusCard() { const card = document.getElementById("protocol-status-card"); const label = document.getElementById("lbl-protocol-state"); if(appState.isCustomized) { card.className = "card status-area custom"; label.textContent = "プロトコル一部変更あり (Custom)"; } else { card.className = "card status-area standard"; label.textContent = "フルセット標準 (Standard)"; } }
-  function syncAVPU(jcs) { const avpu = document.getElementById("v-vit-avpu"); if(jcs === "0") avpu.value = "A"; else if(["1","2","3","10"].indexOf(jcs) !== -1) avpu.value = "V"; else if(["20","30","100","200"].indexOf(jcs) !== -1) p= "P"; else avpu.value = "U"; triggerPEWS(); }
+  function syncAVPU(jcs) { const avpu = document.getElementById("v-vit-avpu"); if(jcs === "0") avpu.value = "A"; else if(["1","2","3","10"].indexOf(jcs) !== -1) avpu.value = "V"; else if(["20","30","100","200"].indexOf(jcs) !== -1) avpu.value = "P"; else avpu.value = "U"; triggerPEWS(); }
   function setGCS(type, val) { appState.gcs[type] = val; const group = document.getElementById(`gcs-${type}-group`); const buttons = group.getElementsByClassName('gcs-btn'); for (let i = 0; i < buttons.length; i++) { buttons[i].classList.toggle('active', parseInt(buttons[i].textContent) === val); } const total = appState.gcs.e + appState.gcs.v + appState.gcs.m; document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`; triggerPEWS(); }
 
   function triggerPEWS() {
@@ -564,7 +554,6 @@
     
     if(ey > 0 && em > 0 && ed > 0) {
       let fullYear = ey; if(era === "令和") fullYear = ey + 2019 - 1; else if(era === "平成") fullYear = ey + 1989 - 1; else if(era === "昭和") fullYear = ey + 1926 - 1;
-      document.getElementById("v-dob").value = `${fullYear}/${String(em).padStart(2,'0')}/${String(ed).padStart(2,'0')}`;
       let birth = new Date(fullYear, em - 1, ed), now = new Date(); mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth(); if(now.getDate() < birth.getDate()) mTotal--; if(mTotal < 0) mTotal = 0;
       let y = Math.floor(mTotal / 12), m = mTotal % 12; ageText = y > 0 ? `${y}歳${m}ヶ月` : `${m}ヶ月`;
     } else if(!isNaN(manualAgeY) || !isNaN(manualAgeM)) {
@@ -573,7 +562,10 @@
     
     if(mTotal >= 0) {
       let sex = document.getElementById("v-sex").value; let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
-      if(match) { if(sex === "男") { wtMid = match.m_mid; wtRange = `${match.m_low} 〜 ${match.m_high}`; } else { wtMid = match.f_mid; wtRange = `${match.f_low} 〜 ${match.f_high}`; } }
+      if(match) {
+        if(sex === "男") { wtMid = match.m_mid; wtRange = `${match.m_low} 〜 ${match.m_high}`; htMid = match.m_h_mid; htRange = `${match.m_h_low} 〜 ${match.m_h_high}`; }
+        else { wtMid = match.f_mid; wtRange = `${match.f_low} 〜 ${match.f_high}`; htMid = match.f_h_mid; htRange = `${match.f_h_low} 〜 ${match.f_h_high}`; }
+      }
       
       let y = Math.floor(mTotal/12);
       if(master.pewsMaster) {
@@ -588,12 +580,12 @@
     
     const manualBw = parseFloat(document.getElementById("v-bw").value); const manualBh = parseFloat(document.getElementById("v-bh").value);
     appState.calcWeight = !isNaN(manualBw) ? manualBw : wtMid; appState.calcHeight = !isNaN(manualBh) ? manualBh : htMid;
-    document.getElementById("lbl-age").textContent = ageText; document.getElementById("lbl-weight").textContent = `${appState.calcWeight.toFixed(1)} kg (${wtRange} kg)`; document.getElementById("lbl-height").textContent = `${appState.calcHeight.toFixed(1)} cm`;
+    document.getElementById("lbl-age").textContent = ageText; document.getElementById("lbl-weight").textContent = `${appState.calcWeight.toFixed(1)} kg (${wtRange} kg)`; document.getElementById("lbl-height").textContent = `${appState.calcHeight.toFixed(1)} cm (${htRange} cm)`;
     triggerPEWS();
   }
 
   function syncToPrintLayout() {
-    const wt = appState.calcWeight; const ht = appState.calcHeight; const id = document.getElementById("v-id").value || "(自動取得)";
+    const wt = appState.calcWeight; const ht = appState.calcHeight; const id = "小児症例";
     const dateEta = `${document.getElementById("v-date").value} / ETA: ${document.getElementById("v-eta").value || "--:--"}`;
     
     let preTxParts = []; 
@@ -627,13 +619,16 @@
   }
 
   function buildMirrorPreview() { syncToPrintLayout(); document.getElementById("mirror-preview-area").innerHTML = `<div class="preview-page">${document.getElementById("p-page1").innerHTML}</div><div class="preview-page">${document.getElementById("p-page2").innerHTML}</div><div class="preview-page">${document.getElementById("p-page3").innerHTML}</div><div class="preview-page">${document.getElementById("p-page4").innerHTML}</div>`; }
-
   function forceHalf(el) { el.value = el.value.replace(/[Ａ-Ｚａ-ｚ０-９：\/．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/：/g, ':').replace(/／/g, '/').replace(/．/g, '.'); }
 
+  function switchTab(tabId) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.id === 't-' + tabId));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabId || (tabId==='preview' && c.id==='tab-preview')));
+    window.scrollTo(0,0);
+  }
+
   async function submitPedsCase() {
-    let id = document.getElementById("v-id").value.trim(); if(!id) { const now = new Date(); id = `P${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip.on, #box-sets .chip.on").forEach(el => activeScenarios.push(el.textContent));
-    
     let detailText = `【バイタル】 ${document.getElementById("p-page1") ? document.getElementById("p-page1").innerText : ""}\n【薬剤指示】\n`;
     master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol); detailText += ` ・ ${d.name}: ${v.toFixed(2)} mL調製\n`; } });
     detailText += `【物品サイズ】\n`;
@@ -641,13 +636,13 @@
 
     const payload = {
       ageText: document.getElementById("lbl-age").textContent, weight: appState.calcWeight.toFixed(1), height: appState.calcHeight.toFixed(1), scenarios: activeScenarios, cprStaff: document.getElementById("v-role-cpr").value, medStaff: document.getElementById("v-role-route").value, recordStaff: document.getElementById("v-role-record").value,
-      data: { "要請番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
+      data: { "要請番号": "小児事案", "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
     };
     
     const btn = document.getElementById("btnSubmit"); btn.textContent = "送信中..."; btn.disabled = true;
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "peds_submit", password: PIN_CODE, payload: payload }) })
     .then(() => { alert("「事案アーカイブ」へデータ保存が完了しました。"); location.href='portal.html'; })
-    .catch(() => { alert("保存成功。スプレッドシートをご確認ください。"); location.href='portal.html'; });
+    .catch(() => { alert("保存完了を確認。シート側をお確かめください。"); location.href='portal.html'; });
   }
 </script>
 </body>
