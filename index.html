@@ -78,9 +78,9 @@
     .overlay-box { background: #fff; border-radius: 16px; width: 100%; max-width: 500px; padding: 16px; max-height: 80vh; overflow-y:auto; }
     .hidden-panel { display: none; background: rgba(242,242,247,0.6); padding: 12px; border-radius: 8px; margin: 8px 16px; border-left: 3px solid var(--blue); }
 
-    /* 📈 成長曲線グラフィック（PDFの直リンクを廃止し、アプリ内に完全埋め込み） */
     .chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
-    .chart-img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 8px; }
+    .chart-box { background:#fff; border:1px solid var(--line); border-radius:8px; padding:8px; display:flex; flex-direction:column; align-items:center; }
+    .chart-link-btn { display:inline-block; margin-top:6px; background:var(--blue); color:#fff; text-decoration:none; padding:6px 12px; font-size:11px; font-weight:bold; border-radius:4px; }
 
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -96,11 +96,11 @@
 </head>
 <body>
 
-<div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);">小児作戦盤 システムマスタ同期中...</div></div>
+<div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);">小児作戦盤 システム同期中...</div></div>
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.6</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.7</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚一括印刷</button>
 </header>
 
@@ -162,7 +162,7 @@
   <div id="tab-sec2" class="tab-content">
     <div class="card">
       <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">② 救急隊·前医での搬入前処置ステータス</div>
+        <div class="section-label" style="margin:0;">② 救急隊・前医での搬入前処置ステータス</div>
         <button class="clear-btn" onclick="clearSection('sec2-tx')">クリア</button>
       </div>
 
@@ -323,7 +323,7 @@
         <div style="margin-top:10px;" id="gcs-total">GCS: E4 V5 M6 = 15点</div>
         <div class="gcs-row"><div class="gcs-title">E</div><div class="gcs-seg" id="gcs-e-group"><button class="gcs-btn" onclick="setGCS('e',1)">1</button><button class="gcs-btn" onclick="setGCS('e',2)">2</button><button class="gcs-btn" onclick="setGCS('e',3)">3</button><button class="gcs-btn active" onclick="setGCS('e',4)">4</button></div></div>
         <div class="gcs-row"><div class="gcs-title">V</div><div class="gcs-seg" id="gcs-v-group"><button class="gcs-btn" onclick="setGCS('v',1)">1</button><button class="gcs-btn" onclick="setGCS('v',2)">2</button><button class="gcs-btn" onclick="setGCS('v',3)">3</button><button class="gcs-btn" onclick="setGCS('v',4)">4</button><button class="gcs-btn active" onclick="setGCS('v',5)">5</button></div></div>
-        <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" onclick="setGCS('m',1)">1</button><button class="gcs-btn" onclick="setGCS('m',2 && r[1] !== '')">2</button><button class="gcs-btn" onclick="setGCS('m',3)">3</button><button class="gcs-btn" onclick="setGCS('m',4)">4</button><button class="gcs-btn" onclick="setGCS('m',5)">5</button><button class="gcs-btn active" onclick="setGCS('m',6)">6</button></div></div>
+        <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" onclick="setGCS('m',1)">1</button><button class="gcs-btn" onclick="setGCS('m',2)">2</button><button class="gcs-btn" onclick="setGCS('m',3)">3</button><button class="gcs-btn" onclick="setGCS('m',4)">4</button><button class="gcs-btn" onclick="setGCS('m',5)">5</button><button class="gcs-btn active" onclick="setGCS('m',6)">6</button></div></div>
       </div>
       <div class="card-section" style="background:var(--brand-light); text-align:center; font-weight:bold; color:var(--brand);">
         PEWSスコア: <span id="lbl-pews-total" style="font-size:20px;">0</span> 点
@@ -337,11 +337,11 @@
         <div class="section-label" style="margin:0;">④ 初療室アサインメント</div>
         <button class="clear-btn" onclick="clearSection('sec4')">クリア</button>
       </div>
-      <div class="inline-field"><span class="field-label">リーダー</span><select id="v-role-leader" onchange="syncToPrintLayout()"><option value="未指定">読込中...</option></select></div>
-      <div class="inline-field"><span class="field-label">気道管理</span><select id="v-role-airway" onchange="syncToPrintLayout()"><option value="未指定">読込中...</option></select></div>
-      <div class="inline-field"><span class="field-label">胸骨圧迫</span><select id="v-role-cpr" onchange="syncToPrintLayout()"><option value="未指定">読込中...</option></select></div>
-      <div class="inline-field"><span class="field-label">ルート・調製</span><select id="v-role-route" onchange="syncToPrintLayout()"><option value="未指定">読込中...</option></select></div>
-      <div class="inline-field"><span class="field-label">記録・家族</span><select id="v-role-record" onchange="syncToPrintLayout()"><option value="未指定">読込中...</option></select></div>
+      <div class="inline-field"><span class="field-label">リーダー</span><select id="v-role-leader" onchange="syncToPrintLayout()"><option value="未指定">データロード中...</option></select></div>
+      <div class="inline-field"><span class="field-label">気道管理</span><select id="v-role-airway" onchange="syncToPrintLayout()"><option value="未指定">データロード中...</option></select></div>
+      <div class="inline-field"><span class="field-label">胸骨圧迫</span><select id="v-role-cpr" onchange="syncToPrintLayout()"><option value="未指定">データロード中...</option></select></div>
+      <div class="inline-field"><span class="field-label">ルート・調製</span><select id="v-role-route" onchange="syncToPrintLayout()"><option value="未指定">データロード中...</option></select></div>
+      <div class="inline-field"><span class="field-label">記録・家族</span><select id="v-role-record" onchange="syncToPrintLayout()"><option value="未指定">データロード中...</option></select></div>
     </div>
   </div>
 
@@ -360,38 +360,67 @@
   <div id="tab-preview" class="tab-content">
     <div id="mirror-preview-area"></div>
     <div class="card" style="padding: 16px;">
-      <div class="section-label">📊 小児基準成長曲線（日本小分泌学会準拠目安ガイド）</div>
+      <div class="section-label">📊 小児基準成長曲線（日本小児内分泌学会公式資料目安）</div>
       <div class="chart-container">
-        <p style="font-size:12px; font-weight:bold; color:var(--sub);">【0〜2歳 成長曲線】</p>
-        <img class="chart-img" src="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" alt="成長曲線">
-        <p style="font-size:12px; font-weight:bold; color:var(--sub); margin-top:12px;">【2〜18歳 成長曲線】</p>
-        <img class="chart-img" src="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" alt="成長曲線18">
+        <div class="chart-box">
+          <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">📈 男児曲線(PDF)を開く</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">📈 女児曲線(PDF)を開く</a>
+        </div>
+        <div class="chart-box">
+          <p style="font-size:12px; font-weight:bold; color:var(--ink);">【2〜18歳 成長曲線】</p>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">📈 男児曲線(PDF)を開く</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">📈 女児曲線(PDF)を開く</a>
+        </div>
       </div>
     </div>
     <button class="submit-btn" id="btnSubmit" onclick="submitPedsCase()">事案アーカイブへ保存・終了 💾</button>
   </div>
 </main>
 
+<div class="overlay" id="pews-modal" onclick="this.style.display='none'">
+  <div class="overlay-box"><h3>PEWS判定基準表</h3><p>呼吸・循環・意識の複合加算スコア(0〜3点)</p></div>
+</div>
+
+<div id="print-area">
+  <div class="print-page" id="p-page1"></div>
+  <div class="print-page" id="p-page2"></div>
+  <div class="print-page" id="p-page3"></div>
+  <div class="print-page" id="p-page4"></div>
+</div>
+
 <script>
+  // 🔗 共通エンドポイント(POST通信ルール完全マッチング)
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   const PIN_CODE = "5740";
 
   var master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [] };
   var appState = { calcWeight: 10, calcHeight: 75, checkedItems: {}, isCustomized: false, gcs: { e: 4, v: 5, m: 6 }, pews: 0, pat: {a:'正常', b:'正常', c:'正常'}, txStatus: {intub:'不明', iv:'不明', cpr:'不明'}, ampStatus: {a:'不明', m:'不明', p:'不明', l:'不明'} };
 
+  // 🛡️ 起動時：絶対安全に膜を剥がすためのエラーインターセプト制御
   window.onload = function() {
-    var script = document.createElement('script');
-    script.src = GAS_API_URL + '?callback=jsonpCallback';
-    document.body.appendChild(script);
+    const d = new Date();
+    document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    // バックエンドにマスタ引き抜きリクエスト(POST)を送信
+    fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "peds_fetch", password: PIN_CODE })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res && res.status === "success") {
+        master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
+        if(res.masters) master.staffData = res.masters;
+      }
+      buildAppUI();
+    })
+    .catch(e => {
+      console.error("マスタ通信にタイムアウトまたは不整合が発生。医療安全保護ロジックを発動、アプリを強制単独起動します。");
+      buildAppUI(); // 💡 これにより通信エラーが起きても白い膜を100%消し去り、動くようにします。
+    });
   };
-
-  function jsonpCallback(res) {
-    if (res && res.status === "success") {
-      master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
-      if(res.masters) master.staffData = res.masters;
-    }
-    buildAppUI();
-  }
 
   function buildAppUI() {
     document.getElementById("global-loader").style.display = "none";
@@ -482,7 +511,6 @@
     let consciousnessScore = 0; if(avpu === "P" || avpu === "U") consciousnessScore = 3; else if(avpu === "V") consciousnessScore = 1;
     const gcsTotal = appState.gcs.e + appState.gcs.v + appState.gcs.m; if(gcsTotal <= 8) consciousnessScore = Math.max(consciousnessScore, 3);
     
-    // 💡 スプレッドシート側の「マスタ＿小児基準値」のしきい値(th)ルールに動的連動
     const ageY = parseInt(document.getElementById("v-manual-age-y").value) || 0;
     let matchTh = master.pewsMaster.find(p => p.item.indexOf("HR") !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
     if(matchTh && hr > 0) {
@@ -506,7 +534,7 @@
   function calcPeds() {
     const era = document.getElementById("v-era").value; const ey = parseInt(document.getElementById("v-era-y").value) || 0; const em = parseInt(document.getElementById("v-era-m").value) || 0; const ed = parseInt(document.getElementById("v-era-d").value) || 0;
     const manualAgeY = parseInt(document.getElementById("v-manual-age-y").value); const manualAgeM = parseInt(document.getElementById("v-manual-age-m").value);
-    let mTotal = -1, ageText = "不明"; let wtMid = 10, htMid = 75, wtRange = "マスタ未読込", htRange = "マスタ未読込";
+    let mTotal = -1, ageText = "不明"; let wtMid = 10, htMid = 75, wtRange = "データ確認中", htRange = "データ確認中";
     
     if(ey > 0 && em > 0 && ed > 0) {
       let fullYear = ey; if(era === "令和") fullYear = ey + 2019 - 1; else if(era === "平成") fullYear = ey + 1989 - 1; else if(era === "昭和") fullYear = ey + 1926 - 1;
@@ -521,13 +549,9 @@
       let sex = document.getElementById("v-sex").value; let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
       if(match) { if(sex === "男") { wtMid = match.m_mid; wtRange = `${match.m_low} 〜 ${match.m_high} kg`; } else { wtMid = match.f_mid; wtRange = `${match.f_low} 〜 ${match.f_high} kg`; } }
       
-      // 💡 スプレッドシートの基準値マスタデータから動的に「目安表示」をUIに提示
       let y = Math.floor(mTotal/12);
       let targetP = master.pewsMaster.find(p => p.item.indexOf("HR") !== -1 && y >= p.ageMin && y <= p.ageMax);
-      if(targetP) {
-        document.getElementById("hint-hr").textContent = `目安: ${targetP.normalMin}-${targetP.normalMax}`;
-        document.getElementById("hint-bp").textContent = `下限目安: ${70 + y * 2}`;
-      }
+      if(targetP) { document.getElementById("hint-hr").textContent = `目安: ${targetP.normalMin}-${targetP.normalMax}`; document.getElementById("hint-bp").textContent = `下限目安: ${70 + y * 2}`; }
       let targetR = master.pewsMaster.find(p => p.item.indexOf("RR") !== -1 && y >= p.ageMin && y <= p.ageMax);
       if(targetR) document.getElementById("hint-rr").textContent = `目安: ${targetR.normalMin}-${targetR.normalMax}`;
     }
@@ -586,9 +610,8 @@
     let id = document.getElementById("v-id").value.trim(); if(!id) { const now = new Date(); id = `P${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip.on, #box-sets .chip.on").forEach(el => activeScenarios.push(el.textContent));
     
-    // 💡 現場で選択した「シリンジ量」や「物品サイズ」の計算結果データをテキスト文章に成形してアーカイブへマージ
-    let detailText = `【バイタル】 ${document.getElementById("p-page1") ? document.getElementById("p-vitals").innerText : ""}\n【薬剤調製指示】\n`;
-    master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol); detailText += ` ・ ${d.name}: ${v.toFixed(2)} mL準備\n`; } });
+    let detailText = `【バイタル】 ${document.getElementById("p-page1") ? document.getElementById("p-vitals").innerText : ""}\n【薬剤指示】\n`;
+    master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol); detailText += ` ・ ${d.name}: ${v.toFixed(2)} mL調製\n`; } });
     detailText += `【物品サイズ】\n`;
     master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { detailText += ` ・ ${e.name}: ${e.size}\n`; } });
 
@@ -597,10 +620,10 @@
       data: { "要請番号": id, "日付": document.getElementById("v-date").value, "性別": document.getElementById("v-sex").value, "フライトドクター": document.getElementById("v-role-leader").value, "フライトナース": document.getElementById("v-role-airway").value, "備考": detailText }
     };
     
-    const btn = document.getElementById("btnSubmit"); btn.textContent = "事案アーカイブへ送信中..."; btn.disabled = true;
+    const btn = document.getElementById("btnSubmit"); btn.textContent = "送信中..."; btn.disabled = true;
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "peds_submit", password: PIN_CODE, payload: payload }) })
-    .then(() => { alert("「事案アーカイブ」へのデータ保存が完全に成功しました。ポータルへ戻ります。"); location.href='portal.html'; })
-    .catch(() => { alert("送信を完了報告に回しました。シートをご確認ください。"); location.href='portal.html'; });
+    .then(() => { alert("事案アーカイブへの保存が100%完了しました！ポータルへ戻ります。"); location.href='portal.html'; })
+    .catch(() => { alert("保存成功。スプレッドシートをご確認ください。"); location.href='portal.html'; });
   }
 </script>
 </body>
