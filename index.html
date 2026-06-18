@@ -28,7 +28,11 @@
     .section-label { font-size: 12px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
     .inline-field { display: flex; align-items: center; padding: 14px 16px; border-bottom: 0.5px solid var(--line); } .inline-field:last-child { border-bottom: none; }
     .field-label { font-size: 16px; font-weight: 600; flex: 1; }
-    select, input[type="number"], input[type="text"], input[type="date"], input[type="time"] { text-align: right; font-size: 16px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
+    select, input[type="text"], input[type="date"], input[type="time"] { text-align: right; font-size: 16px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
+    
+    /* 🔢 テンキー限定入力（StrokeNotify互換） */
+    input.num-input { text-align: right; font-size: 16px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; width: 100%; }
+    
     textarea { width: 100%; border: none; font-size: 15px; background: transparent; outline: none; resize: none; color: var(--ink); line-height: 1.5; }
     
     .acc-header { display: flex; align-items: center; padding: 16px; border-bottom: 0.5px solid var(--line); cursor: pointer; font-size: 16px; font-weight: 700; } .acc-header span { color: var(--sub); font-size: 12px; margin-left: auto; } .acc-body { display: none; padding: 16px; background: rgba(242,242,247,0.5); }
@@ -77,7 +81,7 @@
 
 <header>
   <button class="hdr-btn" onclick="location.href='portal.html'">◀ ポータル</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.3</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v1.4</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -86,12 +90,12 @@
     
     <div class="card">
       <div class="card-section"><div class="section-label">① 患者の基本情報 ＆ タイムライン</div></div>
-      <div class="inline-field"><span class="field-label">要請番号</span><input id="v-id" type="number" inputmode="numeric" placeholder="未入力で自動生成"></div>
+      <div class="inline-field"><span class="field-label">要請番号</span><input id="v-id" class="num-input" type="text" inputmode="numeric" pattern="[0-9]*" placeholder="数字のみ・自動採番"></div>
       <div class="inline-field" onclick="document.getElementById('v-date').showPicker()"><span class="field-label">搬入日</span><input type="date" id="v-date"></div>
       <div class="inline-field" onclick="document.getElementById('v-eta').showPicker()"><span class="field-label">搬入予定時刻 (ETA)</span><input type="time" id="v-eta"></div>
       <div class="inline-field"><span class="field-label">性別</span><select id="v-sex" onchange="calcPeds()"><option value="不明">不明</option><option value="男">男</option><option value="女">女</option></select></div>
-      <div class="inline-field" onclick="document.getElementById('v-dob').showPicker()"><span class="field-label">生年月日</span><input type="date" id="v-dob" onchange="calcPeds()"></div>
-      <div class="inline-field"><span class="field-label">実測体重 (kg)</span><input type="number" id="v-bw" placeholder="未入力時は自動換算" step="0.1" onchange="calcPeds()"></div>
+      <div class="inline-field"><span class="field-label">生年月日 (手入力/カレンダー可)</span><input type="text" id="v-dob" placeholder="YYYY/MM/DD またはカレンダー選択" onchange="calcPeds()" style="text-align:right;"><input type="date" id="v-dob-cal" onchange="document.getElementById('v-dob').value=this.value.replace(/-/g,'/'); calcPeds();" style="width:40px; flex:none; margin-left:4px;"></div>
+      <div class="inline-field"><span class="field-label">実測体重 (kg)</span><input type="text" id="v-bw" class="num-input" inputmode="decimal" placeholder="自動換算" onchange="calcPeds()"></div>
       
       <div class="card-section" style="padding-top:0;">
         <div class="metric-row">
@@ -106,10 +110,10 @@
       <div class="acc-header" onclick="toggleAcc('acc-ample')">📝 ② 事前情報・現病歴・AMPLE <span>▼</span></div>
       <div class="acc-body" id="acc-ample">
         <div class="inline-field" style="padding:10px 0;" onclick="document.getElementById('v-onset').showPicker()"><span class="field-label" style="font-size:14px;">発症/要請時刻</span><input type="time" id="v-onset" style="font-size:14px;"></div>
-        <div class="card-section" style="padding:10px 0 12px 0;"><textarea id="v-preinfo" rows="3" placeholder="救急隊からの事前連絡、主訴、搬入経緯など..."></textarea></div>
+        <div class="card-section" style="padding:10px 0 12px 0;"><textarea id="v-preinfo" rows="4" placeholder="【要請経緯・主訴】&#10;【挿入物】(気管チューブ、末梢ラインなど)&#10;【事前投与薬】(前医や救急隊での投与薬剤)&#10;【処置内容】(心マ、BVM、電気ショックなど)"></textarea></div>
         <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">(A) アレルギー</span><input type="text" id="v-amp-a" style="font-size:14px;"></div>
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">(M) 内服薬/前医投与</span><input type="text" id="v-amp-m" style="font-size:14px;"></div>
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">(P) 既往歴</span><input type="text" id="v-amp-p" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">(M) 内服薬/定期薬</span><input type="text" id="v-amp-m" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">(P) 既往歴/合併症</span><input type="text" id="v-amp-p" style="font-size:14px;"></div>
         <div class="inline-field" style="padding:10px 0; border:none;"><span class="field-label" style="font-size:14px;">(L) 最終食事時刻</span><input type="text" id="v-amp-l" style="font-size:14px;"></div>
       </div>
     </div>
@@ -117,13 +121,21 @@
     <div class="card" style="padding:0;">
       <div class="acc-header" onclick="toggleAcc('acc-vital')">📊 ③ バイタルサイン ＆ 意識レベル (GCS) <span>▼</span></div>
       <div class="acc-body" id="acc-vital">
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">心拍数 (HR)</span><input type="number" id="v-vit-hr" placeholder="/min" style="font-size:14px;"></div>
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">SpO2</span><input type="number" id="v-vit-spo2" placeholder="%" style="font-size:14px;"></div>
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">呼吸数 (RR)</span><input type="number" id="v-vit-rr" placeholder="/min" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">心拍数 (HR)</span><input type="text" id="v-vit-hr" class="num-input" inputmode="numeric" pattern="[0-9]*" placeholder="/min" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">SpO2</span><input type="text" id="v-vit-spo2" class="num-input" inputmode="numeric" pattern="[0-9]*" placeholder="%" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">呼吸数 (RR)</span><input type="text" id="v-vit-rr" class="num-input" inputmode="numeric" pattern="[0-9]*" placeholder="/min" style="font-size:14px;"></div>
         <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">血圧 (BP)</span><input type="text" id="v-vit-bp" placeholder="100/60" style="font-size:14px;"></div>
-        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">体温 (BT)</span><input type="number" id="v-vit-bt" placeholder="℃" step="0.1" style="font-size:14px;"></div>
+        <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">体温 (BT)</span><input type="text" id="v-vit-bt" class="num-input" inputmode="decimal" placeholder="℃" style="font-size:14px;"></div>
         <div class="inline-field" style="padding:10px 0;"><span class="field-label" style="font-size:14px;">JCS</span><input type="text" id="v-vit-jcs" placeholder="300" style="font-size:14px;"></div>
         
+        <div class="card-section" style="padding:12px 0; border-bottom:0.5px solid var(--line);">
+          <div class="section-label" style="margin-bottom:6px;">酸素投与デバイス ＆ 流量</div>
+          <div class="grid-2">
+            <select id="v-ox-device" onchange="syncToPrintLayout()"><option value="なし">なし (RA)</option><option value="経鼻カニューラ">経鼻カニューラ</option><option value="簡易マスク">簡易マスク</option><option value="リザーバーマスク">リザーバーマスク</option><option value="HFNC">高流量鼻カニューラ(HFNC)</option><option value="BVM/人工呼吸">BVM / 人工呼吸管理</option></select>
+            <select id="v-ox-flow" onchange="syncToPrintLayout()"><option value="-">流量選択...</option><option value="0.5 L/min">0.5 L/min</option><option value="1 L/min">1 L/min</option><option value="2 L/min">2 L/min</option><option value="3 L/min">3 L/min</option><option value="4 L/min">4 L/min</option><option value="5 L/min">5 L/min</option><option value="6 L/min">6 L/min</option><option value="8 L/min">8 L/min</option><option value="10 L/min">10 L/min</option><option value="12 L/min">12 L/min</option><option value="15 L/min">15 L/min</option></select>
+          </div>
+        </div>
+
         <div class="card-section" style="padding:12px 0 0 0;">
           <div class="section-label" style="margin-bottom:6px;">GCS スコア自動連動: <span id="gcs-total" style="color:var(--brand); font-size:16px; font-weight:800;">E4 V5 M6 = 15点</span></div>
           <div class="gcs-row">
@@ -150,11 +162,11 @@
 
     <div class="card">
       <div class="card-section"><div class="section-label">④ チーム編成・役割分担</div></div>
-      <div class="inline-field"><span class="field-label">リーダー</span><select id="v-role-leader"><option value="">選択...</option></select></div>
-      <div class="inline-field"><span class="field-label">気道管理</span><select id="v-role-airway"><option value="">選択...</option></select></div>
-      <div class="inline-field"><span class="field-label">胸骨圧迫</span><select id="v-role-cpr"><option value="">選択...</option></select></div>
-      <div class="inline-field"><span class="field-label">ルート・薬剤</span><select id="v-role-route"><option value="">選択...</option></select></div>
-      <div class="inline-field"><span class="field-label">記録・家族</span><select id="v-role-record"><option value="">選択...</option></select></div>
+      <div class="inline-field"><span class="field-label">リーダー</span><select id="v-role-leader"><option value="">同期中...</option></select></div>
+      <div class="inline-field"><span class="field-label">気道管理</span><select id="v-role-airway"><option value="">同期中...</option></select></div>
+      <div class="inline-field"><span class="field-label">胸骨圧迫</span><select id="v-role-cpr"><option value="">同期中...</option></select></div>
+      <div class="inline-field"><span class="field-label">ルート・薬剤</span><select id="v-role-route"><option value="">同期中...</option></select></div>
+      <div class="inline-field"><span class="field-label">記録・家族</span><select id="v-role-record"><option value="">同期中...</option></select></div>
     </div>
 
     <div class="card">
@@ -186,12 +198,13 @@
 <div id="print-area">
   <div class="p-header">小児救急・蘇生事前準備作戦盤</div>
   <div class="p-section">
-    <div class="p-sec-title">【1】 症例基本情報 ＆ AMPLE</div>
+    <div class="p-sec-title">【1】 症例基本情報 ＆ AMPLE ＆ 酸素ステータス</div>
     <table class="p-table">
       <tr><th>要請番号</th><td id="p-id" class="val-bold"></td><th>日付 / ETA</th><td id="p-date-eta"></td></tr>
       <tr><th>生年月日 / 性別</th><td id="p-age-sex"></td><th>換算用基準体重</th><td id="p-weight" class="val-bold" style="font-size:16px; color:#d32f2f;"></td></tr>
       <tr><th>バイタル / 意識</th><td id="p-vitals"></td><th>発症時刻</th><td id="p-onset"></td></tr>
-      <tr><th>救急隊現病歴</th><td colspan="3" id="p-preinfo" style="white-space:pre-wrap;"></td></tr>
+      <tr><th>酸素投与</th><td colspan="3" id="p-oxygen" class="val-bold"></td></tr>
+      <tr><th>救急隊現病歴・処置</th><td colspan="3" id="p-preinfo" style="white-space:pre-wrap;"></td></tr>
       <tr><th>AMPLE</th><td colspan="3" id="p-ample"></td></tr>
     </table>
   </div>
@@ -220,7 +233,7 @@
 </div>
 
 <script>
-  // 固定されたウェブアプリURL
+  // 共通のウェブアプリURL
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   const PIN_CODE = "5740";
 
@@ -231,30 +244,29 @@
     const d = new Date();
     document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     
-    // 【通信処理の統合】GASから返ってきた梱包データ（res）を展開
-    fetch(GAS_API_URL)
-      .then(response => response.json())
-      .then(res => {
-        if (res && res.status === "success") {
-          master.drugs = res.drugs || [];
-          master.equipment = res.equipment || [];
-          master.scenarios = res.scenarios || [];
-          master.weightMaster = res.weightMaster || [];
-          
-          if(res.masters && res.masters.dr && res.masters.ns) {
-            let mergedStaff = [];
-            res.masters.dr.forEach(name => mergedStaff.push({dept:"フライトDr", name:name}));
-            res.masters.ns.forEach(name => mergedStaff.push({dept:"フライトNs", name:name}));
-            master.staff = mergedStaff;
-          }
-        }
-        buildAppUI();
-      })
-      .catch(err => {
-        console.error("通信エラー。保険として内蔵モックで起動します。");
-        buildAppUI();
-      });
+    // 🌐 CORS制限を100%突破するJSONP通信処理
+    var script = document.createElement('script');
+    script.src = GAS_API_URL + '?callback=jsonpCallback';
+    document.body.appendChild(script);
   };
+
+  // セキュリティ突破後のデータ流し込み口
+  function jsonpCallback(res) {
+    if (res && res.status === "success") {
+      master.drugs = res.drugs || [];
+      master.equipment = res.equipment || [];
+      master.scenarios = res.scenarios || [];
+      master.weightMaster = res.weightMaster || [];
+      
+      if(res.masters && res.masters.dr && res.masters.ns) {
+        let mergedStaff = [];
+        res.masters.dr.forEach(name => mergedStaff.push({dept:"フライトDr", name:name}));
+        res.masters.ns.forEach(name => mergedStaff.push({dept:"フライトNs", name:name}));
+        master.staff = mergedStaff;
+      }
+    }
+    buildAppUI();
+  }
 
   function buildAppUI() {
     document.getElementById("global-loader").style.display = "none";
@@ -279,6 +291,7 @@
           appState.checkedItems[itemName] = isOn;
           let itemChip = document.getElementById(`c-${itemName}`); if(itemChip) itemChip.classList.toggle('on', isOn);
         });
+        syncToPrintLayout();
       };
       sBox.appendChild(chip);
     });
@@ -287,7 +300,7 @@
     dBox.innerHTML = "";
     master.drugs.forEach(d => {
       let chip = document.createElement('div'); chip.className = "chip med"; chip.id = `c-${d.name}`; chip.textContent = d.name;
-      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[d.name] = chip.classList.contains('on'); };
+      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[d.name] = chip.classList.contains('on'); syncToPrintLayout(); };
       dBox.appendChild(chip);
     });
 
@@ -296,7 +309,7 @@
     let uniqEquip = [...new Set(master.equipment.map(e => e.name))];
     uniqEquip.forEach(name => {
       let chip = document.createElement('div'); chip.className = "chip med"; chip.id = `c-${name}`; chip.textContent = name;
-      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); };
+      chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); syncToPrintLayout(); };
       eBox.appendChild(chip);
     });
 
@@ -312,6 +325,7 @@
     }
     const total = appState.gcs.e + appState.gcs.v + appState.gcs.m;
     document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`;
+    syncToPrintLayout();
   }
 
   function toggleAcc(id) { const el = document.getElementById(id); el.style.display = el.style.display === "block" ? "none" : "block"; }
@@ -355,6 +369,9 @@
     document.getElementById("p-onset").textContent = document.getElementById("v-onset").value || "--:--";
     document.getElementById("p-preinfo").textContent = document.getElementById("v-preinfo").value || "特記事項なし";
     document.getElementById("p-ample").textContent = `A: ${document.getElementById("v-amp-a").value || "-"} / M: ${document.getElementById("v-amp-m").value || "-"} / P: ${document.getElementById("v-amp-p").value || "-"} / L: ${document.getElementById("v-amp-l").value || "-"}`;
+
+    // 酸素表示
+    document.getElementById("p-oxygen").textContent = `デバイス: ${document.getElementById("v-ox-device").value} ｜ 流量: ${document.getElementById("v-ox-flow").value}`;
 
     const gcsSum = appState.gcs.e + appState.gcs.v + appState.gcs.m;
     document.getElementById("p-vitals").innerHTML = `HR: ${document.getElementById("v-vit-hr").value || "-"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "-"}% ｜ BP: ${document.getElementById("v-vit-bp").value || "-"} ｜ BT: ${document.getElementById("v-vit-bt").value || "-"}℃<br><b>GCS:</b> ${gcsSum}点 (E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}) ｜ <b>JCS:</b> ${document.getElementById("v-vit-jcs").value || "-"}`;
@@ -415,14 +432,13 @@
         "要請番号": id, "日付": document.getElementById("v-date").value, "出場先": "小児緊急初療室",
         "フライトドクター": document.getElementById("v-role-leader").value || "未定", "フライトナース": document.getElementById("v-role-airway").value || "未定",
         "スキーム選択": "小児作戦盤アプリより入力", "接触": document.getElementById("v-onset").value, "病着": document.getElementById("v-eta").value, "終了": "",
-        "備考": `【年齢】${document.getElementById("lbl-age").textContent}\n【計算体重】${document.getElementById("lbl-weight").textContent}\n【事前・AMPLE】${document.getElementById("v-preinfo").value}\n【バイタル】HR:${document.getElementById("v-vit-hr").value}, SpO2:${document.getElementById("v-vit-spo2").value}, GCS:${gcsSum}(E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}), JCS:${document.getElementById("v-vit-jcs").value}\n【アサイン】CPR:${document.getElementById("v-role-cpr").value}, 薬剤:${document.getElementById("v-role-route").value}`
+        "備考": `【年齢】${document.getElementById("lbl-age").textContent}\n【計算体重】${document.getElementById("lbl-weight").textContent}\n【酸素】${document.getElementById("v-ox-device").value} (${document.getElementById("v-ox-flow").value})\n【事前・AMPLE】${document.getElementById("v-preinfo").value}\n【バイタル】HR:${document.getElementById("v-vit-hr").value}, SpO2:${document.getElementById("v-vit-spo2").value}, GCS:${gcsSum}(E${appState.gcs.e}V${appState.gcs.v}M${appState.gcs.m}), JCS:${document.getElementById("v-vit-jcs").value}\n【アサイン】CPR:${document.getElementById("v-role-cpr").value}, 薬剤:${document.getElementById("v-role-route").value}`
       }
     };
 
     const btn = document.getElementById("btnSubmit");
     btn.textContent = "スプレッドシートへ書き込み中... 🚁"; btn.disabled = true;
     try {
-      // 外部通信用Fetch APIに統一
       await fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
       alert("スプレッドシートへ症例レコードを保管しました！"); location.href='portal.html';
     } catch(e) {
