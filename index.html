@@ -15,10 +15,10 @@
     body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
     header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: env(safe-area-inset-top); padding-left: 16px; padding-right: 16px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
     .tab-container { position: fixed; top: calc(56px + env(safe-area-inset-top)); left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; } .tab-container::-webkit-scrollbar { display: none; }
-    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     main { margin-top: calc(100px + env(safe-area-inset-top)); margin-bottom: 60px; padding: 16px; }
     .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .title-box { text-align: center; font-weight: 800; font-size: 15px; } .version-tag { font-size: 9px; color: var(--brand); background: var(--brand-light); padding: 2px 4px; border-radius: 4px; margin-left: 2px; }
+    .title-box { text-align: center; font-weight: 800; font-size: 15px; } .version-tag { font-size: 9px; color: var(--brand); background: var(--brand-light); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
     
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
     .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
@@ -27,17 +27,17 @@
     .inline-field { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--line); } .inline-field:last-child { border-bottom: none; }
     .field-label { font-size: 14px; font-weight: 600; flex: 1; }
     .normal-range-hint { font-size: 11px; color: var(--blue); font-weight: bold; margin-left: 8px; }
-    input[type="text"], input[type="date"], input[type="time"], select { text-align: right; font-size: 15px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
+    select, input[type="text"], input[type="date"], input[type="time"] { text-align: right; font-size: 15px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
     input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 6px; border-radius: 6px; width: 60px; border: none; color: var(--blue); outline: none; font-weight: 600; }
-    textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; resize: none; color: var(--ink); line-height: 1.5; padding: 8px; border-radius: 8px; }
+    textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; resize: none; color: var(--ink); line-height: 1.5; padding: 10px; border-radius: 8px; }
     
     .btn-group { display: flex; flex-wrap: wrap; gap: 4px; background: #e5e5ea; padding: 4px; border-radius: 8px; }
-    .group-btn { flex: 1; border: none; background: transparent; padding: 8px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--sub); text-align: center; }
+    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 13px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--sub); text-align: center; }
     .group-btn.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .group-btn.alert-mode.active { background: var(--brand); color: #fff; }
     
     .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } 
-    .chip { border: 1px solid var(--line); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); } 
+    .chip { border: 1px solid var(--line); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition: 0.15s; } 
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
     .chip-blue { background: var(--card); } .chip-blue.on { background: var(--med-blue); border-color: var(--blue); color: var(--med-blue-text); }
     .chip-blue.on.modified { background: var(--warn-light); border-color: #d48806; color: #d48806; }
@@ -59,7 +59,8 @@
     .staff-check { width: 22px; height: 22px; cursor: pointer; }
 
     .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
-    .clear-btn { background: var(--sub); color: #fff; padding: 6px 10px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
+    .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
+    .clear-btn { background: var(--sub); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
     
     .v-alert-1 { background-color: #fff9db !important; color: #856404 !important; font-weight: bold; }
     .v-alert-2 { background-color: #f8d7da !important; color: #721c24 !important; font-weight: bold; }
@@ -84,11 +85,12 @@
 <body>
 
 <div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-dob" value=""><input id="v-vit-jcs" value="不明"></div>
+
 <div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);">小児作戦盤 起動中...</div></div>
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v3.1</span></div>
+  <div class="title-box">小児救急・蘇生作戦盤<span class="version-tag">Peds v3.3</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚印刷</button>
 </header>
 
@@ -439,6 +441,7 @@
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   const PIN_CODE = "5740";
 
+  // 🏥 病院データベース
   const HOSPITAL_DB = {
     peds_clinic: ["らららこどもクリニック（中央町）","かごしまたんぽぽ小児科（東郡元町）","かわかみこどもクリニック（上荒田町）","あおぞら小児科（草牟田）","にのみや小児科・ひふ科（中山）","小児科上笹貫医院（武岡 / 上笹貫町）","ゆあさこどもクリニック（宇宿）","大坪こどもクリニック（田上）","すず小児科（中山町）","豊島小児科（山田町）","さめしま小児科（山之口町）","今村小児科アレルギー科（宇宿）","きくうら小児科（原良）","サンタこどもクリニック（和田）","ニュータウン小児科（伊敷台）","上村医院（和田）","武ファミリー内科クリニック（西千石町）","西田そよかぜクリニック（薬師）"],
     multi_clinic: ["紫原たはら医院（紫原）","つるどめクリニック（田上台）","おけたにクリニック（おとなとこどもの整形外科）（鴨池）","国東内科小児科（山之口町）","徳永クリニック内科・小児科（小松原）","すえもりクリニック（下荒田）","産業保健メディカルクリニック（東谷山）"],
@@ -459,6 +462,22 @@
     staffRoles: {leader:[], airway:[], cpr:[], route:[], record:[]} 
   };
 
+  // 放置確認ロジック
+  let lastActionTime = Date.now();
+  let idlePromptShown = false;
+  document.addEventListener('click', () => { lastActionTime = Date.now(); idlePromptShown = false; });
+  document.addEventListener('input', () => { lastActionTime = Date.now(); idlePromptShown = false; });
+  setInterval(() => {
+    if(!idlePromptShown && Date.now() - lastActionTime > 3600000) { // 1時間
+      idlePromptShown = true;
+      if(confirm("前回の操作から1時間が経過しました。\n新しい患者の事案ですか？\n「OK」を押すと全消去して新規作成します。")) {
+        location.reload();
+      } else {
+        lastActionTime = Date.now();
+      }
+    }
+  }, 60000);
+
   document.addEventListener('keydown', function(e) {
     if(e.key === 'Enter') {
       if(e.target.tagName === 'INPUT' && e.target.type !== 'submit' && e.target.type !== 'button') {
@@ -473,10 +492,7 @@
   window.onload = function() {
     const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     var script = document.createElement('script'); script.src = GAS_API_URL + "?callback=jsonpCallback"; document.body.appendChild(script);
-    
-    // 初期状態でフリー枠を1行追加しておく
-    addFreeStaffRow();
-
+    addFreeStaffRow(); 
     setTimeout(function() { if(document.getElementById("global-loader").style.display !== "none") { document.getElementById("global-loader").style.display = "none"; buildAppUI(); } }, 3500);
   };
 
@@ -487,6 +503,28 @@
     }
     document.getElementById("global-loader").style.display = "none";
     buildAppUI();
+  }
+
+  function updateCustomStatus() {
+    let isCustom = false;
+    // 選択されている薬品・物品がシナリオ由来と完全に一致しているかチェック
+    let activeScenarioItems = [];
+    document.querySelectorAll('#box-scenarios .chip.on, #box-sets .chip.on').forEach(sChip => {
+      let sc = master.scenarios.find(s => s.name === sChip.textContent);
+      if(sc) activeScenarioItems = activeScenarioItems.concat(sc.items);
+    });
+    
+    document.querySelectorAll('#box-drugs .chip, #box-equip .chip').forEach(c => {
+      let isItemOn = c.classList.contains('on');
+      let isScenarioItem = activeScenarioItems.includes(c.dataset.name);
+      if(isItemOn && !isScenarioItem) isCustom = true; // シナリオ外のものが追加されている
+      if(!isItemOn && isScenarioItem) isCustom = true; // シナリオ内のものが外されている
+    });
+
+    appState.isCustomized = isCustom;
+    document.querySelectorAll('#box-scenarios .chip.on, #box-sets .chip.on').forEach(c => {
+      c.classList.toggle('modified', isCustom);
+    });
   }
 
   function buildAppUI() {
@@ -503,7 +541,7 @@
         </tr>
       `).join("");
     } else {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータが読み込めません</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータがありません</td></tr>`;
     }
 
     const setBox = document.getElementById("box-sets"); setBox.innerHTML = "";
@@ -512,13 +550,12 @@
       if(!s.name) return;
       let chip = document.createElement('div'); chip.className = "chip chip-blue"; chip.textContent = s.name;
       chip.onclick = function() {
-        chip.classList.toggle('on'); chip.classList.remove('modified');
-        let isOn = chip.classList.contains('on');
+        chip.classList.toggle('on'); let isOn = chip.classList.contains('on');
         s.items.forEach(itemName => {
           appState.checkedItems[itemName] = isOn;
           let itemChip = document.querySelector(`.chip[data-name="${itemName}"]`); if(itemChip) itemChip.classList.toggle('on', isOn);
         });
-        calcPeds();
+        updateCustomStatus(); calcPeds();
       };
       if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
     });
@@ -526,12 +563,10 @@
     const dBox = document.getElementById("box-drugs"); dBox.innerHTML = "";
     master.drugs.forEach(d => {
       if(!d.name) return;
-      // 💡 ボタン名（btnName）と正式名称（name）を分ける
       let chip = document.createElement('div'); chip.className = "chip chip-yellow"; chip.dataset.name = d.name; chip.textContent = d.btnName || d.name;
       chip.onclick = function() { 
         chip.classList.toggle('on'); appState.checkedItems[d.name] = chip.classList.contains('on'); 
-        document.querySelectorAll('#box-scenarios .chip.on, #box-sets .chip.on').forEach(c => c.classList.add('modified'));
-        appState.isCustomized = true; calcPeds(); 
+        updateCustomStatus(); calcPeds(); 
       };
       dBox.appendChild(chip);
     });
@@ -542,8 +577,7 @@
       let chip = document.createElement('div'); chip.className = "chip chip-yellow"; chip.dataset.name = name; chip.textContent = name;
       chip.onclick = function() { 
         chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); 
-        document.querySelectorAll('#box-scenarios .chip.on, #box-sets .chip.on').forEach(c => c.classList.add('modified'));
-        appState.isCustomized = true; calcPeds(); 
+        updateCustomStatus(); calcPeds(); 
       };
       eBox.appendChild(chip);
     });
@@ -581,7 +615,6 @@
   function setOriginMode(m) {
     document.querySelectorAll('#g-case-origin .group-btn').forEach(b => b.classList.toggle('active', b.dataset.val === m));
     document.getElementById("card-referral-selector").style.display = (m === '紹介受入') ? 'block' : 'none';
-    syncToPrintLayout();
   }
 
   function expandHosp(cat, btn) {
@@ -599,13 +632,13 @@
     const kw = chip.textContent; 
     if(chip.classList.contains('on')){ if(!appState.keywords.includes(kw)) appState.keywords.push(kw); } 
     else { appState.keywords = appState.keywords.filter(k=>k!==kw); } 
-    syncToPrintLayout(); 
+    syncToPrintLayout();
   }
 
   function setTxMain(mode) { 
     document.querySelectorAll('#g-tx-main .group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===mode)); 
     document.getElementById("panel-tx-details").style.display = mode==='あり'?'block':'none'; 
-    syncToPrintLayout(); 
+    syncToPrintLayout();
   }
 
   function setConsciousnessTab(m) { 
@@ -623,7 +656,7 @@
       if(g) g.querySelectorAll('.group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===(k==='l'?'絶食':'なし'))); 
       const p = document.getElementById(`panel-amp-${k}`); if(p) p.style.display='none'; 
     }); 
-    syncToPrintLayout(); 
+    syncToPrintLayout();
   }
 
   function syncCalToEra(val) {
@@ -654,8 +687,8 @@
   function clearAllData(ask) { if(ask && confirm("全データをリセットしますか？")) location.reload(); }
   
   function tBtn(gId, val) { const g=document.getElementById(gId); if(!g)return; g.querySelectorAll('.group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val)); syncToPrintLayout(); }
-  function tPanel(pId, show) { if(pId) document.getElementById(pId).style.display = show?'block':'none'; syncToPrintLayout(); }
-  function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; tBtn(`g-amp-${key}`, mode); tPanel(`panel-amp-${key}`, mode==='あり'||mode==='摂取あり'); }
+  function tPanel(pId, show) { if(pId) document.getElementById(pId).style.display = show?'block':'none'; }
+  function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; tBtn(`g-amp-${key}`, mode); tPanel(`panel-amp-${key}`, mode==='あり'||mode==='摂取あり'); syncToPrintLayout(); }
   function selectPat(chip, dim, status) { const parent = chip.parentElement; parent.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); chip.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
   function selectLChip(chip) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c=>c.classList.remove('on')); chip.classList.add('on'); syncToPrintLayout(); }
   function sChip(gId, val) { document.querySelectorAll(`#cg-${gId} .chip`).forEach(c=>c.classList.remove('on')); event.target.classList.add('on'); document.getElementById("v-vit-jcs").value = val; triggerPEWS(); }
@@ -785,7 +818,6 @@
 
       const sexEl = document.querySelector('#g-sex .active'); const sexStr = sexEl ? sexEl.textContent : "不明";
 
-      // 役割分担のリアルタイム計算（フリー枠含む）
       let roles = {leader:[], airway:[], cpr:[], route:[], record:[]};
       document.querySelectorAll('#staff-tbody .staff-check:checked').forEach(cb => { roles[cb.dataset.role].push(cb.dataset.name); });
       document.querySelectorAll('#free-staff-tbody .free-staff-row').forEach(tr => {
@@ -796,33 +828,58 @@
 
       document.getElementById("p-page1").innerHTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>基準計算体重</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>目安身長</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td colspan="3">${roles.record.join(', ')||"未指定"}</td></tr></table></div>`;
 
-      // 2枚目 (シリンジ調製指示書)
-      let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (wt>0) ? (d.stdDose * wt) / (d.concMg / d.concVol) : 0; dRows2 += `<tr><td><b>${d.name}</b></td><td class="p-large-text" style="color:var(--blue);">${v.toFixed(2)} mL</td><td>ボトル等からシリンジに <b>${v.toFixed(2)} mL</b> を吸引調製。</td></tr>`; } });
+      let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (wt>0) ? (d.stdDose * wt) / (d.concMg / d.concVol) : 0; dRows2 += `<tr><td><b>${d.name}</b></td><td class="p-large-text" style="color:var(--blue);">${v.toFixed(2)} mL</td><td>${d.comp||'-'} <br>${d.note||'-'}</td></tr>`; } });
       document.getElementById("p-page2").innerHTML = ` <div class="p-title">小児救急事前準備作戦盤 【2. 薬剤準備シリンジ調製指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>指示対象 薬剤名</th><th style="width:25%;">シリンジ実吸引液量</th><th>組成・希釈方法 / 備考</th></tr></thead><tbody>${dRows2 || '<tr><td colspan="3" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
-      // 3枚目 (換算表形式)
       let dRows3 = ""; master.drugs.forEach(d => { 
         if(appState.checkedItems[d.name]) { 
           if(d.type === "持続薬") {
-             let trs = `<tr><td><b>持続</b></td><td><b>${d.name}</b></td><td colspan="3">${d.note}</td></tr>`;
-             trs += `<tr><th style="background:#fffde6;">流量(mL/h)</th><td style="background:#fffde6;font-weight:bold;">1.0</td><td style="background:#fffde6;font-weight:bold;">2.0</td><td style="background:#fffde6;font-weight:bold;">3.0</td><td style="background:#fffde6;font-weight:bold;">4.0</td></tr>`;
-             trs += `<tr><th>投与量(${d.unit})</th><td colspan="4">※持続薬プロトコル表参照</td></tr>`;
+             let trs = `<tr><td><b>持続</b></td><td><b>${d.name}</b> <br><span style="font-size:10px;">${d.comp||''}</span></td><td colspan="3">${d.note||'-'}</td></tr>`;
+             trs += `<tr><th style="background:#fffde6;">${d.unit}</th>`;
+             for(let i=0; i<5; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; }
+             trs += `</tr><tr><th>mL/h</th>`;
+             for(let i=0; i<5; i++){
+                let val = "-";
+                if(d.steps[i] && wt>0 && d.concMg && d.concVol) {
+                   let concU_mL = (d.concMg / d.concVol) * 1000;
+                   let flow = (d.steps[i] * wt * 60) / concU_mL;
+                   if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol);
+                   val = flow.toFixed(2);
+                }
+                trs += `<td>${val}</td>`;
+             }
+             trs += `</tr>`;
+             
+             trs += `<tr><th style="background:#fffde6;">${d.unit}</th>`;
+             for(let i=5; i<10; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; }
+             trs += `</tr><tr><th>mL/h</th>`;
+             for(let i=5; i<10; i++){
+                let val = "-";
+                if(d.steps[i] && wt>0 && d.concMg && d.concVol) {
+                   let concU_mL = (d.concMg / d.concVol) * 1000;
+                   let flow = (d.steps[i] * wt * 60) / concU_mL;
+                   if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol);
+                   val = flow.toFixed(2);
+                }
+                trs += `<td>${val}</td>`;
+             }
+             trs += `</tr>`;
              dRows3 += trs;
           } else {
-             let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0) ? dose / (d.concMg / d.concVol) : 0; 
-             dRows3 += `<tr><td><b>単発</b></td><td><b>${d.name}</b></td><td>${dose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限量: ${d.maxDose} ${d.unit} <br> ${d.note}</td></tr>`; 
+             let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0; 
+             let cntText = (d.maxDose < 9999 && dose>0) ? `<br><span style="color:var(--brand);font-size:10px;">上限(${d.maxDose}${d.unit})迄 約${Math.floor(d.maxDose/dose)}回可</span>` : "";
+             dRows3 += `<tr><td><b>単発</b></td><td><b>${d.name}</b></td><td>${dose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限量: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit} ${cntText} <br> ${d.note||'-'}</td></tr>`; 
           }
         } 
       });
       document.getElementById("p-page3").innerHTML = `<div class="p-title">小児救急事前準備作戦盤 【3. ベッドサイド静注投与量クイック表】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>区分</th><th>静注薬剤名</th><th>実投与 用量</th><th>実際のIV静注液量</th><th>上限量 / 注意点</th></tr></thead><tbody>${dRows3 || '<tr><td colspan="5" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
-      // 4枚目
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       document.getElementById("p-page4").innerHTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【4. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
-      let isCustom = false;
-      document.querySelectorAll('#box-drugs .chip, #box-equip .chip').forEach(c => { if(c.classList.contains('on')) isCustom = true; });
-      appState.isCustomized = isCustom;
+      document.getElementById("p-page2").classList.toggle('status-custom', appState.isCustomized);
+      document.getElementById("p-page3").classList.toggle('status-custom', appState.isCustomized);
+      document.getElementById("p-page4").classList.toggle('status-custom', appState.isCustomized);
       
     } catch(e) {
       console.warn("プレビュー生成エラー:", e);
@@ -835,8 +892,6 @@
       document.getElementById("mirror-preview-area").innerHTML = `<div class="preview-page ${appState.isCustomized?'status-custom':''}">${document.getElementById("p-page1").innerHTML}</div><div class="preview-page ${appState.isCustomized?'status-custom':''}">${document.getElementById("p-page2").innerHTML}</div><div class="preview-page ${appState.isCustomized?'status-custom':''}">${document.getElementById("p-page3").innerHTML}</div><div class="preview-page ${appState.isCustomized?'status-custom':''}">${document.getElementById("p-page4").innerHTML}</div>`; 
     } catch(e) {}
   }
-  
-  function forceHalf(el) { el.value = el.value.replace(/[Ａ-Ｚａ-ｚ０-９：\/．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/[^0-9.]/g,''); }
 
   function switchTab(tabId) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(tabId.replace('sec',''))));
@@ -858,20 +913,17 @@
     
     document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; document.getElementById("btnSubmit").disabled = true;
     
-    // JSONP通信（安全に送信し、完了後にリロードしてリセット）
-    const script = document.createElement('script'); 
-    const ep = encodeURIComponent(JSON.stringify({ action: "peds_submit", password: PIN_CODE, payload: payload }));
-    script.src = GAS_API_URL + "?callback=submitCallback&payload=" + ep; 
-    document.body.appendChild(script);
-    
-    // 念のためのタイムアウト
-    setTimeout(() => { location.reload(); }, 5000);
+    const script = document.createElement('script'); const ep = encodeURIComponent(JSON.stringify({ action: "peds_submit", password: PIN_CODE, payload: payload }));
+    script.src = GAS_API_URL + "?callback=submitCallback&payload=" + ep; document.body.appendChild(script);
   }
   
   function submitCallback(res) { 
-    if(res && res.status==="success") alert("「事案アーカイブ」へ保存が完了しました。"); 
-    else alert("エラー発生。"); 
-    location.reload(); 
+    if(res && res.status==="success") {
+      document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存済 ✅"; 
+      document.getElementById("btnSubmit").style.background = "var(--success)";
+    } else {
+      alert("エラーが発生しました。"); document.getElementById("btnSubmit").disabled = false; document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存・終了 💾";
+    }
   }
 </script>
 </body>
