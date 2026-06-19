@@ -16,7 +16,7 @@
     .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     main { margin-top: calc(100px + env(safe-area-inset-top)); margin-bottom: 60px; padding: 16px; }
     .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .title-box { text-align: center; font-weight: 800; font-size: 15px; } .version-tag { font-size: 9px; color: var(--brand); background: var(--brand-light); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
+    .title-box { text-align: center; font-weight: 800; font-size: 15px; } .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
     
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
     .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
@@ -73,6 +73,7 @@
     
     .preview-page { background: #fff; border: 1px solid #000; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.4; color: #000; page-break-after: always; }
     .p-title { font-size: 16px; text-align: center; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
+    .p-sec-title { font-size: 13px; font-weight: bold; background: #eee; padding: 4px 8px; margin-bottom: 6px; border-left: 4px solid #000; }
     .p-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size:12px; } .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: middle; } .p-table th { background: #f0f0f0; font-weight: bold; }
     
     .chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
@@ -99,7 +100,7 @@
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v3.9</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.0</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚印刷</button>
 </header>
 
@@ -449,7 +450,6 @@
 
 <script>
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
-  const PIN_CODE = "5740";
 
   const HOSPITAL_DB = {
     peds_clinic: ["らららこどもクリニック（中央町）","かごしまたんぽぽ小児科（東郡元町）","かわかみこどもクリニック（上荒田町）","あおぞら小児科（草牟田）","にのみや小児科・ひふ科（中山）","小児科上笹貫医院（武岡 / 上笹貫町）","ゆあさこどもクリニック（宇宿）","大坪こどもクリニック（田上）","すず小児科（中山町）","豊島小児科（山田町）","さめしま小児科（山之口町）","今村小児科アレルギー科（宇宿）","きくうら小児科（原良）","サンタこどもクリニック（和田）","ニュータウン小児科（伊敷台）","上村医院（和田）","武ファミリー内科クリニック（西千石町）","西田そよかぜクリニック（薬師）"],
@@ -463,7 +463,7 @@
 
   let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [] };
   let appState = { 
-    calcWeight: 0, calcHeight: 0, isBwManual: false, isBhManual: false, checkedItems: {}, isCustomized: false, keywords: [],
+    calcWeight: 0, calcHeight: 0, ageY: 0, isBwManual: false, isBhManual: false, checkedItems: {}, isCustomized: false, keywords: [],
     gcs: { e: '不明', v: '不明', m: '不明' }, pews: 0, 
     pat: {a:'不明', b:'不明', c:'不明'}, 
     txStatus: {intub:'不明', iv:'不明', cpr:'不明'}, 
@@ -775,15 +775,19 @@
       const eraEl = document.querySelector('#g-era .active'); const era = eraEl ? eraEl.dataset.val : "西暦"; const ey = parseInt(document.getElementById("v-era-y").value) || 0; const em = parseInt(document.getElementById("v-era-m").value) || 0; const ed = parseInt(document.getElementById("v-era-d").value) || 0;
       const manualAgeY = parseInt(document.getElementById("v-manual-age-y").value); const manualAgeM = parseInt(document.getElementById("v-manual-age-m").value);
       let mTotal = -1, ageText = "--"; let wtMid = 0, htMid = 0, wtRange = "--", htRange = "--";
+      let resolvedAgeY = 0;
       
       if(ey > 0 && em > 0 && ed > 0) {
         let fullYear = ey; if(era === "令和") fullYear = ey + 2018; else if(era === "平成") fullYear = ey + 1989 - 1; else if(era === "昭和") fullYear = ey + 1926 - 1;
         let birth = new Date(fullYear, em - 1, ed), now = new Date(); mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth(); if(now.getDate() < birth.getDate()) mTotal--; if(mTotal < 0) mTotal = 0;
         let y = Math.floor(mTotal / 12), m = mTotal % 12; ageText = y > 0 ? `${y}歳${m}ヶ月` : `${m}ヶ月`;
+        resolvedAgeY = y;
         document.getElementById("v-manual-age-y").value = y; document.getElementById("v-manual-age-m").value = m;
       } else if(!isNaN(manualAgeY) || !isNaN(manualAgeM)) {
         let y = isNaN(manualAgeY) ? 0 : manualAgeY; let m = isNaN(manualAgeM) ? 0 : manualAgeM; mTotal = y * 12 + m; ageText = `${y}才${m}ヶ月`;
+        resolvedAgeY = y;
       }
+      appState.ageY = resolvedAgeY;
       
       if(mTotal >= 0) {
         let sexEl = document.querySelector('#g-sex .active'); let sex = sexEl ? sexEl.dataset.val : "不明"; let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
@@ -879,10 +883,40 @@
       if(otherVal) roles.other.push(otherVal);
       appState.staffRoles = roles;
 
-      appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>`;
+      // 💡 v4.0: 全例強制のCPA・気道確保セーフティネットの計算
+      let safeTube = "換算不能";
+      let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW);
+      if(tubeItem) safeTube = tubeItem.size;
+      let tubeDepth = appState.ageY >= 1 ? (appState.ageY/2 + 12) : (wt/2 + 8);
+      let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); // 1万倍希釈 0.01mg/kg = 0.1mL/kg
+      
+      let safetyNetHTML = `
+      <div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div>
+      <table class="p-table" style="border:2px solid #d32f2f; margin-bottom:0;">
+        <tr>
+          <th style="background:#fffde6;">除細動 (J)</th>
+          <td>初回: <b>${wt>0 ? (wt * 2).toFixed(0) : '--'} J</b> ➔ 2回目以降: <b>${wt>0 ? (wt * 4).toFixed(0) : '--'} J</b></td>
+          <th style="background:#fffde6;">アドレナリン(0.1%)<br><span style="font-size:9px;">※1万倍希釈(0.01mg/mL)</span></th>
+          <td>1回: <b style="font-size:16px; color:#d32f2f;">${wt>0 ? safeAdre : '--'} mL</b> (上限10mL) <br><span style="font-size:10px;">(3〜5分おきに反復)</span></td>
+        </tr>
+        <tr>
+          <th style="background:#fffde6;">気管チューブサイズ</th>
+          <td><b>${wt>0 ? safeTube : '--'}</b></td>
+          <th style="background:#fffde6;">気管チューブ固定長</th>
+          <td>口角: <b>${wt>0 ? tubeDepth.toFixed(1) : '--'} cm</b></td>
+        </tr>
+      </table>`;
 
-      // 💡Page 2: 準備薬剤リスト (単発・持続共通)
-      let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { dRows2 += `<tr><td><b>${d.name}</b></td><td>${d.comp||'-'}</td><td>${d.note||'-'}</td></tr>`; } });
+      appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>${safetyNetHTML}`;
+
+      // 💡Page 2: 準備薬剤リスト
+      let dRows2 = ""; master.drugs.forEach(d => { 
+        if(appState.checkedItems[d.name]) { 
+          // 💡 v4.0: 希釈濃度の自動計算
+          let concText = (d.concMg>0 && d.concVol>0) ? `<br><span style="font-size:10px; color:var(--brand);">（1mL ＝ ${(d.concMg / d.concVol).toPrecision(4).replace(/\.?0+$/, '')} ${d.unit.replace(/\/kg.*/, '')}含有）</span>` : "";
+          dRows2 += `<tr><td><b>${d.name}</b></td><td>${d.comp||'-'} ${concText}</td><td>${d.note||'-'}</td></tr>`; 
+        } 
+      });
       appState.page2HTML = ` <div class="p-title">小児救急事前準備作戦盤 【2. 準備薬剤リスト】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>指示対象 薬剤名</th><th>組成・希釈方法</th><th>備考 / 注意点</th></tr></thead><tbody>${dRows2 || '<tr><td colspan="3" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
       // 💡Page 3: ベッドサイド換算表 (ショット用)
@@ -898,7 +932,22 @@
       // 💡Page 4: ベッドサイド換算表 (持続用)
       let dRows4 = ""; master.drugs.forEach(d => { 
         if(appState.checkedItems[d.name] && d.type === "持続薬") { 
-           let trs = `<tr><td rowspan="4" style="width:25%;"><b>${d.name}</b> <br><span style="font-size:10px;">${d.comp||''}</span><br><span style="font-size:10px; color:var(--sub);">${d.note||''}</span></td>`;
+           // 💡 v4.0: 双方向インジケーターの計算
+           let indicatorHTML = "";
+           if(wt>0 && d.concMg>0 && d.concVol>0) {
+             if(d.unit.includes("γ") || d.unit.includes("μg/kg/min")) {
+               let concU_mL = (d.concMg / d.concVol) * 1000;
+               let gamma_per_mlh = concU_mL / (60 * wt);
+               let mlh_per_gamma = (60 * wt) / concU_mL;
+               indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${gamma_per_mlh.toFixed(2)}</b> γ<br>1 γ = <b>${mlh_per_gamma.toFixed(2)}</b> mL/h</div>`;
+             } else if(d.unit.includes("mg/kg/h")) {
+               let mg_per_mlh = (d.concMg / d.concVol) / wt;
+               let mlh_per_mg = wt / (d.concMg / d.concVol);
+               indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${mg_per_mlh.toFixed(2)}</b> mg/k/h<br>1 mg/k/h = <b>${mlh_per_mg.toFixed(2)}</b> mL/h</div>`;
+             }
+           }
+
+           let trs = `<tr><td rowspan="4" style="width:25%;"><b>${d.name}</b> <br><span style="font-size:10px;">${d.comp||''}</span>${indicatorHTML}<br><span style="font-size:10px; color:var(--sub);">${d.note||''}</span></td>`;
            trs += `<th style="background:#fffde6;">${d.unit}</th>`;
            for(let i=0; i<5; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; }
            trs += `</tr><tr><th>mL/h</th>`;
@@ -969,7 +1018,7 @@
     let id = document.getElementById("v-id").value.trim(); if(!id) { const n = new Date(); id = `P${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on").forEach(el => activeScenarios.push(el.textContent));
     
-    // 💡 URL文字数超過エラー回避のため、送信データは純粋なテキストのみを組み立てる
+    let summaryText = appState.page1HTML ? appState.page1HTML.replace(/<[^>]+>/g, ' ').substring(0, 150) + '...' : "";
     let dt = `【薬剤準備】\n`; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (appState.calcWeight>0) ? (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol) : 0; dt += ` ・ ${d.name}: ${d.type==="単発薬"?v.toFixed(2)+"mL":'持続'} \n`; } }); dt += `【物品】\n`; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { dt += ` ・ ${e.name}: ${e.size}\n`; } });
     
     let sexEl = document.querySelector('#g-sex .active'); const sexStr = sexEl ? sexEl.textContent : "不明";
@@ -978,37 +1027,49 @@
     let sumStr = document.getElementById("v-case-summary").value || "";
 
     const payload = { 
-      password: PIN_CODE, 
-      ageText: document.getElementById("lbl-age").textContent, 
-      weight: appState.calcWeight.toFixed(1), 
-      height: appState.calcHeight.toFixed(1), 
-      scenarios: activeScenarios, 
-      staffRoles: appState.staffRoles, 
-      keywords: appState.keywords, 
-      data: { 
-        "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": originStr, "紹介元": hospStr, "性別": sexStr, "概要": sumStr, 
-        "搬入前処置": appState.preTxText || "なし", 
-        "AMPL": appState.ampleHTML ? appState.ampleHTML.replace(/<[^>]+>/g, ' ') : "", 
-        "PAT": appState.patHTML, 
-        "バイタル": appState.vitalsHTML ? appState.vitalsHTML.replace(/<[^>]+>/g, ' ') : "", 
-        "PEWS": appState.pewsHTML,
-        "プロトコル詳細": dt 
-      } 
+      action: "peds_submit",
+      payload: {
+        ageText: document.getElementById("lbl-age").textContent, 
+        weight: appState.calcWeight.toFixed(1), 
+        height: appState.calcHeight.toFixed(1), 
+        scenarios: activeScenarios, 
+        staffRoles: appState.staffRoles, 
+        keywords: appState.keywords, 
+        data: { 
+          "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": originStr, "紹介元": hospStr, "性別": sexStr, "概要": sumStr, 
+          "搬入前処置": appState.preTxText || "なし", 
+          "AMPL": appState.ampleHTML ? appState.ampleHTML.replace(/<[^>]+>/g, ' ') : "", 
+          "PAT": appState.patHTML, 
+          "バイタル": appState.vitalsHTML ? appState.vitalsHTML.replace(/<[^>]+>/g, ' ') : "", 
+          "PEWS": appState.pewsHTML,
+          "プロトコル詳細": dt 
+        } 
+      }
     };
     
-    document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; document.getElementById("btnSubmit").disabled = true;
+    document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; 
+    document.getElementById("btnSubmit").disabled = true;
     
-    const script = document.createElement('script'); const ep = encodeURIComponent(JSON.stringify({ action: "peds_submit", payload: payload }));
-    script.src = GAS_API_URL + "?callback=submitCallback&payload=" + ep; document.body.appendChild(script);
-  }
-  
-  function submitCallback(res) { 
-    if(res && res.status==="success") {
-      document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存済 ✅"; 
-      document.getElementById("btnSubmit").style.background = "var(--success)";
-    } else {
-      alert("エラーが発生しました。"); document.getElementById("btnSubmit").disabled = false; document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾";
-    }
+    // 💡 v4.0: URL文字数制限を回避する純粋な POST (fetch API) を使用
+    fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.status === "success") {
+        document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存済 ✅"; 
+        document.getElementById("btnSubmit").style.background = "var(--success)";
+      } else {
+        throw new Error(data.message);
+      }
+    })
+    .catch(error => {
+      alert("エラーが発生しました: " + error.message);
+      document.getElementById("btnSubmit").disabled = false; 
+      document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾";
+    });
   }
 </script>
 </body>
