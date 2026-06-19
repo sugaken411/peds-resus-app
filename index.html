@@ -100,7 +100,7 @@
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.1</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.2</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚印刷</button>
 </header>
 
@@ -413,8 +413,11 @@
     <div class="card">
       <div class="card-section"><div class="section-label">① シナリオ選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div><div class="chip-grid" id="box-scenarios"></div></div>
       <div class="card-section"><div class="section-label">② セット選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div><div class="chip-grid" id="box-sets"></div></div>
-      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">③ 薬剤準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-drugs"></div></div>
-      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">④ 物品準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-equip"></div></div>
+      
+      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">③ 薬剤準備指示 (単発ショット) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-drugs-single"></div></div>
+      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">④ 薬剤準備指示 (持続・ポンプ) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-drugs-cont"></div></div>
+      
+      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">⑤ 物品準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-equip"></div></div>
     </div>
     <button class="submit-btn" onclick="switchTab('sec6')">次へ (一括プレビュー) ➔</button>
   </div>
@@ -449,7 +452,6 @@
 </main>
 
 <script>
-  // 💡 小児用GAS URL (POST対応版)
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   const HOSPITAL_DB = {
@@ -515,6 +517,7 @@
     buildAppUI();
   }
 
+  // 💡 v4.2: 表示名（btnName）ベースの照合ロジックへ完全リファクタリング
   function updateCustomStatus() {
     let activeScenarios = [];
     document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => {
@@ -524,10 +527,10 @@
     let expectedItems = new Set();
     activeScenarios.forEach(sName => {
       let sc = master.scenarios.find(s => s.name === sName);
-      if(sc) sc.items.forEach(i => expectedItems.add(i));
+      if(sc) sc.items.forEach(i => expectedItems.add(i)); // ※マスタのリストも「表示名」になっている前提
     });
 
-    document.querySelectorAll('#box-drugs .chip-item, #box-equip .chip-item').forEach(c => {
+    document.querySelectorAll('.chip-item').forEach(c => {
       c.classList.remove('chip-manual');
     });
 
@@ -539,20 +542,15 @@
       if (!sc) return;
       let isModified = false;
       sc.items.forEach(itemName => {
-        // 表示名か商品名のどちらかで照合
-        let targetItem = master.drugs.find(d => d.name === itemName || d.btnName === itemName) || master.equipment.find(e => e.name === itemName);
-        let realName = targetItem ? targetItem.name : itemName;
-        if (!appState.checkedItems[realName]) isModified = true;
+        // ※「表示名」がIDとなるためそのまま照合
+        if (!appState.checkedItems[itemName]) isModified = true;
       });
       sChip.classList.toggle('modified', isModified);
       if(isModified) isCustomized = true;
     });
 
-    document.querySelectorAll('#box-drugs .chip-item.on, #box-equip .chip-item.on').forEach(c => {
-      // 逆引き用
-      let dObj = master.drugs.find(d => d.name === c.dataset.name) || master.equipment.find(e => e.name === c.dataset.name);
-      let matchName = dObj ? (expectedItems.has(dObj.name) || expectedItems.has(dObj.btnName)) : expectedItems.has(c.dataset.name);
-      if (!matchName) {
+    document.querySelectorAll('.chip-item.on').forEach(c => {
+      if (!expectedItems.has(c.dataset.name)) {
         c.classList.add('chip-manual');
         isCustomized = true;
       }
@@ -587,25 +585,32 @@
         let isOn = !chip.classList.contains('on');
         chip.classList.toggle('on', isOn);
         s.items.forEach(itemName => {
-          let targetItem = master.drugs.find(d => d.name === itemName || d.btnName === itemName) || master.equipment.find(e => e.name === itemName);
-          let realName = targetItem ? targetItem.name : itemName;
-          appState.checkedItems[realName] = isOn;
-          let itemChip = document.querySelector(`.chip-item[data-name="${realName}"]`); if(itemChip) itemChip.classList.toggle('on', isOn);
+          appState.checkedItems[itemName] = isOn; // itemName は表示名
+          Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
+            if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
+          });
         });
         updateCustomStatus(); calcPeds();
       };
       if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
     });
 
-    const dBox = document.getElementById("box-drugs"); dBox.innerHTML = "";
+    // 💡 v4.2: 単発と持続でボックスを分割
+    const dBoxSingle = document.getElementById("box-drugs-single"); dBoxSingle.innerHTML = "";
+    const dBoxCont = document.getElementById("box-drugs-cont"); dBoxCont.innerHTML = "";
+    
     master.drugs.forEach(d => {
       if(!d.name) return;
-      let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = d.name; chip.textContent = d.btnName || d.name;
+      let chip = document.createElement('div'); chip.className = "chip chip-item"; 
+      // 💡 v4.2: dataset.name に「表示名(btnName)」をセットし、完全な一意のIDとして扱う
+      chip.dataset.name = d.btnName; 
+      chip.textContent = d.btnName;
       chip.onclick = function() { 
-        chip.classList.toggle('on'); appState.checkedItems[d.name] = chip.classList.contains('on'); 
+        chip.classList.toggle('on'); appState.checkedItems[d.btnName] = chip.classList.contains('on'); 
         updateCustomStatus(); calcPeds(); 
       };
-      dBox.appendChild(chip);
+      if (d.type === "単発薬") dBoxSingle.appendChild(chip);
+      else dBoxCont.appendChild(chip);
     });
 
     const eBox = document.getElementById("box-equip"); eBox.innerHTML = "";
@@ -890,12 +895,11 @@
       if(otherVal) roles.other.push(otherVal);
       appState.staffRoles = roles;
 
-      // 💡 v4.0: 全例強制のCPA・気道確保セーフティネットの計算
       let safeTube = "換算不能";
       let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW);
       if(tubeItem) safeTube = tubeItem.size;
       let tubeDepth = appState.ageY >= 1 ? (appState.ageY/2 + 12) : (wt/2 + 8);
-      let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); // 1万倍希釈 0.01mg/kg = 0.1mL/kg
+      let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); 
       
       let safetyNetHTML = `
       <div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div>
@@ -916,19 +920,17 @@
 
       appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>${safetyNetHTML}`;
 
-      // 💡Page 2: 準備薬剤リスト
+      // 💡 v4.2: btnNameによる照合へ変更
       let dRows2 = ""; master.drugs.forEach(d => { 
-        if(appState.checkedItems[d.name]) { 
-          // 💡 v4.0: 希釈濃度の自動計算
+        if(appState.checkedItems[d.btnName]) { 
           let concText = (d.concMg>0 && d.concVol>0) ? `<br><span style="font-size:10px; color:var(--brand);">（1mL ＝ ${(d.concMg / d.concVol).toPrecision(4).replace(/\.?0+$/, '')} ${d.unit.replace(/\/kg.*/, '')}含有）</span>` : "";
-          dRows2 += `<tr><td><b>${d.name}</b></td><td>${d.comp||'-'} ${concText}</td><td>${d.note||'-'}</td></tr>`; 
+          dRows2 += `<tr><td><b>${d.name}</b> <br><span style="font-size:10px; color:var(--blue);">[規格] ${d.spec||'-'}</span></td><td>${d.comp||'-'} ${concText}</td><td>${d.note||'-'}</td></tr>`; 
         } 
       });
       appState.page2HTML = ` <div class="p-title">小児救急事前準備作戦盤 【2. 準備薬剤リスト】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>指示対象 薬剤名</th><th>組成・希釈方法</th><th>備考 / 注意点</th></tr></thead><tbody>${dRows2 || '<tr><td colspan="3" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
-      // 💡Page 3: ベッドサイド換算表 (ショット用)
       let dRows3 = ""; master.drugs.forEach(d => { 
-        if(appState.checkedItems[d.name] && d.type === "単発薬") { 
+        if(appState.checkedItems[d.btnName] && d.type === "単発薬") { 
           let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0; 
           let cntText = (d.maxDose < 9999 && dose>0) ? `<br><span style="color:var(--brand);font-size:10px;">上限迄 約${Math.floor(d.maxDose/dose)}回可</span>` : "";
           dRows3 += `<tr><td><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><td>${dose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限量: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit} ${cntText}</td></tr>`; 
@@ -936,10 +938,8 @@
       });
       appState.page3HTML = `<div class="p-title">小児救急事前準備作戦盤 【3. ベッドサイド静注投与量クイック表 (ショット)】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>静注薬剤名 / 組成</th><th>実投与 用量</th><th>実際のIV静注液量(mL)</th><th>上限量 / 目安</th></tr></thead><tbody>${dRows3 || '<tr><td colspan="4" style="text-align:center;">単発薬なし</td></tr>'}</tbody></table></div>`;
 
-      // 💡Page 4: ベッドサイド換算表 (持続用)
       let dRows4 = ""; master.drugs.forEach(d => { 
-        if(appState.checkedItems[d.name] && d.type === "持続薬") { 
-           // 💡 v4.0: 双方向インジケーターの計算
+        if(appState.checkedItems[d.btnName] && d.type === "持続薬") { 
            let indicatorHTML = "";
            if(wt>0 && d.concMg>0 && d.concVol>0) {
              if(d.unit.includes("γ") || d.unit.includes("μg/kg/min")) {
@@ -988,7 +988,7 @@
       });
       appState.page4HTML = `<div class="p-title">小児救急事前準備作戦盤 【4. ベッドサイド静注投与量クイック表 (持続)】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>静注薬剤名 / 備考</th><th colspan="6">投与量 / 流量換算マトリックス</th></tr></thead><tbody>${dRows4 || '<tr><td colspan="7" style="text-align:center;">持続薬なし</td></tr>'}</tbody></table></div>`;
 
-      // 💡Page 5: 物品
+      // 💡 v4.2: e.nameによる照合
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       appState.page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
@@ -1026,7 +1026,7 @@
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on").forEach(el => activeScenarios.push(el.textContent));
     
     let summaryText = appState.page1HTML ? appState.page1HTML.replace(/<[^>]+>/g, ' ').substring(0, 150) + '...' : "";
-    let dt = `【薬剤準備】\n`; master.drugs.forEach(d => { if(appState.checkedItems[d.name]) { let v = (appState.calcWeight>0) ? (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol) : 0; dt += ` ・ ${d.name}: ${d.type==="単発薬"?v.toFixed(2)+"mL":'持続'} \n`; } }); dt += `【物品】\n`; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { dt += ` ・ ${e.name}: ${e.size}\n`; } });
+    let dt = `【薬剤準備】\n`; master.drugs.forEach(d => { if(appState.checkedItems[d.btnName]) { let v = (appState.calcWeight>0) ? (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol) : 0; dt += ` ・ ${d.name}: ${d.type==="単発薬"?v.toFixed(2)+"mL":'持続'} \n`; } }); dt += `【物品】\n`; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { dt += ` ・ ${e.name}: ${e.size}\n`; } });
     
     let sexEl = document.querySelector('#g-sex .active'); const sexStr = sexEl ? sexEl.textContent : "不明";
     let originEl = document.querySelector('#g-case-origin .active'); const originStr = originEl ? originEl.textContent : "";
@@ -1057,7 +1057,6 @@
     document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; 
     document.getElementById("btnSubmit").disabled = true;
     
-    // 💡 v4.0: URL文字数制限を回避する純粋な POST (fetch API) を使用
     fetch(GAS_API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
