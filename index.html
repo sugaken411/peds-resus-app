@@ -100,7 +100,7 @@
 
 <header>
   <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.0</span></div>
+  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.1</span></div>
   <button class="hdr-btn" onclick="window.print()">🖨️ 4枚印刷</button>
 </header>
 
@@ -449,6 +449,7 @@
 </main>
 
 <script>
+  // 💡 小児用GAS URL (POST対応版)
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   const HOSPITAL_DB = {
@@ -538,14 +539,20 @@
       if (!sc) return;
       let isModified = false;
       sc.items.forEach(itemName => {
-        if (!appState.checkedItems[itemName]) isModified = true;
+        // 表示名か商品名のどちらかで照合
+        let targetItem = master.drugs.find(d => d.name === itemName || d.btnName === itemName) || master.equipment.find(e => e.name === itemName);
+        let realName = targetItem ? targetItem.name : itemName;
+        if (!appState.checkedItems[realName]) isModified = true;
       });
       sChip.classList.toggle('modified', isModified);
       if(isModified) isCustomized = true;
     });
 
     document.querySelectorAll('#box-drugs .chip-item.on, #box-equip .chip-item.on').forEach(c => {
-      if (!expectedItems.has(c.dataset.name)) {
+      // 逆引き用
+      let dObj = master.drugs.find(d => d.name === c.dataset.name) || master.equipment.find(e => e.name === c.dataset.name);
+      let matchName = dObj ? (expectedItems.has(dObj.name) || expectedItems.has(dObj.btnName)) : expectedItems.has(c.dataset.name);
+      if (!matchName) {
         c.classList.add('chip-manual');
         isCustomized = true;
       }
@@ -580,10 +587,10 @@
         let isOn = !chip.classList.contains('on');
         chip.classList.toggle('on', isOn);
         s.items.forEach(itemName => {
-          appState.checkedItems[itemName] = isOn;
-          Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
-            if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
-          });
+          let targetItem = master.drugs.find(d => d.name === itemName || d.btnName === itemName) || master.equipment.find(e => e.name === itemName);
+          let realName = targetItem ? targetItem.name : itemName;
+          appState.checkedItems[realName] = isOn;
+          let itemChip = document.querySelector(`.chip-item[data-name="${realName}"]`); if(itemChip) itemChip.classList.toggle('on', isOn);
         });
         updateCustomStatus(); calcPeds();
       };
@@ -723,8 +730,8 @@
   function tBtn(gId, val) { const g=document.getElementById(gId); if(!g)return; g.querySelectorAll('.group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val)); syncToPrintLayout(); }
   function tPanel(pId, show) { if(pId) document.getElementById(pId).style.display = show?'block':'none'; }
   function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; tBtn(`g-amp-${key}`, mode); tPanel(`panel-amp-${key}`, mode==='あり'||mode==='摂取あり'); syncToPrintLayout(); }
-  function selectPat(chip, dim, status) { const parent = chip.parentElement; parent.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); chip.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
-  function selectLChip(chip) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c=>c.classList.remove('on')); chip.classList.add('on'); syncToPrintLayout(); }
+  function selectPat(el, dim, status) { const parent = el.parentElement; parent.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
+  function selectLChip(el) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); syncToPrintLayout(); }
   
   function sChip(el, gId, val) { document.querySelectorAll(`#cg-${gId} .chip`).forEach(c=>c.classList.remove('on')); el.classList.add('on'); document.getElementById("v-vit-jcs").value = val; triggerPEWS(); }
   function toggleVent(show) { document.getElementById("panel-vent").style.display = show?'block':'none'; syncToPrintLayout(); }
