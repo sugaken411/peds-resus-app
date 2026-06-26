@@ -19,6 +19,8 @@
     .section-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 10px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); font-weight: 600; }
+    input[readonly] { color: var(--sub); background: #eee; }
+    
     .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     .input-row label { font-size: 11px; font-weight: bold; color: var(--sub); width: 80px; flex-shrink: 0; text-align: right; }
     .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -53,8 +55,27 @@
     .tab-content { display: none; } .tab-content.active { display: block; }
     .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--sub); margin-bottom: 8px; white-space: pre-wrap; }
     
+    /* 検索結果リストのスタイル */
+    .search-result-item { padding: 12px; border: 1px solid var(--blue); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: 0.2s; }
+    .search-result-item:hover { background: var(--med-blue); }
+    
+    /* プレビュー印刷用スタイル */
+    .print-report { background: #fff; border: 1px solid #000; padding: 20px; font-size: 12px; line-height: 1.5; color: #000; margin-bottom: 16px; }
+    .print-report h2 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; font-size: 16px; }
+    .print-report h3 { font-size: 13px; background: #eee; padding: 4px 8px; border-left: 4px solid #000; margin-top: 16px; margin-bottom: 8px; }
+    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; } 
+    .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; }
+    .p-table th { background: #f0f0f0; width: 25%; }
+    
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    @media print { 
+      body { background: #fff; padding:0; } 
+      header, .tab-container, main > div:not(#tab-sec4), .no-print { display: none !important; }
+      #tab-sec4 { display: block !important; margin: 0; padding: 0; }
+      .print-report { border: none; padding: 0; }
+    }
   </style>
 </head>
 <body>
@@ -65,15 +86,15 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v4.6</span></div>
-  <div style="width: 70px;"></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v4.7</span></div>
+  <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
 <div class="tab-container">
   <div class="nav-tab active" onclick="switchTab('sec1')">1.検索・環境</div>
   <div class="nav-tab" onclick="switchTab('sec2')">2.時系列・データ</div>
   <div class="nav-tab" onclick="switchTab('sec3')">3.ギャップ評価</div>
-  <div class="nav-tab" onclick="switchTab('sec4')">4.保存</div>
+  <div class="nav-tab" onclick="switchTab('sec4')">4.プレビュー・保存</div>
 </div>
 
 <main>
@@ -81,15 +102,15 @@
     <div class="card">
       <div class="section-label">🔍 事案アーカイブからデータ検索</div>
       <div style="display:flex; gap:8px;">
-        <input type="text" id="v-search-query" placeholder="要請番号 (例: P0619...)">
-        <button class="btn-blue" id="btn-search" onclick="fetchHistoryData()">検索</button>
+        <input type="text" id="v-search-query" placeholder="要請番号や日付で検索 (例: P0619 / 06-19)">
+        <button class="btn-blue" id="btn-search" onclick="fetchHistoryList()">検索</button>
       </div>
+      
+      <div id="search-results-area" style="display:none; margin-top:12px;"></div>
+
       <div id="mock-data-area" style="display:none; margin-top:16px;">
-        <div class="section-label" style="color:var(--ink); border-bottom-color:var(--line);">📝 当時の想定・作戦内容 (自動反映)</div>
+        <div class="section-label" style="color:var(--ink); border-bottom-color:var(--line);">📝 当時の想定・作戦内容 (紐づけ完了)</div>
         <div class="data-preview" id="v-fetched-data"></div>
-        
-        <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a; margin-top:12px;">⚠️ 実際の対応・相違点 (追記)</div>
-        <textarea id="v-actual-diff" rows="2" placeholder="例: 想定シナリオとは異なり、実際には〇〇の対応を追加で行った..."></textarea>
       </div>
     </div>
     
@@ -97,10 +118,11 @@
       <div class="section-label">🏫 デブリーフィング環境情報</div>
       <div class="grid-2col">
         <div class="input-row"><label>開催日</label><input type="date" id="d-date"></div>
-        <div class="input-row"><label>開始時間</label><input type="time" id="d-time"></div>
-        <div class="input-row"><label>所要時間</label><input type="number" placeholder="分" id="d-duration"></div>
-        <div class="input-row"><label>場所</label><input type="text" placeholder="ICUカンファ室" list="history-list" id="d-place"></div>
+        <div class="input-row"><label>場所</label><input type="text" id="d-place" value="救命センターカンファレンスルーム" list="history-list" onblur="saveHistory(this.value)"></div>
+        <div class="input-row"><label>開始時間</label><input type="time" id="d-time" onchange="calcDuration()"></div>
+        <div class="input-row"><label>終了時間</label><input type="time" id="d-end-time" onchange="calcDuration()"></div>
       </div>
+      <div class="input-row" style="justify-content: flex-end;"><label>所要時間</label><input type="text" id="d-duration" readonly placeholder="自動計算(分)" style="width:100px; text-align:center;"></div>
     </div>
 
     <div class="card">
@@ -113,7 +135,7 @@
       
       <div style="font-size:11px; font-weight:bold; color:var(--brand); margin-top:12px; margin-bottom:4px;">🗣️ 振り返りに参加したスタッフ (複数選択)</div>
       <div class="chip-grid" id="box-staff-debrief"></div>
-      <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)" list="history-list">
+      <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)" list="history-list" onblur="saveHistory(this.value)">
     </div>
 
     <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列・データ入力) ➔</button>
@@ -123,7 +145,7 @@
     <div class="card" style="border: 2px dashed #8b5cf6; background: #faf5ff;">
       <div class="section-label" style="color: #8b5cf6; border-bottom-color: #e9d5ff;">✨ AI データ自動抽出 (準備中)</div>
       <p style="font-size: 11px; color: #6b21a8; margin-bottom: 8px;">カルテから出力したテキストデータ等を読み込ませるだけで、時間・バイタル・血ガスを全自動で振り分けます。</p>
-      <button class="btn-purple" onclick="alert('次回アップデートでGemini API連携を実装予定です！')">🤖 データ読み取りを起動</button>
+      <button class="btn-purple" onclick="alert('次回アップデートで実装予定です！')">🤖 データ読み取りを起動</button>
     </div>
 
     <div class="card">
@@ -191,6 +213,12 @@
   </div>
 
   <div id="tab-sec3" class="tab-content">
+    
+    <div class="card">
+      <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a;">⚠️ 実際の対応・想定との相違点</div>
+      <textarea id="v-actual-diff" rows="2" placeholder="例: 想定シナリオとは異なり、実際には〇〇の対応を追加で行った..."></textarea>
+    </div>
+
     <div class="card">
       <div class="section-label">⚠️ 準備のギャップ（不足・過剰）</div>
       <textarea id="v-gap-bad" rows="3" placeholder="例: 〇〇のシリンジサイズが合わなかった、想定より多く必要になった..."></textarea>
@@ -207,23 +235,22 @@
       <textarea id="v-team" rows="3" placeholder="例: 役割分担は機能していたか。リーダーの指示は明確だったか..."></textarea>
 
       <div class="section-label" style="margin-top:16px;">🤝 家族ケア・サポート</div>
-      <textarea id="v-family" rows="3" placeholder="例: 挿管前に面会時間を取れたか。家族への配慮や説明のタイミング..."></textarea>
+      <textarea id="v-family" rows="3" placeholder="例: 挿管前に面会時間を取れたか。家族の心理状態への配慮や説明のタイミング..."></textarea>
     </div>
 
     <div class="card">
       <div class="section-label">🎯 次回へのアクションプラン (総括)</div>
       <textarea id="v-action" rows="3" placeholder="今回の振り返りを受けた、チームとしての具体的な改善策..."></textarea>
     </div>
-    <button class="btn-green" onclick="switchTab('sec4')">次へ (保存) ➔</button>
+    <button class="btn-green" onclick="switchTab('sec4')">次へ (プレビュー・保存) ➔</button>
   </div>
 
   <div id="tab-sec4" class="tab-content">
-    <div class="card">
-      <div style="text-align:center; padding: 20px 10px; color: var(--ink); font-weight:bold;">
-        全項目の入力が完了しました。
-      </div>
+    <div id="print-area"></div>
+    
+    <div class="no-print">
+      <button class="btn-blue" id="btn-submit" onclick="submitDebrief()" style="width:100%; padding:16px; border-radius:12px; font-size:15px; background:#1c1c1e;">振り返りアーカイブへ保存 💾</button>
     </div>
-    <button class="btn-blue" id="btn-submit" onclick="submitDebrief()" style="width:100%; padding:16px; border-radius:12px; font-size:15px; background:#1c1c1e;">振り返りアーカイブへ上書き保存 💾</button>
   </div>
 </main>
 
@@ -233,14 +260,12 @@
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
   let masterStaff = [];
-  let currentCaseData = {}; // 検索で拾ってきたデータ
-  let timelineArray = [];   // タイムラインを保持する配列
+  let currentCaseData = {}; 
+  let timelineArray = [];
 
   window.onload = () => {
     updateDatalist();
     document.getElementById("d-date").valueAsDate = new Date();
-    
-    // GASからマスタを取得 (JSONP)
     let script = document.createElement('script'); 
     script.src = GAS_API_URL + "?callback=jsonpCallback"; 
     document.body.appendChild(script);
@@ -260,11 +285,10 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 💡 GASから過去データをフェッチ
-  function fetchHistoryData() {
+  // 💡 リスト検索の実行
+  function fetchHistoryList() {
     const q = document.getElementById("v-search-query").value.trim();
-    if(!q) return alert("要請番号等を入力してください");
-    
+    if(!q) return alert("要請番号や日付を入力してください");
     const btn = document.getElementById("btn-search");
     btn.textContent = "検索中..."; btn.disabled = true;
     
@@ -276,62 +300,89 @@
     .then(res => res.json())
     .then(data => {
       btn.textContent = "検索"; btn.disabled = false;
+      const resArea = document.getElementById("search-results-area");
       if (data.status === "not_found") {
-        alert("指定された事案は見つかりませんでした。");
+        resArea.style.display = "block";
+        resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当する事案が見つかりませんでした。</div>";
       } else {
-        currentCaseData = data.caseData;
-        document.getElementById("mock-data-area").style.display = "block";
-        document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${data.caseData.age} / ${data.caseData.weight}kg\n【搬入前処置】 ${data.caseData.preTx}\n【作戦盤準備リスト】\n${data.caseData.protocol}`;
-        
-        // 実際に対応したスタッフを自動点灯
-        if(data.caseData.staffs) {
-          document.querySelectorAll('#box-staff-actual .chip').forEach(c => {
-            if(data.caseData.staffs.includes(c.textContent)) c.classList.add('on-blue');
-          });
-        }
-        
-        // 振り返りデータが既に存在すれば復元
-        if (data.debriefData) {
-          const d = data.debriefData;
-          document.getElementById("v-actual-diff").value = d.actualDiff || "";
-          document.getElementById("d-date").value = d.dDate || "";
-          document.getElementById("d-time").value = d.dTime || "";
-          document.getElementById("d-duration").value = d.dDuration || "";
-          document.getElementById("d-place").value = d.dPlace || "";
-          
-          if(d.recorder) {
-            document.querySelectorAll('#box-staff-recorder .chip').forEach(c => {
-              if(c.textContent === d.recorder) c.classList.add('on-dark');
-            });
-          }
-          if(d.debriefStaffs) {
-            let arr = d.debriefStaffs.split(',').map(s=>s.trim());
-            document.querySelectorAll('#box-staff-debrief .chip').forEach(c => {
-              if(arr.includes(c.textContent)) c.classList.add('on');
-            });
-          }
-          
-          document.getElementById("v-gap-bad").value = d.gapBad || "";
-          document.getElementById("v-gap-good").value = d.gapGood || "";
-          document.getElementById("v-gap-master").value = d.gapMaster || "";
-          document.getElementById("v-team").value = d.team || "";
-          document.getElementById("v-family").value = d.family || "";
-          document.getElementById("v-action").value = d.action || "";
-          
-          // タイムライン復元
-          if(d.timeline) {
-            try {
-              timelineArray = JSON.parse(d.timeline);
-              renderTimeline();
-            } catch(e) {}
-          }
-        }
+        resArea.style.display = "block";
+        resArea.innerHTML = `<div style="font-size:11px; margin-bottom:4px; color:var(--sub);">該当する事案を選択してください:</div>` + 
+          data.results.map(item => `
+          <div class="search-result-item" onclick='selectCase(${JSON.stringify(item)})'>
+            <div style="font-weight:bold; color:var(--blue);">${item.date} ｜ ${item.id}</div>
+            <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${item.weight}kg / ${item.summary.substring(0,30)}...</div>
+          </div>
+        `).join("");
       }
     })
-    .catch(err => {
-      alert("エラー: " + err.message);
-      btn.textContent = "検索"; btn.disabled = false;
+    .catch(err => { alert("エラー: " + err.message); btn.textContent = "検索"; btn.disabled = false; });
+  }
+
+  // リストから事案を選択して確定、さらに過去の振り返りデータを引く
+  function selectCase(item) {
+    currentCaseData = item;
+    document.getElementById("search-results-area").style.display = "none";
+    document.getElementById("mock-data-area").style.display = "block";
+    document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤準備リスト】\n${item.protocol}`;
+    
+    // 対応スタッフの自動点灯
+    document.querySelectorAll('#box-staff-actual .chip').forEach(c => c.classList.remove('on-blue'));
+    if(item.staffs) {
+      document.querySelectorAll('#box-staff-actual .chip').forEach(c => {
+        if(item.staffs.includes(c.textContent)) c.classList.add('on-blue');
+      });
+    }
+
+    // 既に振り返りアーカイブがあるか確認
+    fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "fetch_debrief", id: item.id })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success" && data.debriefData) {
+        const d = data.debriefData;
+        document.getElementById("v-actual-diff").value = d.actualDiff || "";
+        if(d.dDate) document.getElementById("d-date").value = d.dDate;
+        if(d.dTime) document.getElementById("d-time").value = d.dTime;
+        if(d.dDuration) document.getElementById("d-end-time").value = d.dDuration; // End Time を入れている
+        if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
+        calcDuration();
+        
+        if(d.recorder) {
+          document.querySelectorAll('#box-staff-recorder .chip').forEach(c => { if(c.textContent === d.recorder) c.classList.add('on-dark'); });
+        }
+        if(d.debriefStaffs) {
+          let arr = d.debriefStaffs.split(',').map(s=>s.trim());
+          document.querySelectorAll('#box-staff-debrief .chip').forEach(c => { if(arr.includes(c.textContent)) c.classList.add('on'); });
+        }
+        
+        document.getElementById("v-gap-bad").value = d.gapBad || "";
+        document.getElementById("v-gap-good").value = d.gapGood || "";
+        document.getElementById("v-gap-master").value = d.gapMaster || "";
+        document.getElementById("v-team").value = d.team || "";
+        document.getElementById("v-family").value = d.family || "";
+        document.getElementById("v-action").value = d.action || "";
+        
+        if(d.timeline) {
+          try { timelineArray = JSON.parse(d.timeline); renderTimeline(); } catch(e) {}
+        }
+      }
     });
+  }
+
+  // 💡 時間計算
+  function calcDuration() {
+    const start = document.getElementById("d-time").value;
+    const end = document.getElementById("d-end-time").value;
+    if(start && end) {
+      const s = new Date(`1970/01/01 ${start}`);
+      const e = new Date(`1970/01/01 ${end}`);
+      let diff = (e - s) / 60000;
+      if(diff < 0) diff += 24 * 60; // 日またぎ
+      document.getElementById("d-duration").value = diff;
+    }
   }
 
   function selectSingleChip(el, boxId, onClass) {
@@ -360,6 +411,9 @@
     event.target.classList.add('active');
     document.getElementById('tab-' + id).classList.add('active');
     window.scrollTo(0,0);
+    
+    // タブ4を開いた時にプレビューを生成
+    if (id === 'sec4') generatePreview();
   }
 
   function selectTlCat(btn, panelId, catName) {
@@ -376,9 +430,8 @@
   function syncTime(source) {
     const picker = document.getElementById("tl-input-time-picker");
     const text = document.getElementById("tl-input-time-text");
-    if (source === 'picker' && picker.value) {
-      text.value = picker.value;
-    } else if (source === 'text') {
+    if (source === 'picker' && picker.value) text.value = picker.value;
+    else if (source === 'text') {
       let val = text.value;
       if (val.length === 5 && val.includes(':')) picker.value = val;
       else picker.value = "";
@@ -389,15 +442,11 @@
     let val = input.value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
       return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
     }).replace(/[^0-9]/g, '');
-
     if (val.length >= 4) {
-      let h = val.substring(0, 2);
-      let m = val.substring(2, 4);
-      if(parseInt(h) > 23) h = "23";
-      if(parseInt(m) > 59) m = "59";
+      let h = val.substring(0, 2); let m = val.substring(2, 4);
+      if(parseInt(h) > 23) h = "23"; if(parseInt(m) > 59) m = "59";
       input.value = `${h}:${m}`;
       syncTime('text');
-      
       if (document.getElementById('panel-txt').classList.contains('active')) document.getElementById("tl-text-basic").focus();
       if (document.getElementById('panel-vital').classList.contains('active')) document.getElementById("v-hr").focus();
       if (document.getElementById('panel-exam').classList.contains('active')) document.getElementById("v-exam-name").focus();
@@ -408,14 +457,11 @@
 
   function setNow() {
     const now = new Date();
-    const h = String(now.getHours()).padStart(2, '0');
-    const m = String(now.getMinutes()).padStart(2, '0');
+    const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0');
     const timeStr = `${h}:${m}`;
     document.getElementById("tl-input-time-picker").value = timeStr;
     document.getElementById("tl-input-time-text").value = timeStr;
-    if (document.getElementById('panel-txt').classList.contains('active')) document.getElementById("tl-text-basic").focus();
-    if (document.getElementById('panel-vital').classList.contains('active')) document.getElementById("v-hr").focus();
-    if (document.getElementById('panel-exam').classList.contains('active')) document.getElementById("v-exam-name").focus();
+    syncTime('text');
   }
 
   function saveHistory(text) {
@@ -436,11 +482,7 @@
   function addTimeline() {
     const timeInput = document.getElementById("tl-input-time-text");
     let time = timeInput.value;
-    if(time.length === 3 && !time.includes(':')) {
-      time = `0${time.substring(0,1)}:${time.substring(1,3)}`;
-      timeInput.value = time;
-      syncTime('text');
-    }
+    if(time.length === 3 && !time.includes(':')) { time = `0${time.substring(0,1)}:${time.substring(1,3)}`; timeInput.value = time; syncTime('text'); }
     if(time.length !== 5 || !time.includes(':')) { alert("時間は 08:49 の形式で入力してください。"); timeInput.focus(); return; }
     
     let contentText = ""; let dataBox = "";
@@ -451,8 +493,7 @@
       contentText = txt; saveHistory(txt); document.getElementById("tl-text-basic").value = "";
     } 
     else if (document.getElementById('panel-exam').classList.contains('active')) {
-      const name = document.getElementById("v-exam-name").value;
-      const desc = document.getElementById("v-exam-desc").value;
+      const name = document.getElementById("v-exam-name").value; const desc = document.getElementById("v-exam-desc").value;
       if(!name) return alert("検査名を入力してください");
       contentText = `【${name}】\n${desc}`; saveHistory(name);
       document.getElementById("v-exam-name").value = ""; document.getElementById("v-exam-desc").value = "";
@@ -463,8 +504,7 @@
       const hr = document.getElementById("v-hr").value; if(hr) parts.push(`HR:${hr}`);
       const spo2 = document.getElementById("v-spo2").value; if(spo2) parts.push(`SpO2:${spo2}%`);
       const rr = document.getElementById("v-rr").value; if(rr) parts.push(`RR:${rr}`);
-      const bps = document.getElementById("v-bps").value; 
-      const bpd = document.getElementById("v-bpd").value; if(bps||bpd) parts.push(`BP:${bps||'-'}/${bpd||'-'}`);
+      const bps = document.getElementById("v-bps").value; const bpd = document.getElementById("v-bpd").value; if(bps||bpd) parts.push(`BP:${bps||'-'}/${bpd||'-'}`);
       const jcs = document.getElementById("v-jcs").value; if(jcs) parts.push(`意識:${jcs}`);
       
       let gasParts = [];
@@ -484,7 +524,6 @@
       document.querySelectorAll('#panel-vital input').forEach(i => i.value="");
     }
     
-    // 配列に追加
     timelineArray.push({ time: time, cat: currentCategory, contentText: contentText, dataBox: dataBox });
     renderTimeline();
     timeInput.focus();
@@ -493,38 +532,71 @@
   function renderTimeline() {
     const list = document.getElementById("timeline-list");
     list.innerHTML = "";
-    if (timelineArray.length === 0) {
-      list.innerHTML = '<div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>';
-      return;
-    }
-    
-    // 時間順にソート
+    if (timelineArray.length === 0) { list.innerHTML = '<div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>'; return; }
     timelineArray.sort((a,b) => a.time.localeCompare(b.time));
-    
     timelineArray.forEach(item => {
       let catClass = "";
       if(item.cat.includes("検査")) catClass = "cat-exam";
       if(item.cat.includes("バイタル")) catClass = "cat-vital";
       let dataHtml = item.dataBox ? `<div class="tl-data-box">${item.dataBox}</div>` : "";
-      list.innerHTML += `
-        <div class="tl-row">
-          <div class="tl-time">${item.time}</div>
-          <div class="tl-cat ${catClass}">${item.cat}</div>
-          <div class="tl-content">${item.contentText.replace(/\n/g, '<br>')}${dataHtml}</div>
-        </div>
-      `;
+      list.innerHTML += `<div class="tl-row"><div class="tl-time">${item.time}</div><div class="tl-cat ${catClass}">${item.cat}</div><div class="tl-content">${item.contentText.replace(/\n/g, '<br>')}${dataHtml}</div></div>`;
     });
     list.scrollTop = list.scrollHeight;
   }
 
-  // 💡 GASへのデータ送信（上書き保存）
+  // 💡 レポートプレビューの生成
+  function generatePreview() {
+    let recorder = document.querySelector('#box-staff-recorder .chip.on-dark') ? document.querySelector('#box-staff-recorder .chip.on-dark').textContent : "未指定";
+    let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
+    let debriefs = []; document.querySelectorAll('#box-staff-debrief .chip.on').forEach(c=>debriefs.push(c.textContent));
+
+    let tlHtml = timelineArray.map(item => `<tr><td style="white-space:nowrap;">${item.time}</td><td>${item.cat}</td><td>${item.contentText.replace(/\n/g, '<br>')}<br><span style="font-family:monospace; color:#555;">${item.dataBox}</span></td></tr>`).join("");
+    if(!tlHtml) tlHtml = "<tr><td colspan='3' style='text-align:center;'>記録なし</td></tr>";
+
+    const html = `
+      <div class="print-report">
+        <h2>小児救急 デブリーフィング・レポート</h2>
+        <table class="p-table">
+          <tr><th>要請番号</th><td>${currentCaseData.id || '-'}</td><th>発生日</th><td>${currentCaseData.date || '-'}</td></tr>
+          <tr><th>開催日時</th><td>${document.getElementById("d-date").value} ${document.getElementById("d-time").value}〜${document.getElementById("d-end-time").value}</td><th>場所</th><td>${document.getElementById("d-place").value}</td></tr>
+          <tr><th>参加者</th><td colspan="3">${debriefs.join(', ')} ＋ ${document.getElementById("v-staff-other").value}</td></tr>
+          <tr><th>記録者</th><td colspan="3">${recorder}</td></tr>
+        </table>
+
+        <h3>■ 【Plan】 当時の作戦盤の内容</h3>
+        <table class="p-table">
+          <tr><th>患者情報</th><td>${currentCaseData.age || '-'} / ${currentCaseData.weight || '-'}kg</td><th>対応者</th><td>${actuals.join(', ')}</td></tr>
+          <tr><th>搬入前処置</th><td colspan="3">${currentCaseData.preTx || '-'}</td></tr>
+          <tr><th>準備リスト</th><td colspan="3" style="white-space:pre-wrap;">${currentCaseData.protocol || '-'}</td></tr>
+        </table>
+
+        <h3>■ 【Do】 実際のタイムライン・相違点</h3>
+        <div style="margin-bottom:8px; white-space:pre-wrap; background:#fffde6; padding:8px; border-left:4px solid #d48806;"><b>実際の相違点:</b>\n${document.getElementById("v-actual-diff").value}</div>
+        <table class="p-table">
+          <thead><tr><th style="width:15%;">時刻</th><th style="width:20%;">区分</th><th>内容・データ</th></tr></thead>
+          <tbody>${tlHtml}</tbody>
+        </table>
+
+        <h3>■ 【Check / Action】 ギャップ評価とアクションプラン</h3>
+        <table class="p-table">
+          <tr><th>準備の不足</th><td>${document.getElementById("v-gap-bad").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>準備の良かった点</th><td>${document.getElementById("v-gap-good").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>マスタ改修提案</th><td>${document.getElementById("v-gap-master").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>チーム連携課題</th><td>${document.getElementById("v-team").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>家族ケア・IC</th><td>${document.getElementById("v-family").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>次回アクション</th><td style="font-weight:bold;">${document.getElementById("v-action").value.replace(/\n/g, '<br>')}</td></tr>
+        </table>
+      </div>
+    `;
+    document.getElementById("print-area").innerHTML = html;
+  }
+
   function submitDebrief() {
     if(!currentCaseData.id) return alert("事案アーカイブから検索・読込を行ってください。");
     
     const btn = document.getElementById("btn-submit");
     btn.textContent = "保存処理中..."; btn.disabled = true;
 
-    // チップ情報収集
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark') ? document.querySelector('#box-staff-recorder .chip.on-dark').textContent : "";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
     let debriefs = []; document.querySelectorAll('#box-staff-debrief .chip.on').forEach(c=>debriefs.push(c.textContent));
@@ -532,13 +604,12 @@
     const payload = {
       action: "submit_debrief",
       payload: {
-        id: currentCaseData.id,
-        date: currentCaseData.date,
+        id: currentCaseData.id, date: currentCaseData.date,
         patientInfo: `年齢:${currentCaseData.age} / 体重:${currentCaseData.weight}kg`,
-        debriefStaffs: debriefs.join(', '),
+        debriefStaffs: debriefs.join(', ') + " " + document.getElementById("v-staff-other").value,
         summary: currentCaseData.summary || "",
         timeline: timelineArray,
-        v_hr: "", v_spo2: "", v_rr: "", v_bps: "", v_bpd: "", v_bt: "", v_jcs: "", // ここは将来的に分離する拡張用
+        v_hr: "", v_spo2: "", v_rr: "", v_bps: "", v_bpd: "", v_bt: "", v_jcs: "", 
         v_ph: "", v_pco2: "", v_po2: "", v_hco3: "", v_lac: "", v_be: "",
         v_wbc: "", v_hb: "", v_plt: "", exam: "",
         gapBad: document.getElementById("v-gap-bad").value,
@@ -552,15 +623,13 @@
         actualDiff: document.getElementById("v-actual-diff").value,
         dDate: document.getElementById("d-date").value,
         dTime: document.getElementById("d-time").value,
-        dDuration: document.getElementById("d-duration").value,
+        dDuration: document.getElementById("d-end-time").value, // 終了時間を保存
         dPlace: document.getElementById("d-place").value
       }
     };
 
     fetch(GAS_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload)
+      method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload)
     })
     .then(res => res.json())
     .then(data => {
