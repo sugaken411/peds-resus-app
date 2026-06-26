@@ -11,12 +11,17 @@
     :root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93; --brand: #d32f2f; --brand-light: #ffebeb; --blue: #007aff; --med-blue: #e3f2fd; --med-blue-text: #1565c0; --success: #34c759; --warn: #ffcc00; --warn-light: #fffde6; --line: rgba(60,60,67,0.12); }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
-    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: env(safe-area-inset-top); padding-left: 16px; padding-right: 16px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    
+    /* 💡 v4.3: ヘッダーレイアウトの調整 */
+    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: env(safe-area-inset-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .hdr-group { display: flex; gap: 12px; align-items: center; }
+    .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    .title-box { text-align: center; font-weight: 800; font-size: 15px; } 
+    .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
+    
     .tab-container { position: fixed; top: calc(56px + env(safe-area-inset-top)); left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; } .tab-container::-webkit-scrollbar { display: none; }
     .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     main { margin-top: calc(100px + env(safe-area-inset-top)); margin-bottom: 60px; padding: 16px; }
-    .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; }
-    .title-box { text-align: center; font-weight: 800; font-size: 15px; } .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
     
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
     .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
@@ -99,9 +104,14 @@
 <div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);">小児作戦盤 起動中...</div></div>
 
 <header>
-  <button class="hdr-btn" onclick="clearAllData(true)">🔄 全消去</button>
-  <div class="title-box">小児疾患・蘇生作戦盤<span class="version-tag">Peds v4.2</span></div>
-  <button class="hdr-btn" onclick="window.print()">🖨️ 4枚印刷</button>
+  <div class="hdr-group">
+    <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
+    <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
+  </div>
+  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.3</span></div>
+  <div class="hdr-group">
+    <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
+  </div>
 </header>
 
 <div class="tab-container">
@@ -517,7 +527,6 @@
     buildAppUI();
   }
 
-  // 💡 v4.2: 表示名（btnName）ベースの照合ロジックへ完全リファクタリング
   function updateCustomStatus() {
     let activeScenarios = [];
     document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => {
@@ -527,7 +536,7 @@
     let expectedItems = new Set();
     activeScenarios.forEach(sName => {
       let sc = master.scenarios.find(s => s.name === sName);
-      if(sc) sc.items.forEach(i => expectedItems.add(i)); // ※マスタのリストも「表示名」になっている前提
+      if(sc) sc.items.forEach(i => expectedItems.add(i)); 
     });
 
     document.querySelectorAll('.chip-item').forEach(c => {
@@ -542,7 +551,6 @@
       if (!sc) return;
       let isModified = false;
       sc.items.forEach(itemName => {
-        // ※「表示名」がIDとなるためそのまま照合
         if (!appState.checkedItems[itemName]) isModified = true;
       });
       sChip.classList.toggle('modified', isModified);
@@ -585,7 +593,7 @@
         let isOn = !chip.classList.contains('on');
         chip.classList.toggle('on', isOn);
         s.items.forEach(itemName => {
-          appState.checkedItems[itemName] = isOn; // itemName は表示名
+          appState.checkedItems[itemName] = isOn; 
           Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
             if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
           });
@@ -595,14 +603,12 @@
       if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
     });
 
-    // 💡 v4.2: 単発と持続でボックスを分割
     const dBoxSingle = document.getElementById("box-drugs-single"); dBoxSingle.innerHTML = "";
     const dBoxCont = document.getElementById("box-drugs-cont"); dBoxCont.innerHTML = "";
     
     master.drugs.forEach(d => {
       if(!d.name) return;
       let chip = document.createElement('div'); chip.className = "chip chip-item"; 
-      // 💡 v4.2: dataset.name に「表示名(btnName)」をセットし、完全な一意のIDとして扱う
       chip.dataset.name = d.btnName; 
       chip.textContent = d.btnName;
       chip.onclick = function() { 
@@ -920,7 +926,6 @@
 
       appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付</th><td>${dateEta}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>${safetyNetHTML}`;
 
-      // 💡 v4.2: btnNameによる照合へ変更
       let dRows2 = ""; master.drugs.forEach(d => { 
         if(appState.checkedItems[d.btnName]) { 
           let concText = (d.concMg>0 && d.concVol>0) ? `<br><span style="font-size:10px; color:var(--brand);">（1mL ＝ ${(d.concMg / d.concVol).toPrecision(4).replace(/\.?0+$/, '')} ${d.unit.replace(/\/kg.*/, '')}含有）</span>` : "";
@@ -988,7 +993,6 @@
       });
       appState.page4HTML = `<div class="p-title">小児救急事前準備作戦盤 【4. ベッドサイド静注投与量クイック表 (持続)】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>静注薬剤名 / 備考</th><th colspan="6">投与量 / 流量換算マトリックス</th></tr></thead><tbody>${dRows4 || '<tr><td colspan="7" style="text-align:center;">持続薬なし</td></tr>'}</tbody></table></div>`;
 
-      // 💡 v4.2: e.nameによる照合
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       appState.page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
