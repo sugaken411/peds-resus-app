@@ -9,47 +9,55 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
     body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
     header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding: 0 16px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .hdr-btn { color: var(--ink); background: #e5e5ea; border: none; font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
     .tab-container { position: fixed; top: 56px; left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
     .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; } 
     .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    main { margin-top: 100px; margin-bottom: 60px; padding: 16px; }
+    main { margin-top: 100px; margin-bottom: 60px; padding: 16px; max-width: 800px; margin-left: auto; margin-right: auto; }
     
-    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; padding:16px; }
-    .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 16px; }
+    .section-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
     
-    input[type="text"], input[type="time"], select, textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 10px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); }
+    input[type="text"], input[type="number"], select, textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 10px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); font-weight: 600; }
+    .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .input-row label { font-size: 12px; font-weight: bold; color: var(--sub); width: 80px; flex-shrink: 0; text-align: right; }
+    
     .btn-blue { background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .btn-green { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; }
+    .btn-purple { background: #8b5cf6; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     
     /* タイムライン用デザイン */
     .tl-row { display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--line); padding: 10px 0; }
-    .tl-time { font-weight: bold; color: var(--blue); width: 60px; flex-shrink: 0; }
+    .tl-time { font-weight: bold; color: var(--blue); width: 45px; flex-shrink: 0; font-size: 14px; }
     .tl-cat { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; color: #333; white-space: nowrap; height: fit-content; margin-top: 2px; }
-    .tl-cat.cat-exam { background: #e1bee7; color: #1b5e20; } /* 検査・画像 */
-    .tl-cat.cat-vital { background: #ffcdd2; color: #b71c1c; } /* バイタル・血ガス */
+    .tl-cat.cat-exam { background: #e1bee7; color: #1b5e20; }
+    .tl-cat.cat-vital { background: #ffcdd2; color: #b71c1c; }
     .tl-content { flex: 1; font-size: 13px; line-height: 1.4; }
     
     .tab-content { display: none; } .tab-content.active { display: block; }
     .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--blue); margin-bottom: 16px; white-space: pre-wrap; }
+    
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   </style>
 </head>
 <body>
 
 <header>
-  <div style="font-weight: 800; font-size: 15px; width:100%; text-align:center;">小児救急 振り返りシート<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v1.0 Mock</span></div>
-</header>
+  <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v2.0</span></div>
+  <div style="width: 70px;"></div> </header>
 
 <div class="tab-container">
   <div class="nav-tab active" onclick="switchTab('sec1')">1.事案読込</div>
-  <div class="nav-tab" onclick="switchTab('sec2')">2.時系列記録</div>
+  <div class="nav-tab" onclick="switchTab('sec2')">2.時系列・データ</div>
   <div class="nav-tab" onclick="switchTab('sec3')">3.ギャップ評価</div>
-  <div class="nav-tab" onclick="switchTab('sec4')">4.プレビュー</div>
+  <div class="nav-tab" onclick="switchTab('sec4')">4.プレビュー・保存</div>
 </div>
 
 <main>
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
-      <div class="section-label">アーカイブから作戦データを取得</div>
+      <div class="section-label">事案アーカイブから作戦データを取得</div>
       <div style="display:flex; gap:8px;">
         <input type="text" id="v-search-id" placeholder="要請番号 (例: P06190951)">
         <button class="btn-blue" onclick="mockFetchData()">検索</button>
@@ -59,14 +67,27 @@
         <div class="data-preview" id="v-fetched-data"></div>
       </div>
     </div>
-    <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列入力) ➔</button>
+    
+    <div class="card">
+      <div class="section-label">参加メンバー・記録者</div>
+      <input type="text" placeholder="参加者 (カンマ区切り)" id="v-participants">
+      <input type="text" placeholder="記録者名" id="v-recorder">
+    </div>
+    <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列・データ入力) ➔</button>
   </div>
 
   <div id="tab-sec2" class="tab-content">
-    <div class="card" style="background: rgba(242,242,247,0.5);">
-      <div class="section-label">活動タイムライン追加</div>
-      <div style="display:flex; gap:8px;">
-        <input type="time" id="tl-input-time" style="width:100px; flex-shrink:0;">
+    
+    <div class="card" style="border: 2px dashed #8b5cf6; background: #faf5ff;">
+      <div class="section-label" style="color: #8b5cf6; border-bottom-color: #e9d5ff;">✨ AI カルテ自動抽出 (準備中)</div>
+      <p style="font-size: 11px; color: #6b21a8; margin-bottom: 8px;">カルテの写真を撮影するだけで、時系列・バイタル・血ガスを自動で各項目に振り分けます。</p>
+      <button class="btn-purple" onclick="alert('現在、AI(Gemini API)連携機能の組み込み準備中です！プランA(手動入力)をお試しください。')">📷 カルテを撮影して自動入力</button>
+    </div>
+
+    <div class="card">
+      <div class="section-label">⏱️ 活動タイムライン追加</div>
+      <div style="display:flex; gap:8px; align-items: center;">
+        <input type="text" id="tl-input-time" placeholder="時刻(0849等)" inputmode="numeric" style="width:110px; flex-shrink:0; text-align:center; font-size:16px;" oninput="formatTime(this)">
         <select id="tl-input-cat" style="flex:1;">
           <option value="処置・投薬">処置・投薬</option>
           <option value="検査(CT/XP)">画像・検査(CT/XP)</option>
@@ -75,33 +96,75 @@
           <option value="急変・状態変化">急変・状態変化</option>
         </select>
       </div>
-      <textarea id="tl-input-text" rows="3" placeholder="詳細を記入してください。&#10;例: CT室へ移動 / pH:7.21 pCO2:55 Lac:4.2 / 両親到着、面会実施..."></textarea>
+      <textarea id="tl-input-text" rows="2" placeholder="詳細を記入 (例: CT室へ移動 / ルート確保)"></textarea>
       <button class="btn-blue" style="width:100%;" onclick="addTimeline()">＋ タイムラインに追加</button>
-    </div>
-    
-    <div class="card">
-      <div class="section-label">記録されたタイムライン</div>
-      <div id="timeline-list">
+      
+      <div id="timeline-list" style="margin-top: 12px; max-height: 200px; overflow-y: auto; background: var(--bg); border-radius: 8px; padding: 8px;">
         <div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>
       </div>
     </div>
+
+    <div class="card">
+      <div class="section-label">🩸 血液ガス・採血データ</div>
+      <div class="grid-2col">
+        <div class="input-row"><label>pH</label><input type="number" step="0.001" placeholder="7.35"></div>
+        <div class="input-row"><label>pCO2</label><input type="number" step="0.1" placeholder="40.0"></div>
+        <div class="input-row"><label>pO2</label><input type="number" step="0.1" placeholder="90.0"></div>
+        <div class="input-row"><label>HCO3</label><input type="number" step="0.1" placeholder="24.0"></div>
+        <div class="input-row"><label>Lac</label><input type="number" step="0.1" placeholder="1.0"></div>
+        <div class="input-row"><label>BE</label><input type="number" step="0.1" placeholder="0.0"></div>
+        <div class="input-row"><label>WBC</label><input type="number" step="100" placeholder="10000"></div>
+        <div class="input-row"><label>Hb</label><input type="number" step="0.1" placeholder="13.5"></div>
+        <div class="input-row"><label>Plt</label><input type="number" step="1" placeholder="20.0"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📈 搬入時バイタル (追記・修正)</div>
+      <div class="grid-2col">
+        <div class="input-row"><label>HR</label><input type="number" placeholder="120"></div>
+        <div class="input-row"><label>SpO2</label><input type="number" placeholder="98"></div>
+        <div class="input-row"><label>RR</label><input type="number" placeholder="30"></div>
+        <div class="input-row"><label>BT</label><input type="number" step="0.1" placeholder="37.5"></div>
+        <div class="input-row"><label>BP(収縮)</label><input type="number" placeholder="100"></div>
+        <div class="input-row"><label>BP(拡張)</label><input type="number" placeholder="60"></div>
+      </div>
+      <div class="input-row"><label>意識レベル</label><input type="text" placeholder="JCS 3 / GCS 15"></div>
+    </div>
+
+    <div class="card">
+      <div class="section-label">📸 検査・画像所見</div>
+      <textarea rows="2" placeholder="XPで右肺浸潤影、CTで脳浮腫など..."></textarea>
+    </div>
+
     <button class="btn-green" onclick="switchTab('sec3')">次へ (ギャップ評価) ➔</button>
   </div>
 
   <div id="tab-sec3" class="tab-content">
     <div class="card">
-      <div class="section-label">準備のギャップ（不足・過剰）</div>
+      <div class="section-label">⚠️ 準備のギャップ（不足・過剰）</div>
       <textarea rows="3" placeholder="例: 〇〇のシリンジサイズが合わなかった、事前に想定したルートより多く必要になった..."></textarea>
       
-      <div class="section-label" style="margin-top:16px;">チーム連携・ノンテクニカルスキル</div>
+      <div class="section-label" style="margin-top:16px;">✅ 準備の良かった点</div>
+      <textarea rows="2" placeholder="例: ボスミンの希釈濃度が明記されていたためスムーズに投与できた..."></textarea>
+      
+      <div class="section-label" style="margin-top:16px;">💡 マスタ改修の提案</div>
+      <textarea rows="2" placeholder="例: 「痙攣重積シナリオ」に最初から吸引カテーテルを追加してほしい..."></textarea>
+    </div>
+
+    <div class="card">
+      <div class="section-label">🗣️ チーム連携・ノンテクニカルスキル</div>
       <textarea rows="3" placeholder="例: 役割分担は機能していたか。リーダーの指示は明確だったか。声掛けの状況など..."></textarea>
 
-      <div class="section-label" style="margin-top:16px;">家族ケア・サポート</div>
-      <textarea rows="3" placeholder="例: 挿管前に面会時間を取れたか。家族の心理状態への配慮..."></textarea>
-      
-      <div class="section-label" style="margin-top:16px;">マスタ改修の提案</div>
-      <textarea rows="2" placeholder="例: 「痙攣重積セット」に最初から〇〇を追加してほしい..."></textarea>
+      <div class="section-label" style="margin-top:16px;">🤝 家族ケア・サポート</div>
+      <textarea rows="3" placeholder="例: 挿管前に面会時間を取れたか。家族の心理状態への配慮や説明のタイミング..."></textarea>
     </div>
+
+    <div class="card">
+      <div class="section-label">🎯 次回へのアクションプラン (総括)</div>
+      <textarea rows="3" placeholder="今回の振り返りを受けた、チームとしての具体的な改善策..."></textarea>
+    </div>
+
     <button class="btn-green" onclick="switchTab('sec4')">次へ (プレビュー・保存) ➔</button>
   </div>
 
@@ -109,10 +172,10 @@
     <div class="card">
       <div style="text-align:center; padding: 40px 10px; color: var(--sub); font-size:13px; border: 1px dashed var(--sub); border-radius: 8px;">
         ここに印刷用の美しいレポート画面が生成されます。<br><br>
-        ※プロトタイプ段階のため、UIの確認をお願いします。
+        ※現在はプロトタイプ（UI検証）段階です。
       </div>
     </div>
-    <button class="btn-blue" style="width:100%; padding:16px; border-radius:12px; font-size:15px; background:#1c1c1e;">振り返りアーカイブへ保存 💾</button>
+    <button class="btn-blue" style="width:100%; padding:16px; border-radius:12px; font-size:15px; background:#1c1c1e;">振り返りアーカイブへ上書き保存 💾</button>
   </div>
 </main>
 
@@ -127,15 +190,45 @@
 
   function mockFetchData() {
     document.getElementById("mock-data-area").style.display = "block";
-    document.getElementById("v-fetched-data").innerText = "【年齢/体重】 5歳 / 18.5kg\n【想定シナリオ】 痙攣重積\n【事前準備リスト】\n・ミダゾラム\n・フェニトイン\n・吸引カテーテル 10Fr\n・BVM...\n\n※本実装時はGAS経由で過去の作戦盤データをここに一瞬で引っ張ってきます。";
+    document.getElementById("v-fetched-data").innerText = "【年齢/体重】 5歳 / 18.5kg\n【想定シナリオ】 痙攣重積\n【事前準備リスト】\n・ミダゾラム\n・フェニトイン\n・吸引カテーテル 10Fr\n・BVM...\n\n※本番はGAS経由で過去のデータを引っ張ってきて、バイタル等に自動代入します。";
+  }
+
+  // 💡 プランA: 時間入力の神UI (4桁入力で自動コロン付与)
+  function formatTime(input) {
+    // 全角を半角に、数字以外を削除
+    let val = input.value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+      return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+    }).replace(/[^0-9]/g, '');
+
+    // 4桁になったら HH:MM に整形
+    if (val.length >= 4) {
+      let h = val.substring(0, 2);
+      let m = val.substring(2, 4);
+      // 簡単なバリデーション (24時間表記)
+      if(parseInt(h) > 23) h = "23";
+      if(parseInt(m) > 59) m = "59";
+      input.value = `${h}:${m}`;
+      // 自動で詳細テキストへフォーカスを移す
+      document.getElementById("tl-input-text").focus();
+    } else {
+      input.value = val;
+    }
   }
 
   function addTimeline() {
-    const time = document.getElementById("tl-input-time").value;
+    const timeInput = document.getElementById("tl-input-time");
+    let time = timeInput.value;
     const cat = document.getElementById("tl-input-cat").value;
     const text = document.getElementById("tl-input-text").value;
     
+    // 3桁入力(例: 849)の救済処理
+    if(time.length === 3 && !time.includes(':')) {
+      time = `0${time.substring(0,1)}:${time.substring(1,3)}`;
+      timeInput.value = time;
+    }
+
     if(!time || !text) { alert("時間と詳細を入力してください。"); return; }
+    if(time.length !== 5 || !time.includes(':')) { alert("時間は 08:49 の形式で入力してください。"); return; }
     
     const list = document.getElementById("timeline-list");
     if(list.innerText.includes("まだ記録がありません")) list.innerHTML = "";
@@ -152,7 +245,9 @@
       </div>
     `;
     
+    // 入力後はテキストのみクリアし、時間はそのまま(連続入力しやすくする)
     document.getElementById("tl-input-text").value = "";
+    timeInput.focus();
   }
 </script>
 </body>
