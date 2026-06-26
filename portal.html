@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#f2f2f7">
+  <title>小児救急・蘇生 Portal</title>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --ink: #1c1c1e;
+      --sub: #8e8e93;
+      --brand: #d32f2f;
+      --brand-light: #ffebeb;
+      --blue: #007aff;
+      --med-blue: #e3f2fd;
+      --line: rgba(60,60,67,0.12);
+      --safe-top: env(safe-area-inset-top);
+      --safe-bot: env(safe-area-inset-bottom);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+      padding-top: calc(56px + var(--safe-top));
+      padding-bottom: calc(20px + var(--safe-bot));
+    }
+    
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: calc(56px + var(--safe-top));
+      padding-top: var(--safe-top);
+      padding-left: 16px;
+      padding-right: 16px;
+      background: rgba(242,242,247,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 0.5px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 100;
+    }
+    
+    .hdr-group {
+      display: flex;
+      gap: 12px;
+    }
+    
+    .hdr-btn {
+      color: var(--blue);
+      background: none;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    
+    .title-box {
+      text-align: center;
+      font-weight: 900;
+      font-size: 16px;
+      letter-spacing: 0.5px;
+      color: var(--brand);
+    }
+    
+    .version-tag {
+      font-size: 10px;
+      color: #fff;
+      font-weight: bold;
+      background: var(--brand);
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    
+    main {
+      padding: 16px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    
+    /* 警告・未完了アラート枠のデザイン */
+    .alert-box {
+      background: #fff9db;
+      border: 1px solid #ffd43b;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .alert-item {
+      font-size: 14px;
+      font-weight: bold;
+      color: #b08800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .alert-item.error {
+      color: var(--brand);
+    }
+    
+    /* アプリグリッドレイアウト */
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .portal-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      text-decoration: none;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      transition: 0.2s ease;
+      border-left: 6px solid var(--sub);
+    }
+    
+    .portal-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .card-red { border-left-color: var(--brand); }
+    .card-blue { border-left-color: var(--blue); }
+    .card-green { border-left-color: #10b981; }
+    .card-purple { border-left-color: #8b5cf6; }
+    .card-orange { border-left-color: #f59e0b; }
+    
+    .icon {
+      font-size: 32px;
+      width: 48px;
+      text-align: center;
+    }
+    
+    .card-body {
+      flex: 1;
+    }
+    
+    .title {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    
+    .desc {
+      font-size: 12px;
+      color: var(--sub);
+      line-height: 1.4;
+    }
+    
+    /* 軽量サクサクお知らせ枠 */
+    .card-section {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    
+    .section-label {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--sub);
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+    
+    .news-item {
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 0.5px solid var(--line);
+    }
+    
+    .news-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .news-hdr {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    
+    .news-date {
+      font-size: 11px;
+      color: var(--sub);
+      font-family: monospace;
+    }
+    
+    .news-cat {
+      font-size: 10px;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--med-blue);
+      color: var(--blue);
+    }
+    
+    .news-title {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .news-content {
+      font-size: 13px;
+      color: var(--sub);
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+    
+    /* モーダル */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 9998;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    
+    .modal-overlay.show {
+      display: flex;
+    }
+    
+    .modal-box {
+      background: var(--bg);
+      width: 100%;
+      max-width: 500px;
+      border-radius: 16px;
+      padding: 20px;
+      max-height: 85vh;
+      overflow-y: auto;
+    }
+    
+    .modal-close {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      margin-top: 16px;
+      background: #e5e5ea;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    
+    #global-loader {
+      position: fixed;
+      inset: 0;
+      background: rgba(255,255,255,0.95);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(0,122,255,0.2);
+      border-top: 4px solid var(--blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+<div id="global-loader">
+  <div class="spinner"></div>
+  <div style="margin-top:16px; font-weight:800; color:var(--ink);">システム連携中...</div>
+</div>
+
+<header>
+  <div class="hdr-group"></div>
+  <div class="title-box">小児救急・蘇生 PORTAL <span class="version-tag">Peds 1.0</span></div>
+  <div class="hdr-group">
+    <button class="hdr-btn" onclick="openModal('manual')">📖 取説</button>
+  </div>
+</header>
+
+<main>
+  <div id="alert-box" class="alert-box"></div>
+
+  <div class="grid-container">
+    <a href="index.html" class="portal-card card-red">
+      <div class="icon">🚑</div>
+      <div class="card-body">
+        <div class="title">事前作戦盤 (ブリーフィング)</div>
+        <div class="desc">患者の年齢・体重から薬剤量・物品サイズを自動計算し、準備指示書(4枚)を作成します。</div>
+      </div>
+    </a>
+    
+    <a href="debriefing.html" class="portal-card card-blue">
+      <div class="icon">📝</div>
+      <div class="card-body">
+        <div class="title">振り返り (デブリーフィング)</div>
+        <div class="desc">事案のタイムラインや、作戦盤とのギャップ、チーム連携の反省を記録・出力します。</div>
+      </div>
+    </a>
+    
+    <a href="#" class="portal-card card-purple" onclick="alert('この機能は現在開発準備中です。(フェーズ3)')">
+      <div class="icon">🔍</div>
+      <div class="card-body">
+        <div class="title">事案検索コンソール</div>
+        <div class="desc">過去の作戦盤データや振り返り記録を検索・閲覧・ダッシュボード化します。</div>
+      </div>
+    </a>
+    
+    <a href="#" class="portal-card" style="border-left-color:#d48806;" onclick="alert('マスタの編集は現在Googleスプレッドシートから直接行ってください。')">
+      <div class="icon">⚙️</div>
+      <div class="card-body">
+        <div class="title">マスタデータ管理</div>
+        <div class="desc">薬品、物品、シナリオセットの管理と、PEWS閾値の調整を行います。</div>
+      </div>
+    </a>
+  </div>
+
+  <div class="card-section">
+    <div class="section-label">📢 最新のお知らせ</div>
+    <div id="news-box" style="font-size:13px; color:var(--sub);">読込中...</div>
+  </div>
+</main>
+
+<div class="modal-overlay" id="modal-manual" onclick="if(event.target===this)closeModal('manual')">
+  <div class="modal-box">
+    <h3 style="margin-top:0; margin-bottom:12px;">📖 システム運用・取説</h3>
+    <div id="manual-list" style="font-size:13px; line-height:1.6; color:var(--ink);">読込中...</div>
+    <button class="modal-close" onclick="closeModal('manual')">閉じる</button>
+  </div>
+</div>
+
+<script>
+  window.onload = () => {
+    // ※今回はUIモックアップのため、ダミーデータを1秒後に表示します
+    // フェーズ2のGAS連携が完了したら、ここを本物のFetch通信に差し替えます
+    setTimeout(mockFetchInit, 1000);
+  };
+
+  function mockFetchInit() {
+    // アラートのモックデータ
+    const alertBox = document.getElementById("alert-box");
+    alertBox.style.display = "flex";
+    alertBox.innerHTML = `
+      <div class="alert-item error" onclick="location.href='debriefing.html'">🚨 先週の「熱性痙攣」事案の振り返りシートが未入力です。</div>
+    `;
+
+    // お知らせのモックデータ
+    document.getElementById("news-box").innerHTML = `
+      <div class="news-item">
+        <div class="news-hdr">
+          <span class="news-cat">アップデート</span>
+          <span class="news-date">2026/06/26</span>
+        </div>
+        <div class="news-title">作戦盤 Peds v4.2 がリリースされました</div>
+        <div class="news-content">・シナリオと薬剤の表示名完全リンク化
+・「単発」と「持続」のUI分離
+・1mLあたりの希釈濃度自動計算を実装しました。</div>
+      </div>
+      <div class="news-item">
+        <div class="news-hdr">
+          <span class="news-cat">お知らせ</span>
+          <span class="news-date">2026/06/25</span>
+        </div>
+        <div class="news-title">総合ポータルのテスト運用開始</div>
+        <div class="news-content">作戦盤と振り返りアプリを統合したポータルを公開しました。今後はこの画面をブックマークしてご使用ください。</div>
+      </div>
+    `;
+
+    // マニュアルのモックデータ
+    document.getElementById("manual-list").innerHTML = `
+      <p style="margin-bottom:8px;"><b>■ 作戦盤（ブリーフィング）の使い方</b><br>
+      <span style="color:var(--sub);">搬入前情報から年齢・体重を入力し、該当するシナリオを選択してください。不足している薬や物品は個別にタップして追加（青点灯）できます。</span></p>
+      <hr style="border:none;border-top:1px solid var(--line);">
+      <p style="margin-bottom:8px;"><b>■ 振り返り（デブリーフィング）の使い方</b><br>
+      <span style="color:var(--sub);">事案終了後、カンファレンスにて使用します。「事案番号」で当時の作戦盤データを呼び出し、実際のタイムラインや準備のギャップ（不足・過剰）を入力してください。</span></p>
+    `;
+
+    // ロード画面を非表示
+    document.getElementById("global-loader").style.display = "none";
+  }
+
+  function openModal(id) { document.getElementById('modal-'+id).classList.add('show'); }
+  function closeModal(id) { document.getElementById('modal-'+id).classList.remove('show'); }
+</script>
+</body>
+</html>
