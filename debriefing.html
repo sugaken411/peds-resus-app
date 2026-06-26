@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <title>小児救急 デブリーフィング</title>
+  <style>
+    :root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93; --brand: #34c759; --brand-light: #e8f5e9; --blue: #007aff; --line: rgba(60,60,67,0.12); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
+    body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding: 0 16px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .tab-container { position: fixed; top: 56px; left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
+    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; } 
+    .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+    main { margin-top: 100px; margin-bottom: 60px; padding: 16px; }
+    
+    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; padding:16px; }
+    .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; }
+    
+    input[type="text"], input[type="time"], select, textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 10px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); }
+    .btn-blue { background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-green { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; }
+    
+    /* タイムライン用デザイン */
+    .tl-row { display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--line); padding: 10px 0; }
+    .tl-time { font-weight: bold; color: var(--blue); width: 60px; flex-shrink: 0; }
+    .tl-cat { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; color: #333; white-space: nowrap; height: fit-content; margin-top: 2px; }
+    .tl-cat.cat-exam { background: #e1bee7; color: #1b5e20; } /* 検査・画像 */
+    .tl-cat.cat-vital { background: #ffcdd2; color: #b71c1c; } /* バイタル・血ガス */
+    .tl-content { flex: 1; font-size: 13px; line-height: 1.4; }
+    
+    .tab-content { display: none; } .tab-content.active { display: block; }
+    .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--blue); margin-bottom: 16px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div style="font-weight: 800; font-size: 15px; width:100%; text-align:center;">小児救急 振り返りシート<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v1.0 Mock</span></div>
+</header>
+
+<div class="tab-container">
+  <div class="nav-tab active" onclick="switchTab('sec1')">1.事案読込</div>
+  <div class="nav-tab" onclick="switchTab('sec2')">2.時系列記録</div>
+  <div class="nav-tab" onclick="switchTab('sec3')">3.ギャップ評価</div>
+  <div class="nav-tab" onclick="switchTab('sec4')">4.プレビュー</div>
+</div>
+
+<main>
+  <div id="tab-sec1" class="tab-content active">
+    <div class="card">
+      <div class="section-label">アーカイブから作戦データを取得</div>
+      <div style="display:flex; gap:8px;">
+        <input type="text" id="v-search-id" placeholder="要請番号 (例: P06190951)">
+        <button class="btn-blue" onclick="mockFetchData()">検索</button>
+      </div>
+      <div id="mock-data-area" style="display:none; margin-top:16px;">
+        <div class="section-label">当時の準備・作戦内容</div>
+        <div class="data-preview" id="v-fetched-data"></div>
+      </div>
+    </div>
+    <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列入力) ➔</button>
+  </div>
+
+  <div id="tab-sec2" class="tab-content">
+    <div class="card" style="background: rgba(242,242,247,0.5);">
+      <div class="section-label">活動タイムライン追加</div>
+      <div style="display:flex; gap:8px;">
+        <input type="time" id="tl-input-time" style="width:100px; flex-shrink:0;">
+        <select id="tl-input-cat" style="flex:1;">
+          <option value="処置・投薬">処置・投薬</option>
+          <option value="検査(CT/XP)">画像・検査(CT/XP)</option>
+          <option value="バイタル・血ガス">バイタル・血ガス</option>
+          <option value="家族対応・IC">家族対応・IC</option>
+          <option value="急変・状態変化">急変・状態変化</option>
+        </select>
+      </div>
+      <textarea id="tl-input-text" rows="3" placeholder="詳細を記入してください。&#10;例: CT室へ移動 / pH:7.21 pCO2:55 Lac:4.2 / 両親到着、面会実施..."></textarea>
+      <button class="btn-blue" style="width:100%;" onclick="addTimeline()">＋ タイムラインに追加</button>
+    </div>
+    
+    <div class="card">
+      <div class="section-label">記録されたタイムライン</div>
+      <div id="timeline-list">
+        <div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>
+      </div>
+    </div>
+    <button class="btn-green" onclick="switchTab('sec3')">次へ (ギャップ評価) ➔</button>
+  </div>
+
+  <div id="tab-sec3" class="tab-content">
+    <div class="card">
+      <div class="section-label">準備のギャップ（不足・過剰）</div>
+      <textarea rows="3" placeholder="例: 〇〇のシリンジサイズが合わなかった、事前に想定したルートより多く必要になった..."></textarea>
+      
+      <div class="section-label" style="margin-top:16px;">チーム連携・ノンテクニカルスキル</div>
+      <textarea rows="3" placeholder="例: 役割分担は機能していたか。リーダーの指示は明確だったか。声掛けの状況など..."></textarea>
+
+      <div class="section-label" style="margin-top:16px;">家族ケア・サポート</div>
+      <textarea rows="3" placeholder="例: 挿管前に面会時間を取れたか。家族の心理状態への配慮..."></textarea>
+      
+      <div class="section-label" style="margin-top:16px;">マスタ改修の提案</div>
+      <textarea rows="2" placeholder="例: 「痙攣重積セット」に最初から〇〇を追加してほしい..."></textarea>
+    </div>
+    <button class="btn-green" onclick="switchTab('sec4')">次へ (プレビュー・保存) ➔</button>
+  </div>
+
+  <div id="tab-sec4" class="tab-content">
+    <div class="card">
+      <div style="text-align:center; padding: 40px 10px; color: var(--sub); font-size:13px; border: 1px dashed var(--sub); border-radius: 8px;">
+        ここに印刷用の美しいレポート画面が生成されます。<br><br>
+        ※プロトタイプ段階のため、UIの確認をお願いします。
+      </div>
+    </div>
+    <button class="btn-blue" style="width:100%; padding:16px; border-radius:12px; font-size:15px; background:#1c1c1e;">振り返りアーカイブへ保存 💾</button>
+  </div>
+</main>
+
+<script>
+  function switchTab(id) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function mockFetchData() {
+    document.getElementById("mock-data-area").style.display = "block";
+    document.getElementById("v-fetched-data").innerText = "【年齢/体重】 5歳 / 18.5kg\n【想定シナリオ】 痙攣重積\n【事前準備リスト】\n・ミダゾラム\n・フェニトイン\n・吸引カテーテル 10Fr\n・BVM...\n\n※本実装時はGAS経由で過去の作戦盤データをここに一瞬で引っ張ってきます。";
+  }
+
+  function addTimeline() {
+    const time = document.getElementById("tl-input-time").value;
+    const cat = document.getElementById("tl-input-cat").value;
+    const text = document.getElementById("tl-input-text").value;
+    
+    if(!time || !text) { alert("時間と詳細を入力してください。"); return; }
+    
+    const list = document.getElementById("timeline-list");
+    if(list.innerText.includes("まだ記録がありません")) list.innerHTML = "";
+    
+    let catClass = "";
+    if(cat.includes("検査")) catClass = "cat-exam";
+    if(cat.includes("バイタル")) catClass = "cat-vital";
+
+    list.innerHTML += `
+      <div class="tl-row">
+        <div class="tl-time">${time}</div>
+        <div class="tl-cat ${catClass}">${cat}</div>
+        <div class="tl-content">${text.replace(/\n/g, '<br>')}</div>
+      </div>
+    `;
+    
+    document.getElementById("tl-input-text").value = "";
+  }
+</script>
+</body>
+</html>
