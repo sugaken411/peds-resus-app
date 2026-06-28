@@ -28,6 +28,7 @@
     
     .btn-blue { background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; }
     .btn-green { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; }
+    .btn-purple { background: #8b5cf6; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; width: 100%; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-small { background: #e5e5ea; color: var(--ink); border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
     
     .btn-group { display: flex; flex-wrap: wrap; gap: 4px; background: #e5e5ea; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
@@ -47,6 +48,7 @@
     .tl-time { font-weight: bold; color: var(--blue); width: 45px; flex-shrink: 0; font-size: 14px; }
     .tl-cat { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; color: #333; white-space: nowrap; margin-top: 2px; }
     .tl-content { flex: 1; font-size: 12px; line-height: 1.5; }
+    .tl-data-box { background: #fff; border: 1px dashed var(--sub); border-radius: 6px; padding: 6px; margin-top: 4px; font-family: monospace; font-size: 11px; }
 
     .tab-content { display: none; } .tab-content.active { display: block; }
     .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--sub); margin-bottom: 8px; white-space: pre-wrap; }
@@ -78,7 +80,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v4.8</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.0</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -91,6 +93,7 @@
 </div>
 
 <main>
+  <!-- 💡 Tab 1: 検索・事案紐づけ -->
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
       <div class="section-label">🔍 アーカイブ検索 (複合検索対応)</div>
@@ -120,7 +123,24 @@
     <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列・データ) ➔</button>
   </div>
 
+  <!-- 💡 Tab 2: 時系列・データ記録 -->
   <div id="tab-sec2" class="tab-content">
+    
+    <!-- 💡 これが本物の AI データ自動抽出パネルです！ -->
+    <div class="card" style="border: 2px dashed #8b5cf6; background: #faf5ff;">
+      <div class="section-label" style="color: #8b5cf6; border-bottom-color: #e9d5ff;">✨ AI カルテ自動抽出</div>
+      <p style="font-size: 11px; color: #6b21a8; margin-bottom: 8px;">カルテ画像を選択/撮影するか、テキストを貼り付けてください。時間や数値を以下のフォームに全自動で振り分けます。</p>
+      
+      <div style="display:flex; gap:8px; margin-bottom:8px;">
+        <input type="file" id="ai-file-input" accept="image/*" style="display:none;" onchange="handleAiFileChange(event)">
+        <button class="btn-blue" style="background:#6b21a8; flex:1;" onclick="document.getElementById('ai-file-input').click()">📷 写真を撮る/選ぶ</button>
+      </div>
+      <div id="ai-file-name" style="font-size:11px; color:var(--sub); margin-bottom:8px; text-align:center;"></div>
+      
+      <textarea id="ai-text-input" rows="2" placeholder="テキストを貼り付ける場合はこちらへ..." style="border-color:#d8b4fe; background:#fff;"></textarea>
+      <button class="btn-purple" id="btn-ai-analyze" onclick="analyzeKarte()">🤖 データ読み取りを実行</button>
+    </div>
+
     <div class="card">
       <div class="section-label">⏱️ タイムライン・データ入力</div>
       <div style="display:flex; gap:6px; align-items: center; margin-bottom: 12px; background: var(--bg); padding: 8px; border-radius: 8px;">
@@ -179,6 +199,7 @@
     <button class="btn-green" onclick="switchTab('sec3')">次へ (ABCDEF評価) ➔</button>
   </div>
 
+  <!-- 💡 Tab 3: 症例評価 (ABCDEF) -->
   <div id="tab-sec3" class="tab-content">
     <div class="card">
       <div class="section-label" style="color:var(--brand); border-bottom-color:var(--brand-light);">🩺 症例評価 (ABCDEFアプローチ)</div>
@@ -204,6 +225,7 @@
     <button class="btn-green" onclick="switchTab('sec4')">次へ (ギャップ・チーム) ➔</button>
   </div>
 
+  <!-- 💡 Tab 4: ギャップ・チーム・システム -->
   <div id="tab-sec4" class="tab-content">
     <div class="card">
       <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a;">⚠️ 事前準備に対するギャップ評価</div>
@@ -214,7 +236,7 @@
 
     <div class="card">
       <div class="section-label">🗣️ チームとしての評価</div>
-      <textarea id="v-team" rows="3" placeholder="例: 役割分担は機能していたか、リーダーの指示出しやメンバー間の声掛け(クローズドループ)など..."></textarea>
+      <textarea id="v-team" rows="3" placeholder="例: 役割分担は機能していたか、リーダーの指示出しやメンバー間の声掛けなど..."></textarea>
     </div>
 
     <div class="card">
@@ -224,6 +246,7 @@
     <button class="btn-green" onclick="switchTab('sec5')">次へ (総括・保存) ➔</button>
   </div>
 
+  <!-- 💡 Tab 5: 総括・環境・保存 -->
   <div id="tab-sec5" class="tab-content">
     <div class="card">
       <div class="section-label" style="color:var(--brand); border-bottom-color:var(--brand-light);">🎯 総括・次回へのアクションプラン</div>
@@ -266,6 +289,10 @@
   let masterStaff = [];
   let currentCaseData = {}; 
   let timelineArray = [];
+  
+  // 💡 AI解析用の画像保持変数
+  let currentAiImageBase64 = null;
+  let currentAiMimeType = null;
 
   window.onload = () => {
     updateDatalist();
@@ -289,7 +316,107 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 💡 高度な検索ロジック (日付・スタッフ・キーワードの複合)
+  // 💡 AI用: ファイル選択時の処理
+  function handleAiFileChange(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    document.getElementById("ai-file-name").innerText = "📎 " + file.name + " をセットしました。";
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentAiImageBase64 = e.target.result;
+      currentAiMimeType = file.type;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // 💡 AIデータ自動抽出の実行
+  function analyzeKarte() {
+    const textData = document.getElementById("ai-text-input").value.trim();
+    if (!textData && !currentAiImageBase64) {
+      return alert("解析するテキストを貼り付けるか、画像を選択してください。");
+    }
+
+    const btn = document.getElementById("btn-ai-analyze");
+    btn.textContent = "🤖 AIが解析中... (10〜20秒かかります)";
+    btn.disabled = true;
+
+    const payload = {
+      action: "analyze_karte",
+      imageText: textData,
+      imageBase64: currentAiImageBase64,
+      mimeType: currentAiMimeType
+    };
+
+    fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "🤖 データ読み取りを実行";
+      btn.disabled = false;
+      
+      if (data.status === "error") {
+        return alert("AI解析エラー: " + data.message);
+      }
+      
+      const resData = data.data; 
+      if(!resData) return alert("データを正しく抽出できませんでした。");
+
+      // 1. タイムラインの自動追加
+      if (resData.timeline && Array.isArray(resData.timeline)) {
+        resData.timeline.forEach(item => {
+          if(item.time && item.contentText) {
+            timelineArray.push({ time: item.time, cat: item.cat || "処置・投薬", contentText: item.contentText, dataBox: "" });
+          }
+        });
+        renderTimeline();
+      }
+
+      // 2. バイタルサインの自動代入
+      if (resData.vitals) {
+        if(resData.vitals.v_hr) document.getElementById("v-hr").value = resData.vitals.v_hr;
+        if(resData.vitals.v_spo2) document.getElementById("v-spo2").value = resData.vitals.v_spo2;
+        if(resData.vitals.v_rr) document.getElementById("v-rr").value = resData.vitals.v_rr;
+        if(resData.vitals.v_bps) document.getElementById("v-bps").value = resData.vitals.v_bps;
+        if(resData.vitals.v_bpd) document.getElementById("v-bpd").value = resData.vitals.v_bpd;
+        if(resData.vitals.v_bt) document.getElementById("v-bt").value = resData.vitals.v_bt;
+        if(resData.vitals.v_jcs) document.getElementById("v-jcs").value = resData.vitals.v_jcs;
+      }
+
+      // 3. 血液ガスの自動代入
+      if (resData.blood) {
+        if(resData.blood.v_ph) document.getElementById("v-ph").value = resData.blood.v_ph;
+        if(resData.blood.v_pco2) document.getElementById("v-pco2").value = resData.blood.v_pco2;
+        if(resData.blood.v_po2) document.getElementById("v-po2").value = resData.blood.v_po2;
+        if(resData.blood.v_hco3) document.getElementById("v-hco3").value = resData.blood.v_hco3;
+        if(resData.blood.v_lac) document.getElementById("v-lac").value = resData.blood.v_lac;
+        if(resData.blood.v_be) document.getElementById("v-be").value = resData.blood.v_be;
+        if(resData.blood.v_wbc) document.getElementById("v-wbc").value = resData.blood.v_wbc;
+        if(resData.blood.v_hb) document.getElementById("v-hb").value = resData.blood.v_hb;
+        if(resData.blood.v_plt) document.getElementById("v-plt").value = resData.blood.v_plt;
+      }
+
+      // 4. 画像・検査所見の自動代入
+      if (resData.exam) {
+        document.getElementById("v-exam-desc").value = resData.exam;
+      }
+
+      alert("AIによるデータ抽出とフォームへの代入が完了しました！");
+      document.getElementById("ai-text-input").value = "";
+      document.getElementById("ai-file-name").innerText = "";
+      currentAiImageBase64 = null;
+      currentAiMimeType = null;
+    })
+    .catch(err => {
+      alert("通信エラー: " + err.message);
+      btn.textContent = "🤖 データ読み取りを実行";
+      btn.disabled = false;
+    });
+  }
+
   function fetchHistoryListAdvanced() {
     const sDate = document.getElementById("s-date").value;
     const sStaff = document.getElementById("s-staff").value.trim();
@@ -596,9 +723,14 @@
         debriefStaffs: debriefs.join(', ') + " " + document.getElementById("v-staff-other").value,
         summary: currentCaseData.summary || "",
         timeline: timelineArray,
-        v_hr: "", v_spo2: "", v_rr: "", v_bps: "", v_bpd: "", v_bt: "", v_jcs: "", 
-        v_ph: "", v_pco2: "", v_po2: "", v_hco3: "", v_lac: "", v_be: "",
-        v_wbc: "", v_hb: "", v_plt: "", exam: "",
+        v_hr: document.getElementById("v-hr").value, v_spo2: document.getElementById("v-spo2").value, 
+        v_rr: document.getElementById("v-rr").value, v_bps: document.getElementById("v-bps").value, 
+        v_bpd: document.getElementById("v-bpd").value, v_bt: document.getElementById("v-bt").value, v_jcs: document.getElementById("v-jcs").value, 
+        v_ph: document.getElementById("v-ph").value, v_pco2: document.getElementById("v-pco2").value, 
+        v_po2: document.getElementById("v-po2").value, v_hco3: document.getElementById("v-hco3").value, 
+        v_lac: document.getElementById("v-lac").value, v_be: document.getElementById("v-be").value,
+        v_wbc: document.getElementById("v-wbc").value, v_hb: document.getElementById("v-hb").value, 
+        v_plt: document.getElementById("v-plt").value, exam: document.getElementById("v-exam-desc").value,
         gapBad: document.getElementById("v-gap-bad").value,
         gapGood: document.getElementById("v-gap-good").value,
         gapMaster: document.getElementById("v-gap-master").value,
