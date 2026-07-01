@@ -98,7 +98,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.3</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.4</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -307,7 +307,7 @@
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
-  // 💡 先輩のアドバイス通り、try-catch で保護し、エラー時もローダーを消すよう修正
+  // 💡 先輩のアドバイスを完璧に組み込んだ起動処理
   window.onload = () => {
     try { 
       updateDatalist(); 
@@ -319,29 +319,53 @@
     
     let script = document.createElement('script'); 
     script.src = GAS_API_URL + "?callback=jsonpCallback"; 
+    
+    // ★ 読み込み失敗（通信エラー等）を検知してローダーを消す
+    script.onerror = function() {
+      document.getElementById("loader-msg").innerText = "通信エラー：再読み込みしてください。";
+    };
+
     document.body.appendChild(script);
     
-    renderEvalBlocks();
+    // ★ 強制的に消さず、待たせている旨だけ伝える
+    setTimeout(function() {
+      const loader = document.getElementById("global-loader");
+      if (loader.style.display !== "none") {
+        document.getElementById("loader-msg").innerText = "サーバー起動中です。しばらくお待ちください…\n（初回アクセス時は時間がかかる場合があります）";
+      }
+    }, 8000); 
+
+    try {
+      renderEvalBlocks();
+    } catch(e) {
+      console.error("renderEvalBlocks error:", e);
+    }
   };
 
+  // 💡 try-finally で絶対にローダーを消すコールバック処理
   function jsonpCallback(res) {
-    if (res && res.status === "error") {
-      alert("マスタ取得エラー: " + res.message);
-      document.getElementById("global-loader").style.display = "none"; // 💡 追加: エラー時もローダーを消す
-      return;
-    }
-    if (res && res.status === "success") {
-      if(res.masters && res.masters.staffList) {
-        masterStaff = res.masters.staffList.map(s => s.displayName);
-        document.getElementById("staff-list").innerHTML = masterStaff.map(n => `<option value="${n}">`).join("");
-        renderStaffChips();
+    try {
+      if (res && res.status === "error") {
+        alert("マスタ取得エラー: " + res.message);
+        return;
       }
-      if(res.masters && res.masters.keywordList) {
-        masterKeywords = res.masters.keywordList;
-        document.getElementById("keyword-list").innerHTML = masterKeywords.map(k => `<option value="${k}">`).join("");
+      if (res && res.status === "success") {
+        if(res.masters && res.masters.staffList) {
+          masterStaff = res.masters.staffList.map(s => s.displayName);
+          document.getElementById("staff-list").innerHTML = masterStaff.map(n => `<option value="${n}">`).join("");
+          renderStaffChips();
+        }
+        if(res.masters && res.masters.keywordList) {
+          masterKeywords = res.masters.keywordList;
+          document.getElementById("keyword-list").innerHTML = masterKeywords.map(k => `<option value="${k}">`).join("");
+        }
       }
+    } catch(e) {
+      console.error("jsonpCallback processing error:", e);
+    } finally {
+      // ★ 何があっても最後に必ずローダーを非表示にする
+      document.getElementById("global-loader").style.display = "none";
     }
-    document.getElementById("global-loader").style.display = "none";
   }
 
   function renderStaffChips() {
@@ -438,7 +462,7 @@
         resArea.innerHTML = `<div style="font-size:11px; margin-bottom:4px; color:var(--sub);">選択してください:</div>` + 
           data.results.map(item => `<div class="search-result-item" onclick='selectCase(${JSON.stringify(item)})'><div style="font-weight:bold; color:var(--blue);">${item.date.split('T')[0]} ｜ ${item.id}</div><div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${item.summary.substring(0,30)}...</div></div>`).join("");
       }
-    });
+    }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "検索"; btn.disabled = false; });
   }
 
   function selectCase(item) {
@@ -520,7 +544,6 @@
   function saveHistory(text) { if(!text || text.length < 2) return; if(!historyWords.includes(text)) { historyWords.push(text); if(historyWords.length > 50) historyWords.shift(); localStorage.setItem('pedsDict', JSON.stringify(historyWords)); updateDatalist(); } }
   
   function updateDatalist() { 
-    // 💡 念のため要素が存在するかチェックしてから処理する
     const hl = document.getElementById("history-list");
     if (hl) hl.innerHTML = historyWords.map(w => `<option value="${w}">`).join(""); 
   }
