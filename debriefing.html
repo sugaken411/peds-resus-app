@@ -83,6 +83,7 @@
 
 <datalist id="staff-list"></datalist>
 <datalist id="keyword-list"></datalist>
+<datalist id="history-list"></datalist>
 <datalist id="eval-titles">
   <option value="搬入時(1次評価)">
   <option value="挿管・処置後">
@@ -97,7 +98,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.2</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.3</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -159,7 +160,7 @@
       </div>
 
       <div id="panel-txt" class="tl-panel active">
-        <input type="text" id="tl-text-basic" placeholder="内容を入力 (例: ルート確保)">
+        <input type="text" id="tl-text-basic" placeholder="内容を入力 (例: ルート確保)" list="history-list">
       </div>
 
       <div id="panel-vital" class="tl-panel" style="border-left-color: #d32f2f;">
@@ -175,7 +176,7 @@
           <div class="input-row"><label>BP(拡)</label><input type="number" id="v-bpd"></div>
           <div class="input-row"><label>BT</label><input type="number" step="0.1" id="v-bt"></div>
         </div>
-        <input type="text" id="v-jcs" placeholder="意識レベル (例: JCS 3 / GCS 15)" style="margin-bottom:12px;">
+        <input type="text" id="v-jcs" placeholder="意識レベル (例: JCS 3 / GCS 15)" style="margin-bottom:12px;" list="history-list">
 
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--brand);">血液ガス・採血</div>
@@ -198,7 +199,7 @@
         <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
           <button class="btn-purple" onclick="openAiModal('exam')">🪄 読み取り</button>
         </div>
-        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / 胸部XP)">
+        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / 胸部XP)" list="history-list">
         <textarea id="v-exam-desc" rows="3" placeholder="所見 (例: 浸潤影あり)"></textarea>
       </div>
 
@@ -291,7 +292,6 @@
 </div>
 
 <script>
-  // 💡 URLの [ や ] を排除した正しいURLです
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let currentCategory = '処置・投薬';
@@ -300,17 +300,21 @@
   let masterKeywords = [];
   let currentCaseData = {}; 
   
-  // タイムラインとABCDEF評価を管理する配列
   let timelineArray = [];
   let evalBlocks = [ { id: Date.now(), title: "搬入時(1次評価)", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
   
-  // AI用
   let currentAiTarget = "";
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
+  // 💡 先輩のアドバイス通り、try-catch で保護し、エラー時もローダーを消すよう修正
   window.onload = () => {
-    updateDatalist();
+    try { 
+      updateDatalist(); 
+    } catch(e) { 
+      console.error("history-list update error:", e); 
+    }
+    
     document.getElementById("d-date").valueAsDate = new Date();
     
     let script = document.createElement('script'); 
@@ -323,6 +327,7 @@
   function jsonpCallback(res) {
     if (res && res.status === "error") {
       alert("マスタ取得エラー: " + res.message);
+      document.getElementById("global-loader").style.display = "none"; // 💡 追加: エラー時もローダーを消す
       return;
     }
     if (res && res.status === "success") {
@@ -345,7 +350,6 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 複数回評価(ABCDEF)のレンダリング
   function renderEvalBlocks() {
     const container = document.getElementById("eval-container");
     container.innerHTML = evalBlocks.map((ev, index) => `
@@ -371,7 +375,6 @@
   function removeEvalBlock(id) { evalBlocks = evalBlocks.filter(e => e.id !== id); renderEvalBlocks(); }
   function updateEval(id, key, val) { const ev = evalBlocks.find(e => e.id === id); if(ev) ev[key] = val; }
 
-  // AIモーダル制御
   function openAiModal(target) {
     currentAiTarget = target;
     const labels = { "timeline":"タイムライン自動抽出", "vital":"バイタルサイン抽出", "blood":"血液ガス・採血抽出", "exam":"検査・画像所見抽出" };
@@ -458,7 +461,6 @@
         if(d.recorder) document.querySelectorAll('#box-staff-recorder .chip').forEach(c => { if(c.textContent === d.recorder) c.classList.add('on-dark'); });
         if(d.debriefStaffs) { let arr = d.debriefStaffs.split(',').map(s=>s.trim()); document.querySelectorAll('#box-staff-debrief .chip').forEach(c => { if(arr.includes(c.textContent)) c.classList.add('on'); }); }
         
-        // タイムラインと評価の復元
         if(d.timeline) {
           try { 
             let fullTl = JSON.parse(d.timeline);
@@ -516,7 +518,12 @@
   }
 
   function saveHistory(text) { if(!text || text.length < 2) return; if(!historyWords.includes(text)) { historyWords.push(text); if(historyWords.length > 50) historyWords.shift(); localStorage.setItem('pedsDict', JSON.stringify(historyWords)); updateDatalist(); } }
-  function updateDatalist() { document.getElementById("history-list").innerHTML = historyWords.map(w => `<option value="${w}">`).join(""); }
+  
+  function updateDatalist() { 
+    // 💡 念のため要素が存在するかチェックしてから処理する
+    const hl = document.getElementById("history-list");
+    if (hl) hl.innerHTML = historyWords.map(w => `<option value="${w}">`).join(""); 
+  }
 
   function addTimeline() {
     const timeInput = document.getElementById("tl-input-time-text"); let time = timeInput.value;
@@ -554,7 +561,6 @@
     list.scrollTop = list.scrollHeight;
   }
 
-  // プレビュー生成（タイムラインとABCDEF評価を時間順に合体）
   function generatePreview() {
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark') ? document.querySelector('#box-staff-recorder .chip.on-dark').textContent : "未指定";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
