@@ -71,10 +71,11 @@
     .eval-block { border: 2px solid var(--brand); border-radius: 8px; padding: 12px; margin-bottom: 16px; position: relative; }
     .eval-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
+    /* 💡 印刷時はタブ6のみ表示 */
     @media print { 
       body { background: #fff; padding:0; } 
-      header, .tab-container, main > div:not(#tab-sec5), .no-print { display: none !important; }
-      #tab-sec5 { display: block !important; margin: 0; padding: 0; }
+      header, .tab-container, main > div:not(#tab-sec6), .no-print { display: none !important; }
+      #tab-sec6 { display: block !important; margin: 0; padding: 0; }
       .print-report { border: none; padding: 0; }
     }
   </style>
@@ -98,22 +99,23 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.4</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.5</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
 <div class="tab-container">
   <div class="nav-tab active" onclick="switchTab('sec1')">1.検索・事案</div>
   <div class="nav-tab" onclick="switchTab('sec2')">2.時系列・データ</div>
-  <div class="nav-tab" onclick="switchTab('sec3')">3.症例評価(ABCDEF)</div>
-  <div class="nav-tab" onclick="switchTab('sec4')">4.ギャップ・チーム</div>
-  <div class="nav-tab" onclick="switchTab('sec5')">5.総括・保存</div>
+  <div class="nav-tab" onclick="switchTab('sec3')">3.症例評価</div>
+  <div class="nav-tab" onclick="switchTab('sec4')">4.ギャップ</div>
+  <div class="nav-tab" onclick="switchTab('sec5')">5.総括・環境</div>
+  <div class="nav-tab" onclick="switchTab('sec6')">6.プレビュー・保存</div>
 </div>
 
 <main>
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
-      <div class="section-label">🔍 アーカイブ検索 (複合検索対応)</div>
+      <div class="section-label">🔍 アーカイブ検索 (空白で全件検索)</div>
       <div class="grid-3col">
         <div class="input-row"><label>月間</label><input type="month" id="s-month"></div>
         <div class="input-row"><label>スタッフ</label><input type="text" id="s-staff" placeholder="名前" list="staff-list"></div>
@@ -233,7 +235,7 @@
       <div class="section-label">🛠️ アプリ・マスタ・セットに関する改善策</div>
       <textarea id="v-gap-master" rows="3" placeholder="例: 「痙攣重積セット」に〇〇を標準で追加してほしい..."></textarea>
     </div>
-    <button class="btn-green" onclick="switchTab('sec5')">次へ (総括・保存) ➔</button>
+    <button class="btn-green" onclick="switchTab('sec5')">次へ (総括・環境) ➔</button>
   </div>
 
   <div id="tab-sec5" class="tab-content">
@@ -259,7 +261,11 @@
       <div class="chip-grid" id="box-staff-debrief"></div>
       <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)">
     </div>
+    
+    <button class="btn-green" onclick="switchTab('sec6')">次へ (プレビュー・保存) ➔</button>
+  </div>
 
+  <div id="tab-sec6" class="tab-content">
     <div class="card">
       <div id="print-area"></div>
     </div>
@@ -269,6 +275,7 @@
       <button class="btn-blue" id="btn-submit" onclick="submitDebrief('完了')" style="flex:2; background:#1c1c1e;">✅ 完了してアーカイブ保存</button>
     </div>
   </div>
+
 </main>
 
 <div class="modal-overlay" id="ai-modal">
@@ -292,7 +299,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
 
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
@@ -307,27 +314,17 @@
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
-  // 💡 先輩のアドバイスを完璧に組み込んだ起動処理
   window.onload = () => {
-    try { 
-      updateDatalist(); 
-    } catch(e) { 
-      console.error("history-list update error:", e); 
-    }
-    
+    try { updateDatalist(); } catch(e) { console.error("history-list update error:", e); }
     document.getElementById("d-date").valueAsDate = new Date();
     
     let script = document.createElement('script'); 
     script.src = GAS_API_URL + "?callback=jsonpCallback"; 
-    
-    // ★ 読み込み失敗（通信エラー等）を検知してローダーを消す
     script.onerror = function() {
       document.getElementById("loader-msg").innerText = "通信エラー：再読み込みしてください。";
     };
-
     document.body.appendChild(script);
     
-    // ★ 強制的に消さず、待たせている旨だけ伝える
     setTimeout(function() {
       const loader = document.getElementById("global-loader");
       if (loader.style.display !== "none") {
@@ -335,14 +332,9 @@
       }
     }, 8000); 
 
-    try {
-      renderEvalBlocks();
-    } catch(e) {
-      console.error("renderEvalBlocks error:", e);
-    }
+    try { renderEvalBlocks(); } catch(e) { console.error("renderEvalBlocks error:", e); }
   };
 
-  // 💡 try-finally で絶対にローダーを消すコールバック処理
   function jsonpCallback(res) {
     try {
       if (res && res.status === "error") {
@@ -363,7 +355,6 @@
     } catch(e) {
       console.error("jsonpCallback processing error:", e);
     } finally {
-      // ★ 何があっても最後に必ずローダーを非表示にする
       document.getElementById("global-loader").style.display = "none";
     }
   }
@@ -428,7 +419,12 @@
     .then(data => {
       btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false;
       if (data.status === "error") return alert("AI解析エラー: " + data.message);
-      const resData = data.data; if(!resData) return alert("抽出できませんでした。");
+      
+      // 💡 AIの出力がネストされている場合の対策
+      let resData = data.data; 
+      if(!resData) return alert("抽出できませんでした。");
+      if(currentAiTarget === "blood" && resData.blood) resData = resData.blood;
+      if(currentAiTarget === "vital" && resData.vitals) resData = resData.vitals;
 
       if (currentAiTarget === "timeline" && Array.isArray(resData)) {
         resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ type: 'normal', time: item.time, cat: item.cat || "処置・投薬", contentText: item.contentText, dataBox: "" }); });
@@ -448,7 +444,6 @@
 
   function fetchHistoryListAdvanced() {
     const sMonth = document.getElementById("s-month").value; const sStaff = document.getElementById("s-staff").value.trim(); const sKw = document.getElementById("s-kw").value.trim();
-    if(!sMonth && !sStaff && !sKw) return alert("検索条件を入力してください");
     const btn = document.getElementById("btn-search"); btn.textContent = "検索中..."; btn.disabled = true;
     
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) })
@@ -518,7 +513,7 @@
   function switchTab(id) {
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     event.target.classList.add('active'); document.getElementById('tab-' + id).classList.add('active'); window.scrollTo(0,0);
-    if (id === 'sec5') generatePreview();
+    if (id === 'sec6') generatePreview();
   }
 
   function selectTlCat(btn, panelId, catName) {
