@@ -71,7 +71,6 @@
     .eval-block { border: 2px solid var(--brand); border-radius: 8px; padding: 12px; margin-bottom: 16px; position: relative; }
     .eval-block-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
 
-    /* 💡 印刷時はタブ6のみ表示 */
     @media print { 
       body { background: #fff; padding:0; } 
       header, .tab-container, main > div:not(#tab-sec6), .no-print { display: none !important; }
@@ -94,12 +93,12 @@
 
 <div id="global-loader">
   <div class="spinner"></div>
-  <div id="loader-msg" style="margin-top:16px; font-weight:800; color:var(--ink);">システム起動中...</div>
+  <div id="loader-msg" style="margin-top:16px; font-weight:800; color:var(--ink); text-align:center; line-height:1.5;">システム起動中...</div>
 </div>
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.5</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.6</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -108,8 +107,8 @@
   <div class="nav-tab" onclick="switchTab('sec2')">2.時系列・データ</div>
   <div class="nav-tab" onclick="switchTab('sec3')">3.症例評価</div>
   <div class="nav-tab" onclick="switchTab('sec4')">4.ギャップ</div>
-  <div class="nav-tab" onclick="switchTab('sec5')">5.総括・環境</div>
-  <div class="nav-tab" onclick="switchTab('sec6')">6.プレビュー・保存</div>
+  <div class="nav-tab" onclick="switchTab('sec5')">5.環境</div>
+  <div class="nav-tab" onclick="switchTab('sec6')">6.プレビュー</div>
 </div>
 
 <main>
@@ -210,7 +209,7 @@
         <div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>
       </div>
     </div>
-    <button class="btn-green" onclick="switchTab('sec3')">次へ (ABCDEF評価) ➔</button>
+    <button class="btn-green" onclick="switchTab('sec3')">次へ (症例評価) ➔</button>
   </div>
 
   <div id="tab-sec3" class="tab-content">
@@ -299,7 +298,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
@@ -314,25 +313,41 @@
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
-  window.onload = () => {
-    try { updateDatalist(); } catch(e) { console.error("history-list update error:", e); }
-    document.getElementById("d-date").valueAsDate = new Date();
-    
+  // 💡 リロードの罠を完全に無効化する、最強の初期化関数
+  function loadMasterData() {
+    const loader = document.getElementById("global-loader");
+    const msg = document.getElementById("loader-msg");
+    loader.style.display = "flex";
+    msg.innerHTML = "システム起動中...";
+
+    let oldScript = document.getElementById("gas-script");
+    if(oldScript) oldScript.remove();
+
     let script = document.createElement('script'); 
-    script.src = GAS_API_URL + "?callback=jsonpCallback"; 
+    script.id = "gas-script";
+    // キャッシュバスター: URLを毎回変えてブラウザのキャッシュを無視する
+    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + Date.now(); 
+    
     script.onerror = function() {
-      document.getElementById("loader-msg").innerText = "通信エラー：再読み込みしてください。";
+      msg.innerHTML = "通信エラーが発生しました。<br><span style='font-size:11px; font-weight:normal;'>電波状況を確認し、以下のボタンを押してください。</span><br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border-radius:8px; border:none; background:var(--brand); color:#fff; font-weight:bold; cursor:pointer;'>🔄 再試行する</button>";
     };
+
     document.body.appendChild(script);
     
     setTimeout(function() {
-      const loader = document.getElementById("global-loader");
-      if (loader.style.display !== "none") {
-        document.getElementById("loader-msg").innerText = "サーバー起動中です。しばらくお待ちください…\n（初回アクセス時は時間がかかる場合があります）";
+      if (loader.style.display !== "none" && msg.innerHTML.indexOf("通信エラー") === -1) {
+        msg.innerText = "サーバー起動中です。しばらくお待ちください…\n（初回アクセス時は数十秒かかる場合があります）";
       }
     }, 8000); 
+  }
 
-    try { renderEvalBlocks(); } catch(e) { console.error("renderEvalBlocks error:", e); }
+  window.onload = () => {
+    try { updateDatalist(); } catch(e) {}
+    document.getElementById("d-date").valueAsDate = new Date();
+    try { renderEvalBlocks(); } catch(e) {}
+    
+    // 初回読み込み開始
+    loadMasterData();
   };
 
   function jsonpCallback(res) {
@@ -420,7 +435,6 @@
       btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false;
       if (data.status === "error") return alert("AI解析エラー: " + data.message);
       
-      // 💡 AIの出力がネストされている場合の対策
       let resData = data.data; 
       if(!resData) return alert("抽出できませんでした。");
       if(currentAiTarget === "blood" && resData.blood) resData = resData.blood;
