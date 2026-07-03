@@ -44,9 +44,10 @@
     .chip.on-blue { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
     .chip.on-dark { background: #e5e5ea; border-color: var(--ink); color: var(--ink); }
     
-    /* 💡 追加: 処置マスタ用の専用チップデザイン */
-    .chip-tx { background: #fff; border: 1px solid var(--brand); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-    .chip-tx:active { background: var(--brand-light); }
+    .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+    .chip-tx.active { background: var(--blue); color: #fff; }
+    .chip-tx-opt { background: #fff; border: 1px solid #d48806; color: #d48806; }
+    .chip-tx-opt:active { background: #fef08a; }
 
     .tl-row { display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--line); padding: 10px 0; }
     .tl-time { font-weight: bold; color: var(--blue); width: 45px; flex-shrink: 0; font-size: 14px; }
@@ -64,6 +65,10 @@
     .p-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; } 
     .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; }
     .p-table th { background: #f0f0f0; width: 25%; }
+    
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 9998; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: #fff; width: 100%; max-width: 500px; border-radius: 16px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
     
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -98,7 +103,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.8</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.0</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -138,9 +143,21 @@
   </div>
 
   <div id="tab-sec2" class="tab-content">
+    
+    <div class="card" style="border: 2px dashed var(--brand); background: var(--brand-light);">
+      <div class="section-label" style="color:var(--brand); border-bottom:1px solid #c8e6c9;">📝 カルテの一括貼り付け・AI解析</div>
+      <p style="font-size: 11px; color: #2e7d32; margin-bottom: 8px;">電子カルテなどのテキストをまとめて貼り付け、AIで自動振り分けするか、そのまま1つの「記事」として追加できます。</p>
+      <textarea id="bulk-text-input" rows="3" placeholder="ここに経過記録をコピペ..." style="border-color:#a5d6a7; background:#fff;"></textarea>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-small" style="flex:1; background:#fff; border:1px solid var(--brand); color:var(--brand);" onclick="addBulkText()">そのまま追加</button>
+        <button class="btn-small" style="flex:1; background:var(--brand); color:#fff;" onclick="analyzeBulkKarte()">🤖 AIで自動振り分け</button>
+      </div>
+    </div>
+
     <div class="card">
       <div class="section-label">
         <span>⏱️ タイムライン・データ入力</span>
+        <button class="btn-purple" onclick="openAiModal('timeline')">🪄 画像から読み取り</button>
       </div>
       <div style="display:flex; gap:6px; align-items: center; margin-bottom: 12px; background: var(--bg); padding: 8px; border-radius: 8px;">
         <div style="font-size:12px; font-weight:bold; color:var(--blue); margin-right:4px;">時刻</div>
@@ -152,25 +169,39 @@
       </div>
 
       <div class="btn-group" id="tl-cat-group">
-        <button class="group-btn active" onclick="selectTlCat(this, 'panel-txt', '処置・投薬')">処置・投薬</button>
+        <button class="group-btn active" onclick="selectTlCat(this, 'panel-tx', '処置・投薬')">処置・投薬</button>
         <button class="group-btn" onclick="selectTlCat(this, 'panel-vital', 'バイタル・血ガス')">バイタル・血ガス</button>
         <button class="group-btn" onclick="selectTlCat(this, 'panel-exam', '画像・検査')">画像・検査</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-txt', '家族対応・IC')">家族対応・IC</button>
-        <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat(this, 'panel-txt', '急変・状態変化')">急変・状態変化</button>
+        <button class="group-btn" onclick="selectTlCat(this, 'panel-txt', '家族・IC')">家族・IC</button>
+        <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat(this, 'panel-txt', '記事')">記事</button>
       </div>
 
-      <div id="panel-txt" class="tl-panel active">
-        <div style="font-size:11px; font-weight:bold; color:var(--sub); margin-bottom:6px;">👇 マスタから処置を選択 (タップで入力欄に反映)</div>
-        <div id="tx-master-chips" class="chip-grid" style="margin-bottom:12px; max-height:140px; overflow-y:auto; padding:4px;">
-          <div style='font-size:11px; color:var(--sub);'>マスタを読み込んでいます...</div>
+      <div id="panel-tx" class="tl-panel active">
+        <div style="font-size:11px; font-weight:bold; color:var(--blue); margin-bottom:6px;">① 区分を選択</div>
+        <div id="tx-step1-cat" class="chip-grid" style="margin-bottom:8px;"></div>
+        
+        <div id="tx-step2-item" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-bottom:8px;">
+          <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:6px;">② 処置・項目を選択</div>
+          <div id="tx-step2-chips" class="chip-grid"></div>
+        </div>
+
+        <div id="tx-step3-opt" style="display:none; background:#e8f5e9; padding:8px; border-radius:8px; margin-bottom:12px;">
+          <div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:2px;">③ 選択肢 (タップで追記) / 備考</div>
+          <div id="tx-note" style="font-size:10px; color:#555; margin-bottom:6px; white-space:pre-wrap;"></div>
+          <div id="tx-opt-chips" class="chip-grid" style="margin-bottom:0;"></div>
         </div>
         
-        <input type="text" id="tl-text-basic" placeholder="内容を手入力または上記から選択" list="history-list">
+        <input type="text" id="tx-final-text" placeholder="内容を手入力または上記から選択" list="history-list" style="border-color:var(--blue);">
+      </div>
+
+      <div id="panel-txt" class="tl-panel">
+        <textarea id="tl-text-basic" rows="3" placeholder="内容を自由に入力してください"></textarea>
       </div>
 
       <div id="panel-vital" class="tl-panel" style="border-left-color: #d32f2f;">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--brand);">バイタルサイン</div>
+          <button class="btn-purple" onclick="openAiModal('vital')">🪄 読み取り</button>
         </div>
         <div class="grid-3col">
           <div class="input-row"><label>HR</label><input type="number" id="v-hr"></div>
@@ -184,6 +215,7 @@
 
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--brand);">血液ガス・採血</div>
+          <button class="btn-purple" onclick="openAiModal('blood')">🪄 読み取り</button>
         </div>
         <div class="grid-3col">
           <div class="input-row"><label>pH</label><input type="number" step="0.001" id="v-ph"></div>
@@ -199,7 +231,10 @@
       </div>
 
       <div id="panel-exam" class="tl-panel" style="border-left-color: #8b5cf6;">
-        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / 胸部XP)" list="history-list">
+        <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
+          <button class="btn-purple" onclick="openAiModal('exam')">🪄 読み取り</button>
+        </div>
+        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / エコー / 胸部XP)" list="history-list">
         <textarea id="v-exam-desc" rows="3" placeholder="所見 (例: 浸潤影あり)"></textarea>
       </div>
 
@@ -212,8 +247,7 @@
   </div>
 
   <div id="tab-sec3" class="tab-content">
-    <div id="eval-container">
-      </div>
+    <div id="eval-container"></div>
     <button class="btn-blue" style="width:100%; margin-bottom:16px; background:var(--brand);" onclick="addEvalBlock()">＋ 新しい評価ポイントを追加</button>
     <button class="btn-green" onclick="switchTab('sec4')">次へ (ギャップ・チーム) ➔</button>
   </div>
@@ -276,18 +310,39 @@
 
 </main>
 
+<div class="modal-overlay" id="ai-modal">
+  <div class="modal-box">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="color:#6b21a8; margin:0;">🪄 画像から読み取り (<span id="ai-target-label"></span>)</h3>
+      <button onclick="closeAiModal()" style="background:none; border:none; font-size:20px; cursor:pointer;">×</button>
+    </div>
+    <p style="font-size:11px; color:var(--sub); margin-bottom:12px;">※ 画像はJPEGまたはPNG形式（スクリーンショット）をご利用ください。</p>
+    
+    <div style="display:flex; gap:8px; margin-bottom:8px;">
+      <input type="file" id="ai-file-input" accept="image/jpeg, image/png" style="display:none;" onchange="handleAiFileChange(event)">
+      <button class="btn-blue" style="background:#6b21a8; flex:1;" onclick="document.getElementById('ai-file-input').click()">📷 スクショを選択 / 撮影</button>
+    </div>
+    <div id="ai-file-name" style="font-size:11px; color:var(--sub); margin-bottom:8px; text-align:center;"></div>
+    <button class="btn-purple" id="btn-ai-analyze" onclick="analyzeKarte()" style="margin-top:12px; width:100%; justify-content:center; padding:10px;">🤖 AIで読み取りを実行</button>
+  </div>
+</div>
+
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
 
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
   let masterStaff = [];
   let masterKeywords = [];
-  let masterTreatments = []; // 💡 追加
+  let masterTreatments = [];
   let currentCaseData = {}; 
   
   let timelineArray = [];
   let evalBlocks = [ { id: Date.now(), title: "搬入時(1次評価)", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
+  
+  let currentAiTarget = "";
+  let currentAiImageBase64 = null;
+  let currentAiMimeType = null;
 
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
@@ -338,14 +393,13 @@
           masterKeywords = res.masters.keywordList;
           document.getElementById("keyword-list").innerHTML = masterKeywords.map(k => `<option value="${k}">`).join("");
         }
-        // 💡 処置マスタのレンダリング
         if(res.treatments) {
           masterTreatments = res.treatments;
-          renderTxChips();
+          renderTxCategories();
         }
       }
     } catch(e) {
-      console.error("jsonpCallback processing error:", e);
+      console.error("jsonpCallback error:", e);
     } finally {
       document.getElementById("global-loader").style.display = "none";
     }
@@ -357,16 +411,32 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 💡 処置チップのレンダリング関数
-  function renderTxChips() {
-    const box = document.getElementById("tx-master-chips");
-    if(!box) return;
-    let names = [...new Set(masterTreatments.map(t => t.name))].filter(Boolean);
-    if(names.length === 0) {
-      box.innerHTML = "<div style='font-size:11px; color:var(--sub); padding:4px;'>マスタ＿処置 にデータがありません</div>";
-      return;
+  // 💡 階層式処置マスタのUI制御
+  function renderTxCategories() {
+    let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
+    document.getElementById("tx-step1-cat").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxCategory('${c}', this)">${c}</div>`).join("");
+  }
+  function selectTxCategory(cat, el) {
+    document.querySelectorAll('#tx-step1-cat .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    
+    let items = masterTreatments.filter(t => t.category === cat);
+    document.getElementById("tx-step2-item").style.display = "block";
+    document.getElementById("tx-step2-chips").innerHTML = items.map(t => `<div class="chip chip-tx" onclick="selectTxItem('${t.name}')">${t.name}</div>`).join("");
+    document.getElementById("tx-step3-opt").style.display = "none";
+  }
+  function selectTxItem(name) {
+    let t = masterTreatments.find(t => t.name === name);
+    document.getElementById("tx-final-text").value = name;
+    document.getElementById("tx-step3-opt").style.display = "block";
+    document.getElementById("tx-note").innerText = t.note || "（備考なし）";
+    
+    if(t.options) {
+      let opts = t.options.split(/[,、]/);
+      document.getElementById("tx-opt-chips").innerHTML = opts.map(o => `<div class="chip chip-tx-opt" onclick="document.getElementById('tx-final-text').value = '${name} ' + '${o.trim()}'">${o.trim()}</div>`).join("");
+    } else {
+      document.getElementById("tx-opt-chips").innerHTML = "";
     }
-    box.innerHTML = names.map(n => `<div class="chip chip-tx" onclick="document.getElementById('tl-text-basic').value='${n}'; document.getElementById('tl-text-basic').focus();">${n}</div>`).join("");
   }
 
   function renderEvalBlocks() {
@@ -394,6 +464,86 @@
   function removeEvalBlock(id) { evalBlocks = evalBlocks.filter(e => e.id !== id); renderEvalBlocks(); }
   function updateEval(id, key, val) { const ev = evalBlocks.find(e => e.id === id); if(ev) ev[key] = val; }
 
+  function openAiModal(target) {
+    currentAiTarget = target;
+    const labels = { "timeline":"タイムライン自動抽出", "vital":"バイタルサイン抽出", "blood":"血液ガス・採血抽出", "exam":"検査・画像所見抽出" };
+    document.getElementById("ai-target-label").innerText = labels[target];
+    document.getElementById("ai-modal").classList.add("show");
+  }
+  function closeAiModal() {
+    document.getElementById("ai-modal").classList.remove("show");
+    document.getElementById("ai-file-name").innerText = ""; 
+    currentAiImageBase64 = null; currentAiMimeType = null;
+  }
+  function handleAiFileChange(event) {
+    const file = event.target.files[0]; if (!file) return;
+    if (!file.type.match('image/jpeg') && !file.type.match('image/png')) return alert("画像はJPEGまたはPNG形式のみ対応しています。");
+    document.getElementById("ai-file-name").innerText = "📎 " + file.name;
+    const reader = new FileReader(); reader.onload = function(e) { currentAiImageBase64 = e.target.result; currentAiMimeType = file.type; };
+    reader.readAsDataURL(file);
+  }
+
+  // 💡 一括テキスト貼り付け追加
+  function addBulkText() {
+    const txt = document.getElementById("bulk-text-input").value.trim();
+    if(!txt) return alert("テキストを入力してください。");
+    const timeInput = document.getElementById("tl-input-time-text"); let time = timeInput.value;
+    if(time.length === 3 && !time.includes(':')) time = `0${time.substring(0,1)}:${time.substring(1,3)}`;
+    if(time.length !== 5 || !time.includes(':')) return alert("時間は 08:49 の形式で入力してください。");
+    
+    timelineArray.push({ type: 'normal', time: time, cat: "記事", contentText: txt, dataBox: "" });
+    renderTimeline(); document.getElementById("bulk-text-input").value = "";
+  }
+
+  function analyzeBulkKarte() {
+    const textData = document.getElementById("bulk-text-input").value.trim();
+    if (!textData) return alert("解析するテキストを貼り付けてください。");
+    
+    const btn = event.target; btn.textContent = "🤖 解析中... (約10秒)"; btn.disabled = true;
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: textData, imageBase64: null, mimeType: null }) })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "🤖 AIで自動振り分け"; btn.disabled = false;
+      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
+      
+      if (Array.isArray(resData)) {
+        resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ type: 'normal', time: item.time, cat: item.cat || "記事", contentText: item.contentText, dataBox: "" }); });
+        renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("タイムラインに自動追加しました！");
+      }
+    })
+    .catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで自動振り分け"; btn.disabled = false; });
+  }
+
+  function analyzeKarte() {
+    if (!currentAiImageBase64) return alert("画像を選択してください。");
+    const btn = document.getElementById("btn-ai-analyze"); btn.textContent = "🤖 解析中... (約10秒)"; btn.disabled = true;
+
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: currentAiTarget, imageText: "", imageBase64: currentAiImageBase64, mimeType: currentAiMimeType }) })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false;
+      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
+      if(currentAiTarget === "blood" && resData.blood) resData = resData.blood;
+      if(currentAiTarget === "vital" && resData.vitals) resData = resData.vitals;
+
+      if (currentAiTarget === "timeline" && Array.isArray(resData)) {
+        resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ type: 'normal', time: item.time, cat: item.cat || "記事", contentText: item.contentText, dataBox: "" }); });
+        renderTimeline();
+      } else if (currentAiTarget === "vital") {
+        ['v_hr','v_spo2','v_rr','v_bps','v_bpd','v_bt'].forEach(k => { if(resData[k]) document.getElementById(k.replace('v_','v-')).value = resData[k]; });
+        if(resData.v_jcs) document.getElementById("v-jcs").value = resData.v_jcs;
+      } else if (currentAiTarget === "blood") {
+        ['v_ph','v_pco2','v_po2','v_hco3','v_lac','v_be','v_wbc','v_hb','v_plt'].forEach(k => { if(resData[k]) document.getElementById(k.replace('v_','v-')).value = resData[k]; });
+      } else if (currentAiTarget === "exam") {
+        if(resData.exam_desc) document.getElementById("v-exam-desc").value = resData.exam_desc;
+      }
+      alert("読み取り完了しました！"); closeAiModal();
+    })
+    .catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false; });
+  }
+
   function fetchHistoryListAdvanced() {
     const sMonth = document.getElementById("s-month").value; const sStaff = document.getElementById("s-staff").value.trim(); const sKw = document.getElementById("s-kw").value.trim();
     const btn = document.getElementById("btn-search"); btn.textContent = "検索中..."; btn.disabled = true;
@@ -420,7 +570,6 @@
     document.querySelectorAll('#box-staff-actual .chip').forEach(c => c.classList.remove('on-blue'));
     if(item.staffs) document.querySelectorAll('#box-staff-actual .chip').forEach(c => { if(item.staffs.includes(c.textContent)) c.classList.add('on-blue'); });
 
-    // 💡 再開（復元）処理: ここで事案の過去データ(作成中含む)を引っ張ってくる
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
     .then(res => res.json())
     .then(data => {
@@ -502,7 +651,10 @@
     if(time.length !== 5 || !time.includes(':')) return alert("時間は 08:49 の形式で入力してください。");
     
     let contentText = ""; let dataBox = "";
-    if (document.getElementById('panel-txt').classList.contains('active')) {
+    if (currentCategory === '処置・投薬') {
+      const txt = document.getElementById("tx-final-text").value; if(!txt) return alert("内容を入力してください");
+      contentText = txt; saveHistory(txt); document.getElementById("tx-final-text").value = "";
+    } else if (currentCategory === '記事' || currentCategory === '家族対応・IC') {
       const txt = document.getElementById("tl-text-basic").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; saveHistory(txt); document.getElementById("tl-text-basic").value = "";
     } else if (document.getElementById('panel-exam').classList.contains('active')) {
