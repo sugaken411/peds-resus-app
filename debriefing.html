@@ -103,7 +103,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.0</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.1</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -144,13 +144,6 @@
 
   <div id="tab-sec2" class="tab-content">
     
-    <div class="card" style="border: 2px dashed var(--brand); background: var(--brand-light);">
-      <div class="section-label" style="color:var(--brand); border-bottom:1px solid #c8e6c9;">📝 カルテの一括貼り付け</div>
-      <p style="font-size: 11px; color: #2e7d32; margin-bottom: 8px;">電子カルテなどの経過テキストをまとめて貼り付け、そのまま1つの「記事」としてタイムラインに追加できます。</p>
-      <textarea id="bulk-text-input" rows="3" placeholder="ここに経過記録をコピペ..." style="border-color:#a5d6a7; background:#fff;"></textarea>
-      <button class="btn-green" style="margin-top:0; padding:10px; font-size:13px; background:var(--brand);" onclick="addBulkText()">指定時刻に「記事」として一括追加</button>
-    </div>
-
     <div class="card">
       <div class="section-label">
         <span>⏱️ タイムライン・データ入力</span>
@@ -183,16 +176,16 @@
         </div>
 
         <div id="tx-step3-opt" style="display:none; background:#e8f5e9; padding:8px; border-radius:8px; margin-bottom:12px;">
-          <div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:2px;">③ 選択肢 (タップで追記) / 備考</div>
-          <div id="tx-note" style="font-size:10px; color:#555; margin-bottom:6px; white-space:pre-wrap;"></div>
+          <div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:2px;">③ 選択肢（タップで追記）／ 備考</div>
+          <div id="tx-note" style="font-size:11px; color:#4a4a4a; margin-bottom:6px; background:#fff; padding:6px; border-radius:4px; border:1px solid var(--line); white-space:pre-wrap;"></div>
           <div id="tx-opt-chips" class="chip-grid" style="margin-bottom:0;"></div>
         </div>
         
-        <input type="text" id="tx-final-text" placeholder="内容を手入力または上記から選択" list="history-list" style="border-color:var(--blue);">
+        <input type="text" id="tx-final-text" placeholder="内容を手入力または上記マスタから生成" list="history-list" style="border-color:var(--blue); background:#fff;">
       </div>
 
       <div id="panel-txt" class="tl-panel">
-        <textarea id="tl-text-basic" rows="3" placeholder="内容を自由に入力してください"></textarea>
+        <textarea id="tl-text-basic" rows="3" placeholder="自由入力枠（内容を詳しく残したい場合はこちらへ）"></textarea>
       </div>
 
       <div id="panel-vital" class="tl-panel" style="border-left-color: #d32f2f;">
@@ -231,16 +224,28 @@
         <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
           <button class="btn-purple" onclick="openAiModal('exam')">🪄 画像から抽出</button>
         </div>
-        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / エコー / 胸部XP)" list="history-list">
-        <textarea id="v-exam-desc" rows="3" placeholder="所見 (例: 浸潤影あり)"></textarea>
+        <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / エコー / 十二誘導心電図)" list="history-list">
+        <textarea id="v-exam-desc" rows="3" placeholder="所見 (例: 局所的な壁運動低下なし)"></textarea>
       </div>
 
-      <button class="btn-blue" style="width:100%; margin-top:8px;" onclick="addTimeline()">＋ リストに追加</button>
+      <button class="btn-blue" style="width:100%; margin-top:8px;" onclick="addTimeline()">＋ タイムラインに登録</button>
+      
       <div id="timeline-list" style="margin-top: 16px; max-height: 250px; overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px;">
         <div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>
       </div>
     </div>
-    <button class="btn-green" onclick="switchTab('sec3')">次へ (症例評価) ➔</button>
+
+    <div class="card" style="border: 2px dashed #8b5cf6; background: #faf5ff; margin-top: 16px;">
+      <div class="section-label" style="color:#8b5cf6; border-bottom:1px solid #e9d5ff;">📋 経過テキストの一括取り込み</div>
+      <p style="font-size: 11px; color: #6b21a8; margin-bottom: 8px;">電子カルテ等からドカッとコピーした経過テキストを貼り付け、そのまま1つの「記事」として一括追加、またはAIでタイムラインに自動仕分けできます。</p>
+      <textarea id="bulk-text-input" rows="3" placeholder="ここに経過の文章をコピペ..." style="border-color:#d8b4fe; background:#fff;"></textarea>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-small" style="flex:1; background:#fff; border:1px solid #8b5cf6; color:#8b5cf6;" onclick="addBulkText()">そのまま1つの「記事」として追加</button>
+        <button class="btn-small" style="flex:1; background:#8b5cf6; color:#fff;" onclick="analyzeBulkKarte()">🪄 AIでタイムラインに自動仕分け</button>
+      </div>
+    </div>
+
+    <button class="btn-green" onclick="switchTab('sec3')">次へ (ABCDEF評価) ➔</button>
   </div>
 
   <div id="tab-sec3" class="tab-content">
@@ -341,7 +346,6 @@
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
-  // 💡 安全にキャッシュを破棄しリトライを効かせる最強の初期化
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
     const msg = document.getElementById("loader-msg");
@@ -356,7 +360,7 @@
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
     
     script.onerror = function() {
-      msg.innerHTML = "通信エラーが発生しました。<br><span style='font-size:11px; font-weight:normal;'>電波状況を確認し、以下のボタンを押してください。</span><br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border-radius:8px; border:none; background:var(--brand); color:#fff; font-weight:bold; cursor:pointer;'>🔄 再試行する</button>";
+      msg.innerHTML = "通信エラーが発生しました。<br><span style='font-size:11px; font-weight:normal;'>再試行ボタンを押すか、シークレットウィンドウでお試しください。</span><br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border-radius:8px; border:none; background:var(--brand); color:#fff; font-weight:bold; cursor:pointer;'>🔄 再試行する</button>";
     };
 
     document.body.appendChild(script);
@@ -375,12 +379,10 @@
     loadMasterData();
   };
 
-  // 💡 先輩考案の「何があってもフリーズを強制解除する」コールバック
   function jsonpCallback(res) {
     try {
       if (res && res.status === "error") {
-        // ★ 画面に具体的なエラーをそのまま表示してフリーズを回避
-        alert("GAS側エラー発生: " + res.message);
+        alert("マスタ取得エラー: " + res.message);
         return;
       }
       if (res && res.status === "success") {
@@ -399,8 +401,8 @@
         }
       }
     } catch(e) {
-      console.error("jsonpCallback inner error:", e);
-      alert("初期化エラー（処置マスタ等のデータ形式に不備があります）: " + e.message);
+      console.error("jsonpCallback error:", e);
+      alert("初期化エラー（マスタの構造を確認してください）: " + e.message);
     } finally {
       document.getElementById("global-loader").style.display = "none";
     }
@@ -412,7 +414,7 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 💡 階層式処置マスタのUI制御
+  // 💡 階層式処置マスタのUI制御（区分 ➔ 処置名 ➔ 選択肢・備考）
   function renderTxCategories() {
     let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
     document.getElementById("tx-step1-cat").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxCategory('${c}', this)">${c}</div>`).join("");
@@ -434,7 +436,7 @@
     
     if(t.options) {
       let opts = t.options.split(/[,、]/);
-      document.getElementById("tx-opt-chips").innerHTML = opts.map(o => `<div class="chip chip-tx-opt" onclick="document.getElementById('tx-final-text').value = '${name} ' + '${o.trim()}'">${o.trim()}</div>`).join("");
+      document.getElementById("tx-opt-chips").innerHTML = opts.map(o => `<div class="chip chip-tx-opt" onclick="document.getElementById('tx-final-text').value = '${name} [' + '${o.trim()}' + ']'">${o.trim()}</div>`).join("");
     } else {
       document.getElementById("tx-opt-chips").innerHTML = "";
     }
@@ -469,7 +471,7 @@
     currentAiTarget = target;
     const labels = { "timeline":"タイムライン自動抽出", "vital":"バイタルサイン抽出", "blood":"血液ガス・採血抽出", "exam":"検査・画像所見抽出" };
     document.getElementById("ai-target-label").innerText = labels[target];
-    document.getElementById("ai-modal").showModal ? document.getElementById("ai-modal").classList.add("show") : document.getElementById("ai-modal").classList.add("show");
+    document.getElementById("ai-modal").classList.add("show");
   }
   function closeAiModal() {
     document.getElementById("ai-modal").classList.remove("show");
@@ -494,7 +496,28 @@
     
     timelineArray.push({ type: 'normal', time: time, cat: "記事", contentText: txt, dataBox: "" });
     renderTimeline(); document.getElementById("bulk-text-input").value = "";
-    alert("「記事」として追加しました！");
+    alert("「記事」として一括追加しました！");
+  }
+
+  // 💡 一括テキストのAI自動仕分け
+  function analyzeBulkKarte() {
+    const textData = document.getElementById("bulk-text-input").value.trim();
+    if (!textData) return alert("解析するテキストを貼り付けてください。");
+    
+    const btn = event.target; btn.textContent = "🤖 解析中... (約10秒)"; btn.disabled = true;
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: textData, imageBase64: null, mimeType: null }) })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false;
+      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
+      
+      if (Array.isArray(resData)) {
+        resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ type: 'normal', time: item.time, cat: item.cat || "記事", contentText: item.contentText, dataBox: "" }); });
+        renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("タイムラインに自動追加しました！");
+      }
+    })
+    .catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; });
   }
 
   function analyzeKarte() {
@@ -615,7 +638,6 @@
     if (val.length >= 4) { let h = val.substring(0, 2); let m = val.substring(2, 4); if(parseInt(h) > 23) h = "23"; if(parseInt(m) > 59) m = "59"; input.value = `${h}:${m}`; syncTime('text'); } else { input.value = val; }
   }
 
-  // 現在時刻のセット
   function setNow() {
     const now = new Date(); const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0');
     document.getElementById("tl-input-time-picker").value = `${h}:${m}`; document.getElementById("tl-input-time-text").value = `${h}:${m}`; syncTime('text');
@@ -733,7 +755,7 @@
         summary: currentCaseData.summary || "", timeline: fullTimeline,
         v_hr: "", v_spo2: "", v_rr: "", v_bps: "", v_bpd: "", v_bt: "", v_jcs: "", v_ph: "", v_pco2: "", v_po2: "", v_hco3: "", v_lac: "", v_be: "", v_wbc: "", v_hb: "", v_plt: "", exam: "",
         gapBad: document.getElementById("v-gap-bad").value, gapGood: document.getElementById("v-gap-good").value, gapMaster: document.getElementById("v-gap-master").value, team: document.getElementById("v-team").value, family: document.getElementById("v-family").value, action: document.getElementById("v-action").value,
-        recorder: recorder, actualStaffs: actuals.join(', '), actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dDuration: document.getElementById("d-end-time").value, dDuration: document.getElementById("d-end-time").value, dPlace: document.getElementById("d-place").value,
+        recorder: recorder, actualStaffs: actuals.join(', '), actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dDuration: document.getElementById("d-end-time").value, dPlace: document.getElementById("d-place").value,
         evalA: strA, evalB: strB, evalC: strC, evalD: strD, evalE: strE, status: statusFlag
       }
     };
