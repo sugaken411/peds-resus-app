@@ -98,7 +98,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.6</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v5.7</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -320,16 +320,18 @@
     loader.style.display = "flex";
     msg.innerHTML = "システム起動中...";
 
+    // 💡 古いスクリプトタグがあれば削除（再試行用）
     let oldScript = document.getElementById("gas-script");
     if(oldScript) oldScript.remove();
 
     let script = document.createElement('script'); 
     script.id = "gas-script";
-    // キャッシュバスター: URLを毎回変えてブラウザのキャッシュを無視する
-    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + Date.now(); 
+    
+    // 💡 超重要：前回のコードで抜け落ちていたキャッシュバスター（t=時間）を追加
+    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
     
     script.onerror = function() {
-      msg.innerHTML = "通信エラーが発生しました。<br><span style='font-size:11px; font-weight:normal;'>電波状況を確認し、以下のボタンを押してください。</span><br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border-radius:8px; border:none; background:var(--brand); color:#fff; font-weight:bold; cursor:pointer;'>🔄 再試行する</button>";
+      msg.innerHTML = "通信エラーが発生しました。<br><span style='font-size:11px; font-weight:normal;'>電波状況やGoogleアカウントのログイン状態を確認し、以下のボタンを押してください。</span><br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border-radius:8px; border:none; background:var(--brand); color:#fff; font-weight:bold; cursor:pointer;'>🔄 再試行する</button>";
     };
 
     document.body.appendChild(script);
