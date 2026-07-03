@@ -145,13 +145,10 @@
   <div id="tab-sec2" class="tab-content">
     
     <div class="card" style="border: 2px dashed var(--brand); background: var(--brand-light);">
-      <div class="section-label" style="color:var(--brand); border-bottom:1px solid #c8e6c9;">📝 カルテの一括貼り付け・AI解析</div>
-      <p style="font-size: 11px; color: #2e7d32; margin-bottom: 8px;">電子カルテなどのテキストをまとめて貼り付け、AIで自動振り分けするか、そのまま1つの「記事」として追加できます。</p>
+      <div class="section-label" style="color:var(--brand); border-bottom:1px solid #c8e6c9;">📝 カルテの一括貼り付け</div>
+      <p style="font-size: 11px; color: #2e7d32; margin-bottom: 8px;">電子カルテなどの経過テキストをまとめて貼り付け、そのまま1つの「記事」としてタイムラインに追加できます。</p>
       <textarea id="bulk-text-input" rows="3" placeholder="ここに経過記録をコピペ..." style="border-color:#a5d6a7; background:#fff;"></textarea>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-small" style="flex:1; background:#fff; border:1px solid var(--brand); color:var(--brand);" onclick="addBulkText()">そのまま追加</button>
-        <button class="btn-small" style="flex:1; background:var(--brand); color:#fff;" onclick="analyzeBulkKarte()">🤖 AIで自動振り分け</button>
-      </div>
+      <button class="btn-green" style="margin-top:0; padding:10px; font-size:13px; background:var(--brand);" onclick="addBulkText()">指定時刻に「記事」として一括追加</button>
     </div>
 
     <div class="card">
@@ -201,7 +198,7 @@
       <div id="panel-vital" class="tl-panel" style="border-left-color: #d32f2f;">
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--brand);">バイタルサイン</div>
-          <button class="btn-purple" onclick="openAiModal('vital')">🪄 読み取り</button>
+          <button class="btn-purple" onclick="openAiModal('vital')">🪄 画像から抽出</button>
         </div>
         <div class="grid-3col">
           <div class="input-row"><label>HR</label><input type="number" id="v-hr"></div>
@@ -215,7 +212,7 @@
 
         <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--brand);">血液ガス・採血</div>
-          <button class="btn-purple" onclick="openAiModal('blood')">🪄 読み取り</button>
+          <button class="btn-purple" onclick="openAiModal('blood')">🪄 画像から抽出</button>
         </div>
         <div class="grid-3col">
           <div class="input-row"><label>pH</label><input type="number" step="0.001" id="v-ph"></div>
@@ -232,7 +229,7 @@
 
       <div id="panel-exam" class="tl-panel" style="border-left-color: #8b5cf6;">
         <div style="display:flex; justify-content:flex-end; margin-bottom:8px;">
-          <button class="btn-purple" onclick="openAiModal('exam')">🪄 読み取り</button>
+          <button class="btn-purple" onclick="openAiModal('exam')">🪄 画像から抽出</button>
         </div>
         <input type="text" id="v-exam-name" placeholder="検査名 (例: 頭部CT / エコー / 胸部XP)" list="history-list">
         <textarea id="v-exam-desc" rows="3" placeholder="所見 (例: 浸潤影あり)"></textarea>
@@ -328,7 +325,7 @@
 </div>
 
 <script>
-  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
@@ -344,6 +341,7 @@
   let currentAiImageBase64 = null;
   let currentAiMimeType = null;
 
+  // 💡 安全にキャッシュを破棄しリトライを効かせる最強の初期化
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
     const msg = document.getElementById("loader-msg");
@@ -377,10 +375,12 @@
     loadMasterData();
   };
 
+  // 💡 先輩考案の「何があってもフリーズを強制解除する」コールバック
   function jsonpCallback(res) {
     try {
       if (res && res.status === "error") {
-        alert("マスタ取得エラー: " + res.message);
+        // ★ 画面に具体的なエラーをそのまま表示してフリーズを回避
+        alert("GAS側エラー発生: " + res.message);
         return;
       }
       if (res && res.status === "success") {
@@ -399,7 +399,8 @@
         }
       }
     } catch(e) {
-      console.error("jsonpCallback error:", e);
+      console.error("jsonpCallback inner error:", e);
+      alert("初期化エラー（処置マスタ等のデータ形式に不備があります）: " + e.message);
     } finally {
       document.getElementById("global-loader").style.display = "none";
     }
@@ -468,7 +469,7 @@
     currentAiTarget = target;
     const labels = { "timeline":"タイムライン自動抽出", "vital":"バイタルサイン抽出", "blood":"血液ガス・採血抽出", "exam":"検査・画像所見抽出" };
     document.getElementById("ai-target-label").innerText = labels[target];
-    document.getElementById("ai-modal").classList.add("show");
+    document.getElementById("ai-modal").showModal ? document.getElementById("ai-modal").classList.add("show") : document.getElementById("ai-modal").classList.add("show");
   }
   function closeAiModal() {
     document.getElementById("ai-modal").classList.remove("show");
@@ -493,26 +494,7 @@
     
     timelineArray.push({ type: 'normal', time: time, cat: "記事", contentText: txt, dataBox: "" });
     renderTimeline(); document.getElementById("bulk-text-input").value = "";
-  }
-
-  function analyzeBulkKarte() {
-    const textData = document.getElementById("bulk-text-input").value.trim();
-    if (!textData) return alert("解析するテキストを貼り付けてください。");
-    
-    const btn = event.target; btn.textContent = "🤖 解析中... (約10秒)"; btn.disabled = true;
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: textData, imageBase64: null, mimeType: null }) })
-    .then(res => res.json())
-    .then(data => {
-      btn.textContent = "🤖 AIで自動振り分け"; btn.disabled = false;
-      if (data.status === "error") return alert("AI解析エラー: " + data.message);
-      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
-      
-      if (Array.isArray(resData)) {
-        resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ type: 'normal', time: item.time, cat: item.cat || "記事", contentText: item.contentText, dataBox: "" }); });
-        renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("タイムラインに自動追加しました！");
-      }
-    })
-    .catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで自動振り分け"; btn.disabled = false; });
+    alert("「記事」として追加しました！");
   }
 
   function analyzeKarte() {
@@ -633,6 +615,7 @@
     if (val.length >= 4) { let h = val.substring(0, 2); let m = val.substring(2, 4); if(parseInt(h) > 23) h = "23"; if(parseInt(m) > 59) m = "59"; input.value = `${h}:${m}`; syncTime('text'); } else { input.value = val; }
   }
 
+  // 現在時刻のセット
   function setNow() {
     const now = new Date(); const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0');
     document.getElementById("tl-input-time-picker").value = `${h}:${m}`; document.getElementById("tl-input-time-text").value = `${h}:${m}`; syncTime('text');
@@ -654,7 +637,7 @@
     if (currentCategory === '処置・投薬') {
       const txt = document.getElementById("tx-final-text").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; saveHistory(txt); document.getElementById("tx-final-text").value = "";
-    } else if (currentCategory === '記事' || currentCategory === '家族対応・IC') {
+    } else if (currentCategory === '記事' || currentCategory === '家族・IC') {
       const txt = document.getElementById("tl-text-basic").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; saveHistory(txt); document.getElementById("tl-text-basic").value = "";
     } else if (document.getElementById('panel-exam').classList.contains('active')) {
@@ -750,7 +733,7 @@
         summary: currentCaseData.summary || "", timeline: fullTimeline,
         v_hr: "", v_spo2: "", v_rr: "", v_bps: "", v_bpd: "", v_bt: "", v_jcs: "", v_ph: "", v_pco2: "", v_po2: "", v_hco3: "", v_lac: "", v_be: "", v_wbc: "", v_hb: "", v_plt: "", exam: "",
         gapBad: document.getElementById("v-gap-bad").value, gapGood: document.getElementById("v-gap-good").value, gapMaster: document.getElementById("v-gap-master").value, team: document.getElementById("v-team").value, family: document.getElementById("v-family").value, action: document.getElementById("v-action").value,
-        recorder: recorder, actualStaffs: actuals.join(', '), actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dDuration: document.getElementById("d-end-time").value, dPlace: document.getElementById("d-place").value,
+        recorder: recorder, actualStaffs: actuals.join(', '), actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dDuration: document.getElementById("d-end-time").value, dDuration: document.getElementById("d-end-time").value, dPlace: document.getElementById("d-place").value,
         evalA: strA, evalB: strB, evalC: strC, evalD: strD, evalE: strE, status: statusFlag
       }
     };
