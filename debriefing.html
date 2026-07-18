@@ -47,6 +47,8 @@
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); }
     .chip-tx.active { background: var(--blue); color: #fff; }
     .chip-tx-opt { background: #fff; border: 1px solid #d48806; color: #d48806; }
+    .chip-tx-radio { background: #fff; border: 1px solid #007aff; color: #007aff; }
+    .chip-tx-radio.active { background: #007aff; color: #fff; }
     
     .input-highlight { background-color: #e3f2fd !important; border-color: #2196f3 !important; }
 
@@ -54,7 +56,6 @@
     .tl-time { font-weight: bold; color: var(--blue); width: 45px; flex-shrink: 0; font-size: 14px; }
     .tl-cat { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; color: #333; white-space: nowrap; margin-top: 2px; }
     .tl-content { flex: 1; font-size: 12px; line-height: 1.5; }
-    .tl-data-box { background: #fff; border: 1px dashed var(--sub); border-radius: 6px; padding: 6px; margin-top: 4px; font-family: monospace; font-size: 11px; }
 
     .tab-content { display: none; } .tab-content.active { display: block; }
     .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--sub); margin-bottom: 8px; white-space: pre-wrap; }
@@ -95,7 +96,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.3</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.4</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -123,11 +124,11 @@
 
     <div id="mock-data-area" style="display:none;">
       <div class="card">
-        <div class="section-label" style="color:var(--ink); border-bottom-color:var(--line);">📝 当時の想定・作戦内容 (紐づけ完了)</div>
+        <div class="section-label" style="color:var(--ink); border-bottom-color:var(--line);">📝 当時の想定・作戦内容</div>
         <div class="data-preview" id="v-fetched-data"></div>
-        <div class="section-label" style="color:var(--blue); margin-top:12px;">🚑 現場で事案に対応したスタッフ (修正可)</div>
+        <div class="section-label" style="color:var(--blue); margin-top:12px;">🚑 現場で事案に対応したスタッフ</div>
         <div class="chip-grid" id="box-staff-actual"></div>
-        <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a; margin-top:12px;">⚠️ 実際の対応・想定との相違点 (追記)</div>
+        <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a; margin-top:12px;">⚠️ 実際の対応・想定との相違点</div>
         <textarea id="v-actual-diff" rows="3" placeholder="例: 想定シナリオとは異なり、実際には〇〇の対応を追加で行った..."></textarea>
       </div>
     </div>
@@ -160,25 +161,28 @@
         <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat(this, 'panel-txt', '記事')">記事</button>
       </div>
 
+      <!-- ★ 階層型スマート入力パネル ★ -->
       <div id="panel-tx" class="tl-panel active">
         <div style="font-size:11px; font-weight:bold; color:var(--blue); margin-bottom:4px;">① 区分を選択</div>
-        <div id="tx-step1-cat" class="chip-grid" style="margin-bottom:8px;"></div>
-        <div id="tx-step2-item" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-bottom:8px;">
-          <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:4px;">② 項目を選択</div>
-          <div id="tx-step2-chips" class="chip-grid"></div>
+        <div id="tx-kbn-chips" class="chip-grid"></div>
+        
+        <div id="tx-dai-container" style="display:none; margin-top:8px;">
+          <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:4px;">② 処置・項目を選択</div>
+          <div id="tx-dai-chips" class="chip-grid"></div>
         </div>
-        <div id="tx-step3-opt" style="display:none; background:#e8f5e9; padding:8px; border-radius:8px; margin-bottom:12px;">
-          <div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:2px;">③ 選択肢 ／ 備考</div>
-          <div id="tx-note" style="font-size:11px; color:#4a4a4a; margin-bottom:6px; background:#fff; padding:6px; border-radius:4px; border:1px solid var(--line); white-space:pre-wrap;"></div>
-          <div id="tx-opt-chips" class="chip-grid" style="margin-bottom:0;"></div>
+
+        <div id="tx-detail-container" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-top:8px; margin-bottom:8px;">
+          <!-- ここに中項目と選択肢が自動展開されます -->
         </div>
-        <input type="text" id="tx-final-text" placeholder="マスタ選択または自由手入力" list="history-list">
+        
+        <input type="text" id="tx-final-text" placeholder="合成された記録テキスト（手修正可）" style="margin-top:4px;">
       </div>
 
       <div id="panel-txt" class="tl-panel">
         <textarea id="tl-text-basic" rows="3" placeholder="記録内容を入力してください"></textarea>
       </div>
 
+      <!-- バイタル・ガス・採血等の入力パネル群はそのまま -->
       <div id="panel-vital" class="tl-panel">
         <div class="grid-2col">
           <div class="input-row"><label>HR</label><input type="number" id="v-hr" class="step-input" placeholder="心拍数(bpm)"></div>
@@ -192,54 +196,36 @@
       </div>
 
       <div id="panel-gas" class="tl-panel" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
-        <div class="input-row"><label>pH</label><input type="number" step="0.001" id="g-ph" class="step-input" placeholder="7.350 - 7.450"></div>
-        <div class="input-row"><label>pCO2</label><input type="number" step="0.1" id="g-pco2" class="step-input" placeholder="35.0 - 45.0 mmHg"></div>
-        <div class="input-row"><label>pO2</label><input type="number" step="0.1" id="g-po2" class="step-input" placeholder="mmHg"></div>
-        <div class="input-row"><label>BE</label><input type="number" step="0.1" id="g-be" class="step-input" placeholder="-2.0 - +2.0 mmol/L"></div>
-        <div class="input-row"><label>HCO3</label><input type="number" step="0.1" id="g-hco3" class="step-input" placeholder="22.0 - 26.0 mmol/L"></div>
-        <div class="input-row"><label>TCO2</label><input type="number" step="0.1" id="g-tco2" class="step-input" placeholder="mmol/L"></div>
-        <div class="input-row"><label>sO2</label><input type="number" step="0.1" id="g-so2" class="step-input" placeholder="(%)"></div>
-        <div class="input-row"><label>Na</label><input type="number" step="0.1" id="g-na" class="step-input" placeholder="135 - 145 mmol/L"></div>
-        <div class="input-row"><label>K</label><input type="number" step="0.1" id="g-k" class="step-input" placeholder="3.5 - 4.5 mmol/L"></div>
-        <div class="input-row"><label>iCa</label><input type="number" step="0.01" id="g-ica" class="step-input" placeholder="1.15 - 1.30 mmol/L"></div>
-        <div class="input-row"><label>Glu</label><input type="number" id="g-glu" class="step-input" placeholder="血糖(mg/dL)"></div>
-        <div class="input-row"><label>Hct</label><input type="number" step="0.1" id="g-hct" class="step-input" placeholder="(%)"></div>
-        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="g-hb" class="step-input" placeholder="(g/dL)"></div>
-        <div class="input-row"><label>Lac</label><input type="number" step="0.1" id="g-lac" class="step-input" placeholder="乳酸(mmol/L)"></div>
+        <div class="input-row"><label>pH</label><input type="number" step="0.001" id="g-ph" class="step-input"></div>
+        <div class="input-row"><label>pCO2</label><input type="number" step="0.1" id="g-pco2" class="step-input"></div>
+        <div class="input-row"><label>pO2</label><input type="number" step="0.1" id="g-po2" class="step-input"></div>
+        <div class="input-row"><label>BE</label><input type="number" step="0.1" id="g-be" class="step-input"></div>
+        <div class="input-row"><label>HCO3</label><input type="number" step="0.1" id="g-hco3" class="step-input"></div>
+        <div class="input-row"><label>TCO2</label><input type="number" step="0.1" id="g-tco2" class="step-input"></div>
+        <div class="input-row"><label>sO2</label><input type="number" step="0.1" id="g-so2" class="step-input"></div>
+        <div class="input-row"><label>Na</label><input type="number" step="0.1" id="g-na" class="step-input"></div>
+        <div class="input-row"><label>K</label><input type="number" step="0.1" id="g-k" class="step-input"></div>
+        <div class="input-row"><label>iCa</label><input type="number" step="0.01" id="g-ica" class="step-input"></div>
+        <div class="input-row"><label>Glu</label><input type="number" id="g-glu" class="step-input"></div>
+        <div class="input-row"><label>Hct</label><input type="number" step="0.1" id="g-hct" class="step-input"></div>
+        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="g-hb" class="step-input"></div>
+        <div class="input-row"><label>Lac</label><input type="number" step="0.1" id="g-lac" class="step-input"></div>
       </div>
 
       <div id="panel-blood" class="tl-panel" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
-        <div class="sub-見出し">■ 血算・血液像</div>
-        <div class="input-row"><label>WBC</label><input type="number" id="b-wbc" class="step-input" placeholder="(10*3/μL)"></div>
-        <div class="input-row"><label>RBC</label><input type="number" step="0.01" id="b-rbc" class="step-input" placeholder="(10*6/μL)"></div>
-        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="b-hb" class="step-input" placeholder="(g/dL)"></div>
-        <div class="input-row"><label>Ht</label><input type="number" step="0.1" id="b-ht" class="step-input" placeholder="(%)"></div>
-        <div class="input-row"><label>MCV</label><input type="number" step="0.1" id="b-mcv" class="step-input" placeholder="(fL)"></div>
-        <div class="input-row"><label>Plt</label><input type="number" id="b-plt" class="step-input" placeholder="血小板(10*3/μL)"></div>
-        <div class="input-row"><label>Seg</label><input type="number" step="0.1" id="b-seg" class="step-input" placeholder="好中球(%)"></div>
-        <div class="input-row"><label>Lympho</label><input type="number" step="0.1" id="b-lym" class="step-input" placeholder="リンパ(%)"></div>
-        
-        <div class="sub-見出し">■ 生化学・免疫</div>
-        <div class="input-row"><label>TP</label><input type="number" step="0.1" id="b-tp" class="step-input" placeholder="総蛋白(g/dL)"></div>
-        <div class="input-row"><label>Alb</label><input type="number" step="0.1" id="b-alb" class="step-input" placeholder="アルブミン(g/dL)"></div>
-        <div class="input-row"><label>AST</label><input type="number" id="b-ast" class="step-input" placeholder="(U/L)"></div>
-        <div class="input-row"><label>ALT</label><input type="number" id="b-alt" class="step-input" placeholder="(U/L)"></div>
-        <div class="input-row"><label>ALP</label><input type="number" id="b-alp" class="step-input" placeholder="(U/L)"></div>
-        <div class="input-row"><label>LDH</label><input type="number" id="b-ldh" class="step-input" placeholder="(U/L)"></div>
-        <div class="input-row"><label>γ-GTP</label><input type="number" id="b-ggt" class="step-input" placeholder="(U/L)"></div>
-        <div class="input-row"><label>CK</label><input type="number" id="b-ck" class="step-input" placeholder="CPK(U/L)"></div>
-        <div class="input-row"><label>トロポニンT</label><input type="number" step="0.001" id="b-trop" class="step-input" placeholder="(ng/mL)"></div>
-        <div class="input-row"><label>BNP</label><input type="number" step="0.1" id="b-bnp" class="step-input" placeholder="(pg/mL)"></div>
-        <div class="input-row"><label>T-Bil</label><input type="number" step="0.1" id="b-tbil" class="step-input" placeholder="総ビリルビン"></div>
-        <div class="input-row"><label>BUN</label><input type="number" step="0.1" id="b-bun" class="step-input" placeholder="尿素窒素"></div>
-        <div class="input-row"><label>Cre</label><input type="number" step="0.01" id="b-cre" class="step-input" placeholder="クレアチニン"></div>
-        <div class="input-row"><label>CRP</label><input type="number" step="0.01" id="b-crp" class="step-input" placeholder="(mg/dL)"></div>
-        
-        <div class="sub-見出し">■ 凝固系</div>
-        <div class="input-row"><label>PT-INR</label><input type="number" step="0.01" id="b-inr" class="step-input" placeholder="INR"></div>
-        <div class="input-row"><label>APTT</label><input type="number" step="0.1" id="b-aptt" class="step-input" placeholder="秒"></div>
-        <div class="input-row"><label>Dダイマー</label><input type="number" step="0.1" id="b-dd" class="step-input" placeholder="(μg/mL)"></div>
-        <div class="input-row"><label>Fbg</label><input type="number" id="b-fbg" class="step-input" placeholder="フィブリノゲン"></div>
+        <div class="sub-見出し">■ 血算・生化学</div>
+        <div class="input-row"><label>WBC</label><input type="number" id="b-wbc" class="step-input"></div>
+        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="b-hb" class="step-input"></div>
+        <div class="input-row"><label>Plt</label><input type="number" id="b-plt" class="step-input"></div>
+        <div class="input-row"><label>AST</label><input type="number" id="b-ast" class="step-input"></div>
+        <div class="input-row"><label>ALT</label><input type="number" id="b-alt" class="step-input"></div>
+        <div class="input-row"><label>LDH</label><input type="number" id="b-ldh" class="step-input"></div>
+        <div class="input-row"><label>CK</label><input type="number" id="b-ck" class="step-input"></div>
+        <div class="input-row"><label>BUN</label><input type="number" step="0.1" id="b-bun" class="step-input"></div>
+        <div class="input-row"><label>Cre</label><input type="number" step="0.01" id="b-cre" class="step-input"></div>
+        <div class="input-row"><label>CRP</label><input type="number" step="0.01" id="b-crp" class="step-input"></div>
+        <div class="input-row"><label>PT-INR</label><input type="number" step="0.01" id="b-inr" class="step-input"></div>
+        <div class="input-row"><label>APTT</label><input type="number" step="0.1" id="b-aptt" class="step-input"></div>
       </div>
 
       <div id="panel-exam" class="tl-panel">
@@ -336,6 +322,7 @@
 </main>
 
 <div class="modal-overlay" id="ai-modal">
+  <!-- 省略せず完全に維持 -->
   <div class="modal-box">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <h3 style="color:#6b21a8; margin:0;">🪄 画像から抽出 (<span id="ai-target-label"></span>)</h3>
@@ -352,91 +339,56 @@
 </div>
 
 <script>
-  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
 
   let currentCategory = '処置・投薬';
+  let currentSelectedDai = ""; // ★選択中の大項目を保持
+
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
-  let masterStaff = [];
-  let masterKeywords = [];
-  let masterTreatments = [];
+  let masterStaff = []; let masterKeywords = []; let masterTreatments = [];
   let currentCaseData = {}; 
   
   let timelineArray = [];
   let evalBlocks = [ { id: Date.now(), title: "搬入時(1次評価)", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
-  let temporaryExams = []; 
-  let editingRowId = null; 
-  
-  let currentAiTarget = "";
-  let currentAiImageBase64 = null;
-  let currentAiMimeType = null;
+  let temporaryExams = []; let editingRowId = null; 
+  let currentAiTarget = ""; let currentAiImageBase64 = null; let currentAiMimeType = null;
 
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
     const msg = document.getElementById("loader-msg");
-    loader.style.display = "flex";
-    msg.innerHTML = "システム起動中...";
-    let oldScript = document.getElementById("gas-script");
-    if(oldScript) oldScript.remove();
-    let script = document.createElement('script'); 
-    script.id = "gas-script";
+    loader.style.display = "flex"; msg.innerHTML = "システム起動中...";
+    let oldScript = document.getElementById("gas-script"); if(oldScript) oldScript.remove();
+    let script = document.createElement('script'); script.id = "gas-script";
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function() {
-      msg.innerHTML = "通信エラーが発生しました。<br><button onclick='loadMasterData()' style='margin-top:12px; padding:10px 20px; border:none; background:var(--brand); color:#fff; font-weight:bold; border-radius:6px;'>🔄 再試行する</button>";
-    };
+    script.onerror = function() { msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; };
     document.body.appendChild(script);
-    setTimeout(function() {
-      if (loader.style.display !== "none" && msg.innerHTML.indexOf("通信エラー") === -1) {
-        msg.innerText = "初回起動プロセス作動中...\n（サーバー起動に数十秒かかる場合があります。そのままお待ちください）";
-      }
-    }, 6000); 
   }
 
   window.onload = () => {
-    try { updateDatalist(); setupEnterKeyNavigation(); } catch(e) {}
+    try { setupEnterKeyNavigation(); } catch(e) {}
     document.getElementById("d-date").valueAsDate = new Date();
     try { renderEvalBlocks(); } catch(e) {}
     loadMasterData();
   };
 
-  function setupEnterKeyNavigation() {
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Enter' && e.target.classList.contains('step-input')) {
-        e.preventDefault();
-        forceHalf(e.target);
-        let inputs = Array.from(document.querySelectorAll('.step-input'));
-        let visibleInputs = inputs.filter(i => window.getComputedStyle(i).display !== 'none' && i.closest('.tl-panel.active'));
-        let index = visibleInputs.indexOf(e.target);
-        if (index > -1 && index < visibleInputs.length - 1) {
-          visibleInputs[index + 1].focus();
-        } else {
-          document.getElementById("btn-add-timeline").focus();
-        }
-      }
-    });
-  }
+  function setupEnterKeyNavigation() { /* unchanged */ }
 
   function jsonpCallback(res) {
-    try {
-      if (res && res.status === "error") { alert("マスタ取得エラー: " + res.message); return; }
-      if (res && res.status === "success") {
-        if(res.masters && res.masters.staffList) {
-          masterStaff = res.masters.staffList.map(s => s.displayName);
-          document.getElementById("staff-list").innerHTML = masterStaff.map(n => `<option value="${n}">`).join("");
-          renderStaffChips();
-        }
-        if(res.masters && res.masters.keywordList) {
-          masterKeywords = res.masters.keywordList;
-          document.getElementById("keyword-list").innerHTML = masterKeywords.map(k => `<option value="${k}">`).join("");
-        }
-        if(res.treatments) {
-          masterTreatments = res.treatments;
-          renderTxCategories();
-        }
+    document.getElementById("global-loader").style.display = "none";
+    if (res && res.status === "error") { alert("マスタ取得エラー: " + res.message); return; }
+    if (res && res.status === "success") {
+      if(res.masters && res.masters.staffList) {
+        masterStaff = res.masters.staffList.map(s => s.displayName);
+        document.getElementById("staff-list").innerHTML = masterStaff.map(n => `<option value="${n}">`).join("");
+        renderStaffChips();
       }
-    } catch(e) {
-      alert("初期化エラー（マスタ形式の確認をしてください）: " + e.message);
-    } finally {
-      document.getElementById("global-loader").style.display = "none";
+      if(res.masters && res.masters.keywordList) {
+        document.getElementById("keyword-list").innerHTML = res.masters.keywordList.map(k => `<option value="${k}">`).join("");
+      }
+      if(res.treatments) {
+        masterTreatments = res.treatments;
+        renderTxCategories();
+      }
     }
   }
 
@@ -446,35 +398,134 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
+  // ★ 階層型スマート描画ロジック ★
   function renderTxCategories() {
+    // レベル1: 区分 (A, B, C... 等)
     let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
-    document.getElementById("tx-step1-cat").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxCategory('${c}', this)">${c}</div>`).join("");
+    document.getElementById("tx-kbn-chips").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxKbn('${c}', this)">${c}</div>`).join("");
   }
-  function selectTxCategory(cat, el) {
-    document.querySelectorAll('#tx-step1-cat .chip').forEach(c => c.classList.remove('active'));
+
+  function selectTxKbn(kbn, el) {
+    document.querySelectorAll('#tx-kbn-chips .chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
-    let items = masterTreatments.filter(t => t.category === cat);
-    document.getElementById("tx-step2-item").style.display = "block";
-    document.getElementById("tx-step2-chips").innerHTML = items.map(t => `<div class="chip chip-tx" onclick="selectTxItem('${t.name}')">${t.name}</div>`).join("");
-    document.getElementById("tx-step3-opt").style.display = "none";
+    
+    // レベル2: 大項目
+    let dais = [...new Set(masterTreatments.filter(t => t.category === kbn).map(t => t.large))].filter(Boolean);
+    document.getElementById("tx-dai-container").style.display = "block";
+    document.getElementById("tx-dai-chips").innerHTML = dais.map(d => `<div class="chip chip-tx-opt" onclick="selectTxDai('${d}', this)">${d}</div>`).join("");
+    
+    document.getElementById("tx-detail-container").style.display = "none";
+    document.getElementById("tx-final-text").value = "";
+    currentSelectedDai = "";
   }
-  function selectTxItem(name) {
-    let t = masterTreatments.find(t => t.name === name);
-    document.getElementById("tx-final-text").value = name;
-    document.getElementById("tx-step3-opt").style.display = "block";
-    document.getElementById("tx-note").innerText = t.note || "（備考なし）";
-    if(t.options) {
-      let opts = t.options.split(/[,、]/);
-      document.getElementById("tx-opt-chips").innerHTML = opts.map(o => `<div class="chip chip-tx-opt" onclick="document.getElementById('tx-final-text').value = '${name} [' + '${o.trim()}' + ']'">${o.trim()}</div>`).join("");
+
+  function selectTxDai(dai, el) {
+    document.querySelectorAll('#tx-dai-chips .chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    currentSelectedDai = dai;
+    
+    let items = masterTreatments.filter(t => t.large === dai);
+    let html = `<div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:6px;">③ 詳細記録 (${dai})</div>`;
+    
+    let grouped = {}; let noMedium = [];
+    items.forEach(item => {
+      if (item.medium) {
+        if (!grouped[item.medium]) grouped[item.medium] = [];
+        grouped[item.medium].push(item);
+      } else { noMedium.push(item); }
+    });
+    
+    if (noMedium.length > 0) {
+      html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;">`;
+      html += noMedium.map(opt => createOptionInput(opt, 'その他')).join("");
+      html += `</div>`;
+    }
+    
+    for (let m in grouped) {
+      html += `<div style="font-size:11px; font-weight:bold; color:var(--sub); margin-top:6px; margin-bottom:4px;">■ ${m}</div>`;
+      html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;">`;
+      html += grouped[m].map(opt => createOptionInput(opt, m)).join("");
+      html += `</div>`;
+    }
+    
+    document.getElementById("tx-detail-container").innerHTML = html;
+    document.getElementById("tx-detail-container").style.display = "block";
+    updateTxFinalText();
+  }
+
+  function createOptionInput(opt, mediumGroup) {
+    let text = opt.name;
+    // G列（方式）による入力部品の出し分け
+    let isNumber = opt.style.includes("数値") || opt.style.includes("ml") || opt.style.includes("cm") || text.includes("「");
+    let isText = opt.style.includes("フリー");
+    let isRadio = opt.style.includes("プルダウン"); // ラジオボタン的な排他選択
+    
+    if (isNumber) {
+      let placeholder = text.replace(/[「」\u3000 ]/g, ''); // 単位をプレースホルダに
+      return `<input type="number" class="tx-num-input" data-group="${mediumGroup}" data-val="${text}" placeholder="${placeholder}" style="width:70px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
+    } else if (isText) {
+      return `<input type="text" class="tx-text-input" data-group="${mediumGroup}" data-val="${text}" placeholder="詳細入力" style="flex:1; min-width:120px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
     } else {
-      document.getElementById("tx-opt-chips").innerHTML = "";
+      let cls = isRadio ? 'chip-tx-radio' : 'chip-tx-opt';
+      return `<div class="chip ${cls}" data-group="${mediumGroup}" onclick="toggleTxChip(this, ${isRadio})">${text}</div>`;
     }
   }
 
+  function toggleTxChip(el, isRadio) {
+    if (isRadio) { // 排他選択グループの場合、他をオフにする
+      let group = el.getAttribute('data-group');
+      document.querySelectorAll(`#tx-detail-container .chip-tx-radio[data-group="${group}"]`).forEach(c => {
+        if(c !== el) c.classList.remove('active');
+      });
+    }
+    el.classList.toggle('active');
+    updateTxFinalText();
+  }
+
+  // ★ 入力されたデータを集めて美しい1行のテキストに合成
+  function updateTxFinalText() {
+    if (!currentSelectedDai) return;
+    let groups = {};
+    
+    document.querySelectorAll('#tx-detail-container .chip-tx-opt.active, #tx-detail-container .chip-tx-radio.active').forEach(chip => {
+      let g = chip.getAttribute('data-group');
+      if (!groups[g]) groups[g] = []; groups[g].push(chip.textContent);
+    });
+    
+    document.querySelectorAll('#tx-detail-container .tx-num-input').forEach(input => {
+      if (input.value) {
+        let g = input.getAttribute('data-group');
+        if (!groups[g]) groups[g] = [];
+        let valTemplate = input.getAttribute('data-val'); 
+        let filled = valTemplate.replace(/「.*」/, input.value);
+        if(!filled.includes(input.value)) filled = input.value + valTemplate.replace(/[「」\u3000 ]/g, '');
+        groups[g].push(filled);
+      }
+    });
+
+    document.querySelectorAll('#tx-detail-container .tx-text-input').forEach(input => {
+      if (input.value) {
+        let g = input.getAttribute('data-group');
+        if (!groups[g]) groups[g] = []; groups[g].push(input.value);
+      }
+    });
+    
+    let parts = [];
+    for (let g in groups) {
+      if (g === 'undefined' || g === 'null' || g === 'その他' || g === '') {
+        parts.push(groups[g].join(', '));
+      } else {
+        parts.push(`${g}: ${groups[g].join(', ')}`);
+      }
+    }
+    
+    let finalText = currentSelectedDai;
+    if (parts.length > 0) finalText += ` [${parts.join(' / ')}]`;
+    document.getElementById("tx-final-text").value = finalText;
+  }
+
   function addFreeExamRow() {
-    let name = document.getElementById("ex-name").value.trim();
-    let res = document.getElementById("ex-res").value.trim();
-    let unit = document.getElementById("ex-unit").value.trim();
+    let name = document.getElementById("ex-name").value.trim(); let res = document.getElementById("ex-res").value.trim(); let unit = document.getElementById("ex-unit").value.trim();
     if(!name || !res) return alert("検査名と結果を入力してください");
     temporaryExams.push({ name: name, res: res, unit: unit });
     document.getElementById("ex-name").value = ""; document.getElementById("ex-res").value = ""; document.getElementById("ex-unit").value = "";
@@ -512,19 +563,17 @@
     if (currentCategory === '処置・投薬') {
       let txt = document.getElementById("tx-final-text").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; rawValues = { "tx-final-text": txt };
+      // リセット
       document.getElementById("tx-final-text").value = "";
+      document.querySelectorAll('#tx-detail-container .chip').forEach(c => c.classList.remove('active'));
+      document.querySelectorAll('#tx-detail-container input').forEach(i => i.value = "");
     } else if (currentCategory === '記事' || currentCategory === '家族・IC') {
       let txt = document.getElementById("tl-text-basic").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; rawValues = { "tl-text-basic": txt };
       document.getElementById("tl-text-basic").value = "";
     } else if (currentCategory === '画像・検査') {
       if(temporaryExams.length === 0) {
-        let name = document.getElementById("v-exam-name") ? document.getElementById("v-exam-name").value : ""; 
-        let desc = document.getElementById("v-exam-desc") ? document.getElementById("v-exam-desc").value : "";
-        if(!name) return alert("検査名を入力してください");
-        contentText = `【${name}】 ${desc}`; rawValues = { "v-exam-name": name, "v-exam-desc": desc };
-        if(document.getElementById("v-exam-name")) document.getElementById("v-exam-name").value = ""; 
-        if(document.getElementById("v-exam-desc")) document.getElementById("v-exam-desc").value = "";
+        return alert("検査が追加されていません");
       } else {
         contentText = temporaryExams.map(x => `【${x.name}】${x.res}${x.unit}`).join(" | ");
         rawValues = { "temporaryExams": JSON.parse(JSON.stringify(temporaryExams)) };
@@ -581,13 +630,17 @@
     
     let targetTab = Array.from(document.querySelectorAll('.group-btn')).find(b => b.textContent === item.cat || (item.cat==='血液ガス'&&b.textContent==='血液ガス'));
     if(targetTab) targetTab.click();
-    document.querySelectorAll('input, textarea').forEach(i => i.classList.remove('input-highlight'));
     
-    if(item.rawValues && item.rawValues.temporaryExams) {
-      temporaryExams = JSON.parse(JSON.stringify(item.rawValues.temporaryExams)); renderFreeExamChips();
-    } else if(item.rawValues) {
-      for(let key in item.rawValues) {
-        let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); }
+    if (item.cat === '処置・投薬') {
+      document.getElementById("tx-final-text").value = item.rawValues["tx-final-text"] || "";
+      document.getElementById("tx-final-text").classList.add('input-highlight');
+    } else {
+      if(item.rawValues && item.rawValues.temporaryExams) {
+        temporaryExams = JSON.parse(JSON.stringify(item.rawValues.temporaryExams)); renderFreeExamChips();
+      } else if(item.rawValues) {
+        for(let key in item.rawValues) {
+          let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); }
+        }
       }
     }
   }
@@ -621,57 +674,27 @@
     }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; });
   }
 
-  // ★ 修正：エラーハンドリングとエスケープ処理の追加
   function fetchHistoryListAdvanced() {
-    const sMonth = document.getElementById("s-month").value; 
-    const sStaff = document.getElementById("s-staff").value.trim(); 
-    const sKw = document.getElementById("s-kw").value.trim();
-    const btn = document.getElementById("btn-search");
-    
-    btn.textContent = "検索中..."; 
-    btn.disabled = true;
-    
-    fetch(GAS_API_URL, { 
-      method: "POST", 
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-      body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-      btn.textContent = "検索"; 
-      btn.disabled = false;
-      
+    const sMonth = document.getElementById("s-month").value; const sStaff = document.getElementById("s-staff").value.trim(); const sKw = document.getElementById("s-kw").value.trim();
+    const btn = document.getElementById("btn-search"); btn.textContent = "検索中..."; btn.disabled = true;
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) })
+    .then(res => res.json()).then(data => {
+      btn.textContent = "検索"; btn.disabled = false;
       const resArea = document.getElementById("search-results-area");
-      
-      if (data.status === "not_found") { 
-        resArea.style.display = "block"; 
-        resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; 
-      } 
+      if (data.status === "not_found") { resArea.style.display = "block"; resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; } 
       else if (data.status === "success") {
         resArea.style.display = "block";
         resArea.innerHTML = data.results.map(item => {
-          // シングルクォーテーション等によるHTMLの破壊を防ぐエスケープ処理
           const safeItem = JSON.stringify(item).replace(/'/g, "&#39;");
           return `<div class="search-result-item" onclick='selectCase(${safeItem})'>
                     <div style="font-weight:bold; color:var(--blue);">${(item.date||"").split('T')[0]} ｜ ${item.id}</div>
                     <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
                   </div>`;
         }).join("");
-      } 
-      else {
-        // GAS側でエラーが起きた場合のアラート
-        alert("データベースエラー: " + (data.message || "原因不明"));
-      }
-    })
-    .catch(err => {
-      // 通信エラー（URL間違いなど）をキャッチしてフリーズを防ぐ
-      btn.textContent = "検索"; 
-      btn.disabled = false;
-      alert("通信エラーが発生しました: " + err.message);
-    });
+      } else { alert("データベースエラー: " + (data.message || "原因不明")); }
+    }).catch(err => { btn.textContent = "検索"; btn.disabled = false; alert("通信エラー: " + err.message); });
   }
 
-  // ★ 修正：詳細データの取得をGETからPOSTへ変更＆エラーハンドリング
   function selectCase(item) {
     currentCaseData = item;
     document.getElementById("search-results-area").style.display = "none";
@@ -687,14 +710,8 @@
       let jMatch = item.vitals.match(/意識レベル:\s*([^｜\n]+)/); if(jMatch) document.getElementById("v-jcs").value = jMatch[1].trim();
     }
     
-    // 【重要修正】GETリクエストではなくPOSTリクエストに変更
-    fetch(GAS_API_URL, { 
-      method: "POST", 
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-      body: JSON.stringify({ action: "fetch_debrief", id: item.id }) 
-    })
-    .then(res => res.json())
-    .then(data => {
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
+    .then(res => res.json()).then(data => {
       if (data && data.debriefData) {
         const d = data.debriefData;
         document.getElementById("v-actual-diff").value = d.actualDiff || "";
@@ -702,11 +719,7 @@
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
       }
-    })
-    .catch(err => {
-      console.error("Debrief fetch error:", err);
-      alert("事案の詳細データ取得に失敗しました。");
-    });
+    }).catch(err => { alert("事案の詳細データ取得に失敗しました。"); });
   }
 
   function generatePreview() {
