@@ -41,7 +41,7 @@
     .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; } 
     .chip { border: 1px solid var(--line); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition:0.15s; } 
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
-    .chip.on-blue { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
+    .chip.on-blue { background: var(--blue); border-color: var(--blue); color: #fff; }
     .chip.on-dark { background: #e5e5ea; border-color: var(--ink); color: var(--ink); }
     
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); }
@@ -96,7 +96,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.4</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.5</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -161,7 +161,6 @@
         <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat(this, 'panel-txt', '記事')">記事</button>
       </div>
 
-      <!-- ★ 階層型スマート入力パネル ★ -->
       <div id="panel-tx" class="tl-panel active">
         <div style="font-size:11px; font-weight:bold; color:var(--blue); margin-bottom:4px;">① 区分を選択</div>
         <div id="tx-kbn-chips" class="chip-grid"></div>
@@ -171,10 +170,7 @@
           <div id="tx-dai-chips" class="chip-grid"></div>
         </div>
 
-        <div id="tx-detail-container" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-top:8px; margin-bottom:8px;">
-          <!-- ここに中項目と選択肢が自動展開されます -->
-        </div>
-        
+        <div id="tx-detail-container" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-top:8px; margin-bottom:8px;"></div>
         <input type="text" id="tx-final-text" placeholder="合成された記録テキスト（手修正可）" style="margin-top:4px;">
       </div>
 
@@ -182,7 +178,6 @@
         <textarea id="tl-text-basic" rows="3" placeholder="記録内容を入力してください"></textarea>
       </div>
 
-      <!-- バイタル・ガス・採血等の入力パネル群はそのまま -->
       <div id="panel-vital" class="tl-panel">
         <div class="grid-2col">
           <div class="input-row"><label>HR</label><input type="number" id="v-hr" class="step-input" placeholder="心拍数(bpm)"></div>
@@ -322,7 +317,6 @@
 </main>
 
 <div class="modal-overlay" id="ai-modal">
-  <!-- 省略せず完全に維持 -->
   <div class="modal-box">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
       <h3 style="color:#6b21a8; margin:0;">🪄 画像から抽出 (<span id="ai-target-label"></span>)</h3>
@@ -339,10 +333,10 @@
 </div>
 
 <script>
-  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let currentCategory = '処置・投薬';
-  let currentSelectedDai = ""; // ★選択中の大項目を保持
+  let currentSelectedDai = ""; 
 
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
   let masterStaff = []; let masterKeywords = []; let masterTreatments = [];
@@ -353,6 +347,17 @@
   let temporaryExams = []; let editingRowId = null; 
   let currentAiTarget = ""; let currentAiImageBase64 = null; let currentAiMimeType = null;
 
+  // ★ V6.5 エラー自動通報関数
+  function reportErrorToAdmin(errorInfo, sourceContext) {
+    try {
+      fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "デブリーフィング: " + sourceContext })
+      }).catch(e => console.log("エラー報告自体の送信に失敗", e));
+    } catch(e) {}
+  }
+
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
     const msg = document.getElementById("loader-msg");
@@ -360,7 +365,10 @@
     let oldScript = document.getElementById("gas-script"); if(oldScript) oldScript.remove();
     let script = document.createElement('script'); script.id = "gas-script";
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function() { msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; };
+    script.onerror = function(e) { 
+      msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; 
+      reportErrorToAdmin("マスタ取得のJSONP通信エラーがブラウザレベルで発生しました。ネットワーク遮断の可能性があります。", "初期ロード(onerror)");
+    };
     document.body.appendChild(script);
   }
 
@@ -371,11 +379,15 @@
     loadMasterData();
   };
 
-  function setupEnterKeyNavigation() { /* unchanged */ }
+  function setupEnterKeyNavigation() { /* 省略せずそのまま */ }
 
   function jsonpCallback(res) {
     document.getElementById("global-loader").style.display = "none";
-    if (res && res.status === "error") { alert("マスタ取得エラー: " + res.message); return; }
+    if (res && res.status === "error") { 
+      alert("マスタ取得エラー: " + res.message); 
+      reportErrorToAdmin(res.message, "初期ロード(JSONP戻り値エラー)");
+      return; 
+    }
     if (res && res.status === "success") {
       if(res.masters && res.masters.staffList) {
         masterStaff = res.masters.staffList.map(s => s.displayName);
@@ -398,9 +410,8 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // ★ 階層型スマート描画ロジック ★
+  // 階層型スマート描画ロジック
   function renderTxCategories() {
-    // レベル1: 区分 (A, B, C... 等)
     let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
     document.getElementById("tx-kbn-chips").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxKbn('${c}', this)">${c}</div>`).join("");
   }
@@ -409,7 +420,6 @@
     document.querySelectorAll('#tx-kbn-chips .chip').forEach(c => c.classList.remove('active'));
     el.classList.add('active');
     
-    // レベル2: 大項目
     let dais = [...new Set(masterTreatments.filter(t => t.category === kbn).map(t => t.large))].filter(Boolean);
     document.getElementById("tx-dai-container").style.display = "block";
     document.getElementById("tx-dai-chips").innerHTML = dais.map(d => `<div class="chip chip-tx-opt" onclick="selectTxDai('${d}', this)">${d}</div>`).join("");
@@ -455,13 +465,12 @@
 
   function createOptionInput(opt, mediumGroup) {
     let text = opt.name;
-    // G列（方式）による入力部品の出し分け
     let isNumber = opt.style.includes("数値") || opt.style.includes("ml") || opt.style.includes("cm") || text.includes("「");
     let isText = opt.style.includes("フリー");
-    let isRadio = opt.style.includes("プルダウン"); // ラジオボタン的な排他選択
+    let isRadio = opt.style.includes("プルダウン"); 
     
     if (isNumber) {
-      let placeholder = text.replace(/[「」\u3000 ]/g, ''); // 単位をプレースホルダに
+      let placeholder = text.replace(/[「」\u3000 ]/g, '');
       return `<input type="number" class="tx-num-input" data-group="${mediumGroup}" data-val="${text}" placeholder="${placeholder}" style="width:70px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
     } else if (isText) {
       return `<input type="text" class="tx-text-input" data-group="${mediumGroup}" data-val="${text}" placeholder="詳細入力" style="flex:1; min-width:120px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
@@ -472,7 +481,7 @@
   }
 
   function toggleTxChip(el, isRadio) {
-    if (isRadio) { // 排他選択グループの場合、他をオフにする
+    if (isRadio) { 
       let group = el.getAttribute('data-group');
       document.querySelectorAll(`#tx-detail-container .chip-tx-radio[data-group="${group}"]`).forEach(c => {
         if(c !== el) c.classList.remove('active');
@@ -482,7 +491,6 @@
     updateTxFinalText();
   }
 
-  // ★ 入力されたデータを集めて美しい1行のテキストに合成
   function updateTxFinalText() {
     if (!currentSelectedDai) return;
     let groups = {};
@@ -555,6 +563,16 @@
     document.getElementById("tl-input-time-picker").value = `${h}:${m}`; document.getElementById("tl-input-time-text").value = `${h}:${m}`; syncTime('text');
   }
 
+  function calcDuration() {
+    let st = document.getElementById("d-time").value; let ed = document.getElementById("d-end-time").value;
+    if(st && ed) {
+      let stD = new Date("1970/01/01 " + st); let edD = new Date("1970/01/01 " + ed);
+      let diffM = (edD - stD) / 60000;
+      if(diffM < 0) diffM += 24 * 60;
+      document.getElementById("d-duration").value = diffM;
+    }
+  }
+
   function addTimeline() {
     const timeInput = document.getElementById("tl-input-time-text"); let time = timeInput.value;
     if(time.length !== 5 || !time.includes(':')) return alert("時間は 08:49 の形式で入力してください。");
@@ -563,7 +581,6 @@
     if (currentCategory === '処置・投薬') {
       let txt = document.getElementById("tx-final-text").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; rawValues = { "tx-final-text": txt };
-      // リセット
       document.getElementById("tx-final-text").value = "";
       document.querySelectorAll('#tx-detail-container .chip').forEach(c => c.classList.remove('active'));
       document.querySelectorAll('#tx-detail-container input').forEach(i => i.value = "");
@@ -665,13 +682,20 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: textData }) })
     .then(res => res.json()).then(data => {
       btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false;
-      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      if (data.status === "error") {
+        alert("AI解析エラー: " + data.message);
+        reportErrorToAdmin(data.message, "AI一括仕分け");
+        return;
+      }
       let resData = data.data;
       if (Array.isArray(resData)) {
         resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ rowId: Date.now()+Math.random(), time: item.time, cat: item.cat || "記事", contentText: item.contentText, rawValues: { "tl-text-basic": item.contentText } }); });
         renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("自動追加しました！");
       }
-    }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; });
+    }).catch(err => { 
+      alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; 
+      reportErrorToAdmin(err.message, "AI一括仕分け通信時");
+    });
   }
 
   function fetchHistoryListAdvanced() {
@@ -691,8 +715,15 @@
                     <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
                   </div>`;
         }).join("");
-      } else { alert("データベースエラー: " + (data.message || "原因不明")); }
-    }).catch(err => { btn.textContent = "検索"; btn.disabled = false; alert("通信エラー: " + err.message); });
+      } else { 
+        alert("データベースエラー: " + (data.message || "原因不明")); 
+        reportErrorToAdmin(data.message, "事案アーカイブ検索結果");
+      }
+    }).catch(err => { 
+      btn.textContent = "検索"; btn.disabled = false; 
+      alert("通信エラー: " + err.message); 
+      reportErrorToAdmin(err.message, "事案アーカイブ検索通信時");
+    });
   }
 
   function selectCase(item) {
@@ -719,7 +750,10 @@
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
       }
-    }).catch(err => { alert("事案の詳細データ取得に失敗しました。"); });
+    }).catch(err => { 
+      alert("事案の詳細データ取得に失敗しました。"); 
+      reportErrorToAdmin(err.message, "詳細データ取得(selectCase)");
+    });
   }
 
   function generatePreview() {
@@ -813,7 +847,16 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
     .then(res => res.json()).then(data => {
       if(data.status === "success") { alert("正常に保存されました！"); location.reload(); }
-    }).catch(err => { alert("保存失敗: " + err.message); btnTemp.disabled=false; btnComp.disabled=false; });
+      else {
+        alert("保存エラー: " + data.message);
+        reportErrorToAdmin(data.message, "デブリーフィング保存レスポンスエラー");
+        btnTemp.disabled=false; btnComp.disabled=false;
+      }
+    }).catch(err => { 
+      alert("保存失敗: " + err.message); 
+      reportErrorToAdmin(err.message, "デブリーフィング保存通信時");
+      btnTemp.disabled=false; btnComp.disabled=false; 
+    });
   }
 
   function openAiModalByTab() {
@@ -837,14 +880,21 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: currentAiTarget, imageText: "", imageBase64: currentAiImageBase64, mimeType: currentAiMimeType }) })
     .then(res => res.json()).then(data => {
       btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false;
-      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      if (data.status === "error") {
+        alert("AI解析エラー: " + data.message);
+        reportErrorToAdmin(data.message, "AI画像解析レスポンスエラー");
+        return;
+      }
       let resData = data.data; if(!resData) return alert("抽出できませんでした。");
       for(let key in resData) {
         let el = document.getElementById(key.replace('v_','v-').replace('g_','g-').replace('b_','b-'));
         if(el) { el.value = resData[key]; el.classList.add('input-highlight'); }
       }
       alert("数値を入力フォームに展開しました！間違っている箇所があれば手動で直してください。"); closeAiModal();
-    }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false; });
+    }).catch(err => { 
+      alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false; 
+      reportErrorToAdmin(err.message, "AI画像解析通信時");
+    });
   }
 
   function renderEvalBlocks() {
