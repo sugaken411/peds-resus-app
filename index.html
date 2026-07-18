@@ -108,7 +108,7 @@
     <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
     <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.15</span></div>
+  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.16</span></div>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
@@ -189,7 +189,7 @@
       <div class="card-section"><div class="section-label">📋 紹介元医療機関</div></div>
       <div class="inline-field">
         <input type="text" id="v-referral-facility" autocomplete="off" placeholder="手入力または下記から展開" style="text-align:left; width:100%; margin:0;" oninput="syncToPrintLayout()">
-        <button class="add-master-btn" onclick="addMaster('hospital', 'v-referral-facility')">＋マスタ登録</button>
+        <button class="add-master-btn" onclick="addMaster('hospital', 'v-referral-facility', this)">＋マスタ登録</button>
       </div>
       <div class="card-section">
         <div class="btn-group" style="flex-wrap:wrap; margin:0;" id="g-hosp-cat">
@@ -210,7 +210,7 @@
           <span>キーワード (タップで追加)</span>
           <div style="display:flex;">
             <input type="text" id="v-new-kw" placeholder="新規" style="width:70px; padding:4px; font-size:11px; margin:0;">
-            <button class="add-master-btn" style="margin-left:4px;" onclick="addMaster('keyword', 'v-new-kw')">＋マスタ登録</button>
+            <button class="add-master-btn" style="margin-left:4px;" onclick="addMaster('keyword', 'v-new-kw', this)">＋マスタ登録</button>
           </div>
         </div>
         <div class="chip-grid" id="box-keywords" style="margin-bottom:8px;"></div>
@@ -413,7 +413,7 @@
       <div class="card-section" style="text-align:center; padding:8px;">
         <div style="display:flex; justify-content:center; align-items:center;">
           <input type="text" id="v-new-staff" placeholder="職種 氏名(例: Dr 田中)" style="width:140px; padding:4px; font-size:11px; margin:0;">
-          <button class="add-master-btn" onclick="addMaster('staff', 'v-new-staff')">＋マスタ登録</button>
+          <button class="add-master-btn" onclick="addMaster('staff', 'v-new-staff', this)">＋マスタ登録</button>
           <button class="clear-btn" style="background:var(--blue); padding:6px 16px; font-size:11px; margin-left:16px;" onclick="addFreeStaffRow()">一時追加</button>
         </div>
       </div>
@@ -449,18 +449,18 @@
       <div class="chart-container">
         <div class="chart-box">
           <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf)" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
         </div>
         <div class="chart-box">
           <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜6歳 幼児成長曲線】</p>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf)" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
         </div>
         <div class="chart-box">
           <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜18歳 児童・学童成長曲線】</p>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf)" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
+          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
         </div>
       </div>
     </div>
@@ -468,9 +468,8 @@
 </main>
 
 <script>
-  const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
-  // ★ V4.15 病院マスタのハードコードを撤廃し、GASからの動的取得のみに依存
   let HOSPITAL_DB = { "小児科": ["データ取得中..."] };
 
   let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [], keywords: [], hospitals: {} };
@@ -517,76 +516,95 @@
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "作戦盤: " + sourceContext })
-      }).catch(e => console.log("エラー報告送信失敗", e));
+      }).catch(e => console.log("エラー報告自体の送信に失敗", e));
     } catch(e) {}
   }
 
-  // ★ 新設: マスタへの直接追加通信機能
-  function addMaster(target, inputId) {
-    const inputEl = document.getElementById(inputId);
-    const val = inputEl.value.trim();
-    if (!val) return alert("登録するテキストを入力してください");
-    
-    // 病院登録の場合はカテゴリの指定を求める
-    let val2 = "";
-    if (target === "hospital") {
-      val2 = prompt("カテゴリ名を入力してください。\n(例: 小児科, 併設/内科, 夜間・救急, 総合病院, 姶良・伊佐, 北薩, 大隅)", "その他");
-      if (val2 === null) return; // キャンセル時
-    } else if (target === "staff") {
-      let parts = val.split(" ");
-      if (parts.length > 1) {
-        val2 = parts[0]; // 最初のスペースより前を職種とする (例: "Dr 田中" -> "Dr")
+  // ★ UIを絶対にフリーズさせない安全版のマスタ登録関数
+  function addMaster(target, inputId, btnEl) {
+    try {
+      const inputEl = document.getElementById(inputId);
+      const val = inputEl.value.trim();
+      if (!val) return alert("登録するテキストを入力してください");
+      
+      let val2 = "";
+      if (target === "hospital") {
+        val2 = prompt("カテゴリ名を入力してください。\n(例: 小児科, 併設/内科, 夜間・救急, 総合病院, 姶良・伊佐, 北薩, 大隅)", "その他");
+        if (val2 === null) return;
+      } else if (target === "staff") {
+        let parts = val.split(" ");
+        if (parts.length > 1) {
+          val2 = parts[0]; 
+        }
       }
+
+      if(btnEl) { btnEl.textContent = "送信中..."; btnEl.disabled = true; }
+
+      fetch(GAS_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
+        if (data.status === "success") {
+          alert("マスタに登録しました！\n（次にアプリを開いた時から反映されます）");
+          inputEl.value = "";
+        } else {
+          alert("エラー: " + data.message);
+        }
+      })
+      .catch(err => {
+        if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
+        alert("通信エラー: " + err.message);
+      });
+    } catch(err) {
+      alert("処理エラーが発生しました: " + err.message);
+      if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
     }
-
-    const btn = event.target;
-    btn.textContent = "送信中..."; btn.disabled = true;
-
-    fetch(GAS_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 })
-    })
-    .then(res => res.json())
-    .then(data => {
-      btn.textContent = "＋マスタ登録"; btn.disabled = false;
-      if (data.status === "success") {
-        alert("マスタに登録しました！\n（次にアプリを開いた時から反映されます）");
-        inputEl.value = "";
-      } else {
-        alert("エラー: " + data.message);
-      }
-    })
-    .catch(err => {
-      btn.textContent = "＋マスタ登録"; btn.disabled = false;
-      alert("通信エラー: " + err.message);
-    });
   }
 
   window.onload = function() {
-    const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    let script = document.createElement('script'); 
-    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function(e) {
-      document.getElementById("loader-msg").innerHTML = "通信エラー発生<br><button onclick='location.reload()' style='margin-top:8px; padding:6px; font-size:12px;'>🔄 再試行する</button>";
-      reportErrorToAdmin("マスタ取得のJSONP通信エラー", "初期ロード");
-    };
-    document.body.appendChild(script);
-    addFreeStaffRow(); 
+    try {
+      const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      let script = document.createElement('script'); 
+      script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
+      script.onerror = function(e) {
+        document.getElementById("loader-msg").innerHTML = "通信エラー発生<br><button onclick='location.reload()' style='margin-top:8px; padding:6px; font-size:12px;'>🔄 再試行する</button>";
+        reportErrorToAdmin("マスタ取得のJSONP通信エラー", "初期ロード(onerror)");
+      };
+      document.body.appendChild(script);
+      addFreeStaffRow(); 
+    } catch(err) {
+      alert("起動時エラー: " + err.message);
+      reportErrorToAdmin(err.message, "onload");
+    }
   };
 
   function jsonpCallback(res) {
-    if (res && res.status === "error") {
-      alert("マスタ取得エラー: " + res.message);
-      reportErrorToAdmin(res.message, "JSONP戻り値");
-    } else if (res && res.status === "success") {
-      master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
-      if(res.masters && res.masters.staffList) master.staff = res.masters.staffList;
-      if(res.masters && res.masters.keywordList) master.keywords = res.masters.keywordList;
-      if(res.masters && res.masters.hospitalList) HOSPITAL_DB = res.masters.hospitalList; // ★ 病院マスタの動的置換
+    try {
+      if (res && res.status === "error") {
+        alert("マスタ取得エラー: " + res.message);
+        reportErrorToAdmin(res.message, "JSONP戻り値エラー");
+      } else if (res && res.status === "success") {
+        master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
+        if(res.masters && res.masters.staffList) master.staff = res.masters.staffList;
+        if(res.masters && res.masters.keywordList) master.keywords = res.masters.keywordList;
+        if(res.masters && res.masters.hospitalList) HOSPITAL_DB = res.masters.hospitalList;
+      }
+    } catch(err) {
+      alert("データ受信後エラー: " + err.message);
+      reportErrorToAdmin(err.message, "jsonpCallback処理中");
+    } finally {
+      document.getElementById("global-loader").style.display = "none";
+      try {
+        buildAppUI();
+      } catch(errUI) {
+        alert("UI構築エラー: " + errUI.message);
+        reportErrorToAdmin(errUI.message, "buildAppUI");
+      }
     }
-    document.getElementById("global-loader").style.display = "none";
-    buildAppUI();
   }
 
   function updateCustomStatus() {
@@ -646,11 +664,11 @@
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータが読み込めません</td></tr>`;
     }
 
-    // ★ 病院マスタの動的描画
     const hospCatBox = document.getElementById("g-hosp-cat");
-    hospCatBox.innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<button class="group-btn" data-val="${cat}" onclick="expandHosp('${cat}', this)">${cat}</button>`).join("");
+    if (Object.keys(HOSPITAL_DB).length > 0) {
+      hospCatBox.innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<button class="group-btn" data-val="${cat}" onclick="expandHosp('${cat}', this)">${cat}</button>`).join("");
+    }
 
-    // ★ キーワードマスタの動的描画
     const kwBox = document.getElementById("box-keywords");
     if (master.keywords && master.keywords.length > 0) {
       kwBox.innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
@@ -658,69 +676,78 @@
 
     const setBox = document.getElementById("box-sets"); setBox.innerHTML = "";
     const sBox = document.getElementById("box-scenarios"); sBox.innerHTML = "";
-    master.scenarios.forEach(s => {
-      if(!s.name) return;
-      let chip = document.createElement('div'); chip.className = "chip chip-scenario"; chip.textContent = s.name;
-      chip.onclick = function() {
-        let isOn = !chip.classList.contains('on');
-        chip.classList.toggle('on', isOn);
-        s.items.forEach(itemName => {
-          appState.checkedItems[itemName] = isOn; 
-          Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
-            if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
-          });
-        });
-        updateCustomStatus(); calcPeds();
-      };
-      if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
-    });
+    if (master.scenarios && master.scenarios.length > 0) {
+      master.scenarios.forEach(s => {
+        if(!s.name) return;
+        let chip = document.createElement('div'); chip.className = "chip chip-scenario"; chip.textContent = s.name;
+        chip.onclick = function() {
+          let isOn = !chip.classList.contains('on');
+          chip.classList.toggle('on', isOn);
+          if(s.items && s.items.length > 0) {
+            s.items.forEach(itemName => {
+              appState.checkedItems[itemName] = isOn; 
+              Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
+                if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
+              });
+            });
+          }
+          updateCustomStatus(); calcPeds();
+        };
+        if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
+      });
+    }
 
     const dBoxSingle = document.getElementById("box-drugs-single"); dBoxSingle.innerHTML = "";
     const dBoxCont = document.getElementById("box-drugs-cont"); dBoxCont.innerHTML = "";
-    
-    master.drugs.forEach(d => {
-      if(!d.name) return;
-      let chip = document.createElement('div'); chip.className = "chip chip-item"; 
-      chip.dataset.name = d.btnName; 
-      chip.textContent = d.btnName;
-      chip.onclick = function() { 
-        chip.classList.toggle('on'); appState.checkedItems[d.btnName] = chip.classList.contains('on'); 
-        updateCustomStatus(); calcPeds(); 
-      };
-      if (d.type === "単発薬") dBoxSingle.appendChild(chip);
-      else dBoxCont.appendChild(chip);
-    });
+    if (master.drugs && master.drugs.length > 0) {
+      master.drugs.forEach(d => {
+        if(!d.name) return;
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; 
+        chip.dataset.name = d.btnName; 
+        chip.textContent = d.btnName;
+        chip.onclick = function() { 
+          chip.classList.toggle('on'); appState.checkedItems[d.btnName] = chip.classList.contains('on'); 
+          updateCustomStatus(); calcPeds(); 
+        };
+        if (d.type === "単発薬") dBoxSingle.appendChild(chip);
+        else dBoxCont.appendChild(chip);
+      });
+    }
 
     const eBox = document.getElementById("box-equip"); eBox.innerHTML = "";
-    let uniqEquip = [...new Set(master.equipment.map(e => e.name))].filter(Boolean);
-    uniqEquip.forEach(name => {
-      let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name; chip.textContent = name;
-      chip.onclick = function() { 
-        chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); 
-        updateCustomStatus(); calcPeds(); 
-      };
-      eBox.appendChild(chip);
-    });
+    if (master.equipment && master.equipment.length > 0) {
+      let uniqEquip = [...new Set(master.equipment.map(e => e.name))].filter(Boolean);
+      uniqEquip.forEach(name => {
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name; chip.textContent = name;
+        chip.onclick = function() { 
+          chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); 
+          updateCustomStatus(); calcPeds(); 
+        };
+        eBox.appendChild(chip);
+      });
+    }
     calcPeds();
   }
 
   function addFreeStaffRow() {
-    const tbody = document.getElementById("free-staff-tbody");
-    const tr = document.createElement("tr");
-    tr.className = "free-staff-row";
-    tr.style.background = "rgba(242,242,247,0.5)";
-    tr.innerHTML = `
-      <td style="padding:4px; display:flex; align-items:center; gap:4px;">
-        <button class="clear-btn" style="background:#e06666; padding:4px 8px; flex:none;" onclick="this.closest('tr').remove(); syncToPrintLayout();">×</button>
-        <input type="text" class="free-name" autocomplete="off" placeholder="応援/救急隊等" style="width:100%; font-size:11px; padding:6px; text-align:left; background:#fff; border:1px solid #ccc; border-radius:4px;" oninput="syncToPrintLayout()">
-      </td>
-      <td><input type="checkbox" class="staff-check free-check" data-role="leader" onchange="syncToPrintLayout()"></td>
-      <td><input type="checkbox" class="staff-check free-check" data-role="airway" onchange="syncToPrintLayout()"></td>
-      <td><input type="checkbox" class="staff-check free-check" data-role="cpr" onchange="syncToPrintLayout()"></td>
-      <td><input type="checkbox" class="staff-check free-check" data-role="route" onchange="syncToPrintLayout()"></td>
-      <td><input type="checkbox" class="staff-check free-check" data-role="record" onchange="syncToPrintLayout()"></td>
-    `;
-    tbody.appendChild(tr);
+    try {
+      const tbody = document.getElementById("free-staff-tbody");
+      const tr = document.createElement("tr");
+      tr.className = "free-staff-row";
+      tr.style.background = "rgba(242,242,247,0.5)";
+      tr.innerHTML = `
+        <td style="padding:4px; display:flex; align-items:center; gap:4px;">
+          <button class="clear-btn" style="background:#e06666; padding:4px 8px; flex:none;" onclick="this.closest('tr').remove(); syncToPrintLayout();">×</button>
+          <input type="text" class="free-name" autocomplete="off" placeholder="応援/救急隊等" style="width:100%; font-size:11px; padding:6px; text-align:left; background:#fff; border:1px solid #ccc; border-radius:4px;" oninput="syncToPrintLayout()">
+        </td>
+        <td><input type="checkbox" class="staff-check free-check" data-role="leader" onchange="syncToPrintLayout()"></td>
+        <td><input type="checkbox" class="staff-check free-check" data-role="airway" onchange="syncToPrintLayout()"></td>
+        <td><input type="checkbox" class="staff-check free-check" data-role="cpr" onchange="syncToPrintLayout()"></td>
+        <td><input type="checkbox" class="staff-check free-check" data-role="route" onchange="syncToPrintLayout()"></td>
+        <td><input type="checkbox" class="staff-check free-check" data-role="record" onchange="syncToPrintLayout()"></td>
+      `;
+      tbody.appendChild(tr);
+    } catch(e) {}
   }
 
   function clearMatrix() { 
@@ -741,13 +768,15 @@
   }
 
   function expandHosp(cat, btn) {
-    document.querySelectorAll("#g-hosp-cat .group-btn").forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const hc = document.getElementById("panel-hospital-chips");
-    const hb = document.getElementById("box-hospital-chips");
-    if(!cat || !HOSPITAL_DB[cat]) { hc.style.display = "none"; return; }
-    hc.style.display = "block";
-    hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.querySelectorAll('#box-hospital-chips .chip').forEach(c=>c.classList.remove('on')); this.classList.add('on'); document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
+    try {
+      document.querySelectorAll("#g-hosp-cat .group-btn").forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const hc = document.getElementById("panel-hospital-chips");
+      const hb = document.getElementById("box-hospital-chips");
+      if(!cat || !HOSPITAL_DB[cat]) { hc.style.display = "none"; return; }
+      hc.style.display = "block";
+      hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.querySelectorAll('#box-hospital-chips .chip').forEach(c=>c.classList.remove('on')); this.classList.add('on'); document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
+    } catch(e) {}
   }
 
   function tChipKw(chip) { 
@@ -1072,6 +1101,7 @@
       appState.vitalsHTML = vitalsHTML;
       appState.patHTML = `A:${appState.pat.a}/B:${appState.pat.b}/C:${appState.pat.c}`;
       appState.pewsHTML = appState.pews + "点";
+      
     } catch(e) {}
   }
 
