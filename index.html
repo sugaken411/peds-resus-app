@@ -107,7 +107,7 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
  <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
  </div>
- <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.9</span></div>
+ <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.10</span></div>
  <div class="hdr-group">
  <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
  </div>
@@ -212,9 +212,8 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  </div>
  <div class="card-section">
  <div class="section-label">キーワード (タップで追加)</div>
- <div class="chip-grid" id="box-keywords" style="margin-bottom:8px;">
- <div class="chip" onclick="tChipKw(this)">発熱</div><div class="chip" onclick="tChipKw(this)">痙攣重積</div><div class="chip" onclick="tChipKw(this)">熱性けいれん</div><div class="chip" onclick="tChipKw(this)">ショック</div><div class="chip" onclick="tChipKw(this)">心肺停止(CPA)</div><div class="chip" onclick="tChipKw(this)">窒息</div><div class="chip" onclick="tChipKw(this)">意識障害</div><div class="chip" onclick="tChipKw(this)">呼吸障害</div><div class="chip" onclick="tChipKw(this)">アナフィラキシー</div><div class="chip" onclick="tChipKw(this)">急性脳症疑い</div><div class="chip" onclick="tChipKw(this)">重症感染症疑い</div><div class="chip" onclick="tChipKw(this)">誤飲・誤嚥</div><div class="chip" onclick="tChipKw(this)">溺水</div><div class="chip" onclick="tChipKw(this)">頭部外傷</div><div class="chip" onclick="tChipKw(this)">熱傷</div><div class="chip" onclick="tChipKw(this)">内因性</div><div class="chip" onclick="tChipKw(this)">外因性</div><div class="chip" onclick="tChipKw(this)">交通事故</div><div class="chip" onclick="tChipKw(this)">高エネルギー外傷</div><div class="chip" onclick="tChipKw(this)">虐待疑い</div>
- </div>
+ <!-- ★ V4.10 ここはGASから動的に生成されます -->
+ <div class="chip-grid" id="box-keywords" style="margin-bottom:8px;"></div>
  </div>
  <div class="card-section"><div class="section-label">経過・概要</div>
  <textarea id="v-case-summary" rows="3" autocomplete="off" placeholder="前医や現場での経過、特記指示内容を入力..." oninput="syncToPrintLayout()"></textarea>
@@ -446,18 +445,18 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  <div class="chart-container">
  <div class="chart-box">
  <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf)" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
  </div>
  <div class="chart-box">
  <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜6歳 幼児成長曲線】</p>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf)" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
  </div>
  <div class="chart-box">
  <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜18歳 児童・学童成長曲線】</p>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
- <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf)" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
+ <a class="chart-link-btn" href="[https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf](https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf)" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
  </div>
  </div>
  </div>
@@ -465,7 +464,7 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
 </main>
 
 <script>
- const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+ const GAS_API_URL = "[https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec](https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec)";
 
  const HOSPITAL_DB = {
  peds_clinic: ["らららこどもクリニック（中央町）","かごしまたんぽぽ小児科（東郡元町）","かわかみこどもクリニック（上荒田町）","あおぞら小児科（草牟田）","にのみや小児科・ひふ科（中山）","小児科上笹貫医院（武岡 / 上笹貫町）","ゆあさこどもクリニック（宇宿）","大坪こどもクリニック（田上）","すず小児科（中山町）","豊島小児科（山田町）","さめしま小児科（山之口町）","今村小児科アレルギー科（宇宿）","きくうら小児科（原良）","サンタこどもクリニック（和田）","ニュータウン小児科（伊敷台）","上村医院（和田）","武ファミリー内科クリニック（西千石町）","西田そよかぜクリニック（薬師）"],
@@ -477,7 +476,7 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  oosumi: ["県民健康プラザ 鹿屋医療センター（鹿屋市札元）"]
  };
 
- let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [] };
+ let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [], keywords: [] };
  let appState = { 
 calcWeight: 0, calcHeight: 0, ageY: 0, isBwManual: false, isBhManual: false, checkedItems: {}, isCustomized: false, keywords: [],
  gcs: { e: '不明', v: '不明', m: '不明' }, pews: 0, 
@@ -515,7 +514,6 @@ idlePromptShown = true;
  }
  });
 
- // ★ V4.9 エラー自動通報関数
  function reportErrorToAdmin(errorInfo, sourceContext) {
   try {
     fetch(GAS_API_URL, {
@@ -529,7 +527,8 @@ idlePromptShown = true;
  window.onload = function() {
  const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
  let script = document.createElement('script'); 
- script.src = GAS_API_URL + "?callback=jsonpCallback"; 
+ // ★ V4.10 キャッシュバスティング（キャッシュ無効化）を付与
+ script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
  script.onerror = function(e) {
   document.getElementById("loader-msg").innerHTML = "通信エラー発生<br><button onclick='location.reload()' style='margin-top:8px; padding:6px; font-size:12px;'>🔄 再試行する</button>";
   reportErrorToAdmin("マスタ取得のJSONP通信エラーがブラウザレベルで発生しました。ネットワーク遮断の可能性があります。", "初期ロード(onerror)");
@@ -545,6 +544,7 @@ idlePromptShown = true;
  } else if (res && res.status === "success") {
  master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
  if(res.masters && res.masters.staffList) master.staff = res.masters.staffList;
+ if(res.masters && res.masters.keywordList) master.keywords = res.masters.keywordList;
  }
  document.getElementById("global-loader").style.display = "none";
  buildAppUI();
@@ -605,6 +605,12 @@ idlePromptShown = true;
  `).join("");
  } else {
  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータが読み込めません</td></tr>`;
+ }
+
+ // ★ V4.10 キーワードチップの動的生成
+ const kwBox = document.getElementById("box-keywords");
+ if (master.keywords && master.keywords.length > 0) {
+   kwBox.innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
  }
 
  const setBox = document.getElementById("box-sets"); setBox.innerHTML = "";
