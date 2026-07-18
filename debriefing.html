@@ -95,7 +95,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.2</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.3</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -352,6 +352,8 @@
 </div>
 
 <script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+
   let currentCategory = '処置・投薬';
   let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
   let masterStaff = [];
@@ -517,10 +519,12 @@
       document.getElementById("tl-text-basic").value = "";
     } else if (currentCategory === '画像・検査') {
       if(temporaryExams.length === 0) {
-        let name = document.getElementById("v-exam-name").value; let desc = document.getElementById("v-exam-desc").value;
+        let name = document.getElementById("v-exam-name") ? document.getElementById("v-exam-name").value : ""; 
+        let desc = document.getElementById("v-exam-desc") ? document.getElementById("v-exam-desc").value : "";
         if(!name) return alert("検査名を入力してください");
         contentText = `【${name}】 ${desc}`; rawValues = { "v-exam-name": name, "v-exam-desc": desc };
-        document.getElementById("v-exam-name").value = ""; document.getElementById("v-exam-desc").value = "";
+        if(document.getElementById("v-exam-name")) document.getElementById("v-exam-name").value = ""; 
+        if(document.getElementById("v-exam-desc")) document.getElementById("v-exam-desc").value = "";
       } else {
         contentText = temporaryExams.map(x => `【${x.name}】${x.res}${x.unit}`).join(" | ");
         rawValues = { "temporaryExams": JSON.parse(JSON.stringify(temporaryExams)) };
@@ -579,9 +583,9 @@
     if(targetTab) targetTab.click();
     document.querySelectorAll('input, textarea').forEach(i => i.classList.remove('input-highlight'));
     
-    if(item.rawValues.temporaryExams) {
+    if(item.rawValues && item.rawValues.temporaryExams) {
       temporaryExams = JSON.parse(JSON.stringify(item.rawValues.temporaryExams)); renderFreeExamChips();
-    } else {
+    } else if(item.rawValues) {
       for(let key in item.rawValues) {
         let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); }
       }
@@ -617,11 +621,63 @@
     }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; });
   }
 
+  // ★ 修正：エラーハンドリングとエスケープ処理の追加
+  function fetchHistoryListAdvanced() {
+    const sMonth = document.getElementById("s-month").value; 
+    const sStaff = document.getElementById("s-staff").value.trim(); 
+    const sKw = document.getElementById("s-kw").value.trim();
+    const btn = document.getElementById("btn-search");
+    
+    btn.textContent = "検索中..."; 
+    btn.disabled = true;
+    
+    fetch(GAS_API_URL, { 
+      method: "POST", 
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+      body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) 
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "検索"; 
+      btn.disabled = false;
+      
+      const resArea = document.getElementById("search-results-area");
+      
+      if (data.status === "not_found") { 
+        resArea.style.display = "block"; 
+        resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; 
+      } 
+      else if (data.status === "success") {
+        resArea.style.display = "block";
+        resArea.innerHTML = data.results.map(item => {
+          // シングルクォーテーション等によるHTMLの破壊を防ぐエスケープ処理
+          const safeItem = JSON.stringify(item).replace(/'/g, "&#39;");
+          return `<div class="search-result-item" onclick='selectCase(${safeItem})'>
+                    <div style="font-weight:bold; color:var(--blue);">${(item.date||"").split('T')[0]} ｜ ${item.id}</div>
+                    <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
+                  </div>`;
+        }).join("");
+      } 
+      else {
+        // GAS側でエラーが起きた場合のアラート
+        alert("データベースエラー: " + (data.message || "原因不明"));
+      }
+    })
+    .catch(err => {
+      // 通信エラー（URL間違いなど）をキャッチしてフリーズを防ぐ
+      btn.textContent = "検索"; 
+      btn.disabled = false;
+      alert("通信エラーが発生しました: " + err.message);
+    });
+  }
+
+  // ★ 修正：詳細データの取得をGETからPOSTへ変更＆エラーハンドリング
   function selectCase(item) {
     currentCaseData = item;
     document.getElementById("search-results-area").style.display = "none";
     document.getElementById("mock-data-area").style.display = "block";
     document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト】\n${item.protocol}`;
+    
     if(item.vitals) {
       let vMatch = item.vitals.match(/HR:\s*(\d+).*SpO2:\s*(\d+).*RR:\s*(\d+).*BP:\s*(\d+)\/(\d+).*BT:\s*([0-9.]+)/);
       if(vMatch) {
@@ -630,7 +686,15 @@
       }
       let jMatch = item.vitals.match(/意識レベル:\s*([^｜\n]+)/); if(jMatch) document.getElementById("v-jcs").value = jMatch[1].trim();
     }
-    fetch(GAS_API_URL + "?action=fetch_debrief&id=" + item.id).then(res => res.json()).then(data => {
+    
+    // 【重要修正】GETリクエストではなくPOSTリクエストに変更
+    fetch(GAS_API_URL, { 
+      method: "POST", 
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+      body: JSON.stringify({ action: "fetch_debrief", id: item.id }) 
+    })
+    .then(res => res.json())
+    .then(data => {
       if (data && data.debriefData) {
         const d = data.debriefData;
         document.getElementById("v-actual-diff").value = d.actualDiff || "";
@@ -638,6 +702,10 @@
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
       }
+    })
+    .catch(err => {
+      console.error("Debrief fetch error:", err);
+      alert("事案の詳細データ取得に失敗しました。");
     });
   }
 
@@ -766,20 +834,6 @@
     }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false; });
   }
 
-  function fetchHistoryListAdvanced() {
-    const sMonth = document.getElementById("s-month").value; const sStaff = document.getElementById("s-staff").value.trim(); const sKw = document.getElementById("s-kw").value.trim();
-    const btn = document.getElementById("btn-search"); btn.textContent = "検索中..."; btn.disabled = true;
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) })
-    .then(res => res.json()).then(data => {
-      btn.textContent = "検索"; btn.disabled = false;
-      const resArea = document.getElementById("search-results-area");
-      if (data.status === "not_found") { resArea.style.display = "block"; resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; } 
-      else {
-        resArea.style.display = "block";
-        resArea.innerHTML = data.results.map(item => `<div class="search-result-item" onclick='selectCase(${JSON.stringify(item)})'><div style="font-weight:bold; color:var(--blue);">${item.date.split('T')[0]} ｜ ${item.id}</div><div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${item.summary.substring(0,30)}...</div></div>`).join("");
-      }
-    });
-  }
   function renderEvalBlocks() {
     const container = document.getElementById("eval-container");
     container.innerHTML = evalBlocks.map((ev, index) => `
