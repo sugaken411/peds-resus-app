@@ -107,7 +107,7 @@
     <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
     <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.12</span></div>
+  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.13</span></div>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
@@ -463,13 +463,13 @@
 </main>
 
 <script>
-  // ★ V4.12 URL記述バグを完全修正 (余計なマークダウン記号を撤廃)
+  // ★ V4.13: URLのマークダウン記号( [ ] や () )を排除し、純粋な文字列として定義
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   const HOSPITAL_DB = {
     peds_clinic: ["らららこどもクリニック（中央町）","かごしまたんぽぽ小児科（東郡元町）","かわかみこどもクリニック（上荒田町）","あおぞら小児科（草牟田）","にのみや小児科・ひふ科（中山）","小児科上笹貫医院（武岡 / 上笹貫町）","ゆあさこどもクリニック（宇宿）","大坪こどもクリニック（田上）","すず小児科（中山町）","豊島小児科（山田町）","さめしま小児科（山之口町）","今村小児科アレルギー科（宇宿）","きくうら小児科（原良）","サンタこどもクリニック（和田）","ニュータウン小児科（伊敷台）","上村医院（和田）","武ファミリー内科クリニック（西千石町）","西田そよかぜクリニック（薬師）"],
     multi_clinic: ["紫原たはら医院（紫原）","つるどめクリニック（田上台）","おけたにクリニック（おとなとこどもの整形外科）（鴨池）","国東内科小児科（山之口町）","徳永クリニック内科・小児科（小松原）","すえもりクリニック（下荒田）","産業保健メディカルクリニック（東谷山）"],
-    emergency_center: ["鹿児島市夜間急病センター（鴨池）","夜間休日休日診療所 キタゾノクリニック（平之町）","池田病院（社会医療法人 童仁会）（西田）"],
+    emergency_center: ["鹿児島市夜間急病センター（鴨池）","夜間休日診療所 キタゾノクリニック（平之町）","池田病院（社会医療法人 童仁会）（西田）"],
     general_hospital: ["鹿児島大学病院（鹿児島市桜ヶ丘）","今村総合病院（鹿児島市鴨池新町）","鹿児島生協病院（鹿児島市谷山中央）","いまきいれ総合病院（鹿児島市高麗町）","鹿児島こども病院（日置市伊集院町）","県立サツナン病院（南九州市 / 南さつま市加世田）"],
     aira_isa: ["霧島市立医師会医療センター（霧島市隼人町）","南九州病院（国立病院機構）（姶良市加治木町）"],
     hokusatsu: ["済生会川内病院（薩摩川内市原田町）","出水郡医師会広域医療センター（阿久根市赤瀬川）"],
@@ -514,7 +514,6 @@
     }
   });
 
-  // ★ V4.12 エラー自動通報関数
   function reportErrorToAdmin(errorInfo, sourceContext) {
     try {
       fetch(GAS_API_URL, {
@@ -528,7 +527,6 @@
   window.onload = function() {
     const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     let script = document.createElement('script'); 
-    // ★ V4.12 キャッシュ破棄用のタイムスタンプパラメータを付与
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
     script.onerror = function(e) {
       document.getElementById("loader-msg").innerHTML = "通信エラー発生<br><button onclick='location.reload()' style='margin-top:8px; padding:6px; font-size:12px;'>🔄 再試行する</button>";
@@ -608,7 +606,6 @@
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータが読み込めません</td></tr>`;
     }
 
-    // ★ キーワードチップの動的生成
     const kwBox = document.getElementById("box-keywords");
     if (master.keywords && master.keywords.length > 0) {
       kwBox.innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
@@ -1030,6 +1027,7 @@
       appState.vitalsHTML = vitalsHTML;
       appState.patHTML = `A:${appState.pat.a}/B:${appState.pat.b}/C:${appState.pat.c}`;
       appState.pewsHTML = appState.pews + "点";
+      
     } catch(e) {}
   }
 
