@@ -69,6 +69,9 @@
     .p-table th { background: #f0f0f0; }
     .sub-見出し { font-size: 11px; font-weight: 900; color: var(--sub); margin: 10px 0 4px 0; border-left: 3px solid var(--sub); padding-left: 6px; }
 
+    /* ★ マスタ登録ボタン用のCSS */
+    .add-master-btn { background: #e3f2fd; color: #007aff; border: 1px solid #007aff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; white-space: nowrap; }
+
     @media print { 
       body { background: #fff; padding:0; } 
       header, .tab-container, main > div:not(#tab-sec6), .no-print { display: none !important; }
@@ -96,7 +99,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.5</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.6</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -298,7 +301,12 @@
       
       <div style="font-size:11px; font-weight:bold; color:var(--brand); margin-top:12px; margin-bottom:4px;">🗣️ 振り返りに参加したスタッフ (複数選択)</div>
       <div class="chip-grid" id="box-staff-debrief"></div>
-      <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)">
+      
+      <div style="display:flex; align-items:center; margin-top:8px;">
+        <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)" style="flex:1; margin:0;">
+        <button class="add-master-btn" onclick="addMaster('staff', 'v-staff-other')">＋マスタ登録</button>
+      </div>
+
     </div>
     
     <button class="btn-green" onclick="switchTab('sec6')">次へ (プレビュー・保存) ➔</button>
@@ -347,7 +355,6 @@
   let temporaryExams = []; let editingRowId = null; 
   let currentAiTarget = ""; let currentAiImageBase64 = null; let currentAiMimeType = null;
 
-  // ★ V6.5 エラー自動通報関数
   function reportErrorToAdmin(errorInfo, sourceContext) {
     try {
       fetch(GAS_API_URL, {
@@ -358,12 +365,51 @@
     } catch(e) {}
   }
 
+  // ★ 新設: マスタへの直接追加通信機能
+  function addMaster(target, inputId) {
+    const inputEl = document.getElementById(inputId);
+    const val = inputEl.value.trim();
+    if (!val) return alert("登録するテキストを入力してください");
+    
+    let val2 = "";
+    if (target === "staff") {
+      let parts = val.split(" ");
+      if (parts.length > 1) {
+        val2 = parts[0]; 
+      }
+    }
+
+    const btn = event.target;
+    btn.textContent = "送信中..."; btn.disabled = true;
+
+    fetch(GAS_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 })
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "＋マスタ登録"; btn.disabled = false;
+      if (data.status === "success") {
+        alert("マスタに登録しました！\n（次にアプリを開いた時から名簿に反映されます）");
+        inputEl.value = "";
+      } else {
+        alert("エラー: " + data.message);
+      }
+    })
+    .catch(err => {
+      btn.textContent = "＋マスタ登録"; btn.disabled = false;
+      alert("通信エラー: " + err.message);
+    });
+  }
+
   function loadMasterData() {
     const loader = document.getElementById("global-loader");
     const msg = document.getElementById("loader-msg");
     loader.style.display = "flex"; msg.innerHTML = "システム起動中...";
     let oldScript = document.getElementById("gas-script"); if(oldScript) oldScript.remove();
     let script = document.createElement('script'); script.id = "gas-script";
+    // ★ キャッシュ破棄用のパラメータを追加
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
     script.onerror = function(e) { 
       msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; 
@@ -410,7 +456,6 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
-  // 階層型スマート描画ロジック
   function renderTxCategories() {
     let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
     document.getElementById("tx-kbn-chips").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxKbn('${c}', this)">${c}</div>`).join("");
@@ -699,13 +744,30 @@
   }
 
   function fetchHistoryListAdvanced() {
-    const sMonth = document.getElementById("s-month").value; const sStaff = document.getElementById("s-staff").value.trim(); const sKw = document.getElementById("s-kw").value.trim();
-    const btn = document.getElementById("btn-search"); btn.textContent = "検索中..."; btn.disabled = true;
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) })
-    .then(res => res.json()).then(data => {
-      btn.textContent = "検索"; btn.disabled = false;
+    const sMonth = document.getElementById("s-month").value; 
+    const sStaff = document.getElementById("s-staff").value.trim(); 
+    const sKw = document.getElementById("s-kw").value.trim();
+    const btn = document.getElementById("btn-search");
+    
+    btn.textContent = "検索中..."; 
+    btn.disabled = true;
+    
+    fetch(GAS_API_URL, { 
+      method: "POST", 
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+      body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) 
+    })
+    .then(res => res.json())
+    .then(data => {
+      btn.textContent = "検索"; 
+      btn.disabled = false;
+      
       const resArea = document.getElementById("search-results-area");
-      if (data.status === "not_found") { resArea.style.display = "block"; resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; } 
+      
+      if (data.status === "not_found") { 
+        resArea.style.display = "block"; 
+        resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; 
+      } 
       else if (data.status === "success") {
         resArea.style.display = "block";
         resArea.innerHTML = data.results.map(item => {
@@ -715,7 +777,8 @@
                     <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
                   </div>`;
         }).join("");
-      } else { 
+      } 
+      else { 
         alert("データベースエラー: " + (data.message || "原因不明")); 
         reportErrorToAdmin(data.message, "事案アーカイブ検索結果");
       }
@@ -741,8 +804,13 @@
       let jMatch = item.vitals.match(/意識レベル:\s*([^｜\n]+)/); if(jMatch) document.getElementById("v-jcs").value = jMatch[1].trim();
     }
     
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
-    .then(res => res.json()).then(data => {
+    fetch(GAS_API_URL, { 
+      method: "POST", 
+      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+      body: JSON.stringify({ action: "fetch_debrief", id: item.id }) 
+    })
+    .then(res => res.json())
+    .then(data => {
       if (data && data.debriefData) {
         const d = data.debriefData;
         document.getElementById("v-actual-diff").value = d.actualDiff || "";
@@ -750,8 +818,10 @@
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
       }
-    }).catch(err => { 
-      alert("事案の詳細データ取得に失敗しました。"); 
+    })
+    .catch(err => {
+      console.error("Debrief fetch error:", err);
+      alert("事案の詳細データ取得に失敗しました。");
       reportErrorToAdmin(err.message, "詳細データ取得(selectCase)");
     });
   }
