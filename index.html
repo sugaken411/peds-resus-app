@@ -107,7 +107,7 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
  <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
  </div>
- <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.10</span></div>
+ <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.11</span></div>
  <div class="hdr-group">
  <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
  </div>
@@ -212,7 +212,7 @@ header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
  </div>
  <div class="card-section">
  <div class="section-label">キーワード (タップで追加)</div>
- <!-- ★ V4.10 ここはGASから動的に生成されます -->
+ <!-- ★ V4.11 ここはGASから動的に生成されます -->
  <div class="chip-grid" id="box-keywords" style="margin-bottom:8px;"></div>
  </div>
  <div class="card-section"><div class="section-label">経過・概要</div>
@@ -527,7 +527,6 @@ idlePromptShown = true;
  window.onload = function() {
  const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
  let script = document.createElement('script'); 
- // ★ V4.10 キャッシュバスティング（キャッシュ無効化）を付与
  script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
  script.onerror = function(e) {
   document.getElementById("loader-msg").innerHTML = "通信エラー発生<br><button onclick='location.reload()' style='margin-top:8px; padding:6px; font-size:12px;'>🔄 再試行する</button>";
@@ -607,7 +606,6 @@ idlePromptShown = true;
  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--sub);">マスタデータが読み込めません</td></tr>`;
  }
 
- // ★ V4.10 キーワードチップの動的生成
  const kwBox = document.getElementById("box-keywords");
  if (master.keywords && master.keywords.length > 0) {
    kwBox.innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
