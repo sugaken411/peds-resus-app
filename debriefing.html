@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <title>小児救急 デブリーフィング</title>
+  <title>小児救急 デブリーフィング V6.7</title>
   <style>
     :root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93; --brand: #34c759; --brand-light: #e8f5e9; --blue: #007aff; --line: rgba(60,60,67,0.12); }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
@@ -69,7 +69,6 @@
     .p-table th { background: #f0f0f0; }
     .sub-見出し { font-size: 11px; font-weight: 900; color: var(--sub); margin: 10px 0 4px 0; border-left: 3px solid var(--sub); padding-left: 6px; }
 
-    /* ★ マスタ登録ボタン用のCSS */
     .add-master-btn { background: #e3f2fd; color: #007aff; border: 1px solid #007aff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; white-space: nowrap; }
 
     @media print { 
@@ -99,7 +98,7 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.6</span></div>
+  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.7</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
@@ -361,11 +360,10 @@
         method: "POST",
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "デブリーフィング: " + sourceContext })
-      }).catch(e => console.log("エラー報告自体の送信に失敗", e));
+      }).catch(e => console.log(e));
     } catch(e) {}
   }
 
-  // ★ 新設: マスタへの直接追加通信機能
   function addMaster(target, inputId) {
     const inputEl = document.getElementById(inputId);
     const val = inputEl.value.trim();
@@ -374,9 +372,7 @@
     let val2 = "";
     if (target === "staff") {
       let parts = val.split(" ");
-      if (parts.length > 1) {
-        val2 = parts[0]; 
-      }
+      if (parts.length > 1) val2 = parts[0]; 
     }
 
     const btn = event.target;
@@ -409,9 +405,8 @@
     loader.style.display = "flex"; msg.innerHTML = "システム起動中...";
     let oldScript = document.getElementById("gas-script"); if(oldScript) oldScript.remove();
     let script = document.createElement('script'); script.id = "gas-script";
-    // ★ キャッシュ破棄用のパラメータを追加
     script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function(e) { 
+    script.onerror = function() { 
       msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; 
       reportErrorToAdmin("マスタ取得のJSONP通信エラーがブラウザレベルで発生しました。ネットワーク遮断の可能性があります。", "初期ロード(onerror)");
     };
@@ -419,13 +414,10 @@
   }
 
   window.onload = () => {
-    try { setupEnterKeyNavigation(); } catch(e) {}
     document.getElementById("d-date").valueAsDate = new Date();
     try { renderEvalBlocks(); } catch(e) {}
     loadMasterData();
   };
-
-  function setupEnterKeyNavigation() { /* 省略せずそのまま */ }
 
   function jsonpCallback(res) {
     document.getElementById("global-loader").style.display = "none";
@@ -778,14 +770,14 @@
                   </div>`;
         }).join("");
       } 
-      else { 
-        alert("データベースエラー: " + (data.message || "原因不明")); 
-        reportErrorToAdmin(data.message, "事案アーカイブ検索結果");
+      else {
+        alert("データベースエラー: " + (data.message || "原因不明"));
       }
-    }).catch(err => { 
-      btn.textContent = "検索"; btn.disabled = false; 
-      alert("通信エラー: " + err.message); 
-      reportErrorToAdmin(err.message, "事案アーカイブ検索通信時");
+    })
+    .catch(err => {
+      btn.textContent = "検索"; 
+      btn.disabled = false;
+      alert("通信エラーが発生しました: " + err.message);
     });
   }
 
@@ -822,7 +814,6 @@
     .catch(err => {
       console.error("Debrief fetch error:", err);
       alert("事案の詳細データ取得に失敗しました。");
-      reportErrorToAdmin(err.message, "詳細データ取得(selectCase)");
     });
   }
 
@@ -859,7 +850,7 @@
         ${planHTML}
         <h3>■ 【Plan】 実際の対応と相違点</h3>
         <div style="background:#fffde6; padding:8px; border-left:4px solid #d48806; font-size:11px; margin-bottom:8px;"><b>実対応スタッフ:</b> ${actuals.join(', ')}<br><b>想定との相違点:</b><br>${document.getElementById("v-actual-diff").value}</div>
-        <h3>■ 【Do & Check】 タイムライン実績（固定比率10%:15%:75%）</h3>
+        <h3>■ 【Do & Check】 タイムライン実績</h3>
         <table class="p-table" style="width:100%;"><tbody>${combined.map(c=>c.html).join("")}</tbody></table>
         <h3>■ 【Action】 ギャップ評価・次回へのプラン</h3>
         <table class="p-table">
