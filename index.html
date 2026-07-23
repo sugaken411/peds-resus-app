@@ -6,58 +6,56 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f2f2f7">
-  <title>小児疾患・蘇生作戦盤 V5.5</title>
+  <title>小児疾患・蘇生作戦盤 V5.7</title>
   <style>
     :root { 
       --bg: #f2f2f7; --card: #ffffff; --ink: #111827; --sub: #6b7280; 
       --brand: #d32f2f; --brand-light: #fef2f2; --blue: #007aff; 
       --med-blue: #eff6ff; --med-blue-text: #1d4ed8; --success: #22c55e; 
       --warn: #f59e0b; --warn-light: #fffbeb; --line: #e5e7eb;
-      --safe-top: env(safe-area-inset-top);
-      --safe-bottom: env(safe-area-inset-bottom);
+      --safe-top: env(safe-area-inset-top); --safe-bottom: env(safe-area-inset-bottom);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; padding-bottom: calc(60px + var(--safe-bottom)); }
     
-    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    header { position: fixed; top: 0; left: 0; right: 0; height: 60px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
     .hdr-group { display: flex; gap: 8px; align-items: center; }
     .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 8px; transition: 0.2s;}
     .hdr-btn:active { opacity: 0.7; }
-    .title-box { text-align: center; font-weight: 800; font-size: 15px; } 
+    .title-box { text-align: center; font-weight: 800; font-size: 15px; display: flex; flex-direction: column; align-items: center; } 
     .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+    .master-time { font-size: 10px; color: var(--sub); margin-top: 2px; font-weight: bold; }
+    .master-time.ready { color: var(--success); }
     
-    .status-bar { position: fixed; top: calc(56px + var(--safe-top)); left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; padding: 8px 12px; z-index: 99; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+    .status-bar { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; padding: 8px 12px; z-index: 99; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
     .status-item { text-align: center; }
     .status-label { font-size: 10px; color: var(--sub); font-weight: 700; margin-bottom: 2px; }
     .status-val { font-size: 15px; font-weight: 800; color: var(--blue); }
     .status-val.highlight { color: var(--brand); }
 
-    .tab-container { position: fixed; top: calc(108px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 98; scrollbar-width: none; } 
+    .tab-container { position: fixed; top: calc(112px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 98; scrollbar-width: none; } 
     .tab-container::-webkit-scrollbar { display: none; }
     .nav-tab { flex: 0 0 auto; padding: 0 16px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } 
     .nav-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
     
-    main { margin-top: calc(160px + var(--safe-top)); padding: 12px; }
+    main { margin-top: calc(166px + var(--safe-top)); padding: 12px; }
     
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--line); overflow: hidden; }
     .card-header { padding: 12px 16px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--line); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
     .card-body { padding: 16px; }
-    .card-section { padding: 14px; border-bottom: 1px solid var(--line); } 
-    .card-section:last-child { border-bottom: none; }
+    .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
     .card-title-flex { display: flex; justify-content: space-between; align-items: center; }
     
     .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-top: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     .section-label:first-child { margin-top: 0; }
-    .inline-field { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--line); } 
-    .inline-field:last-child { border-bottom: none; }
+    .inline-field { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--line); } .inline-field:last-child { border-bottom: none; }
     .field-label { font-size: 14px; font-weight: 600; flex: 1; }
     .normal-range-hint { font-size: 11px; color: var(--blue); font-weight: bold; margin-left: 8px; }
     
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .time-row { display: flex; gap: 8px; align-items: center; }
     
-    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; transition: 0.2s; }
+    input[type="text"], input[type="date"], input[type="time"], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; transition: 0.2s; }
     input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--med-blue); }
     textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 14px; color: var(--ink); line-height: 1.5; outline: none; resize: none; min-height: 80px; }
     input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 6px; border-radius: 6px; width: 60px; border: none; color: var(--blue); outline: none; font-weight: 600; }
@@ -65,8 +63,6 @@
     select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
 
     .btn-group { display: flex; flex-wrap: wrap; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; }
-    
-    /* ボタンのアクティブ状態を青色に変更して視認性を高める */
     .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s; min-width: 60px; }
     .group-btn.active { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
     .group-btn.alert-mode.active { background: var(--brand); color: #fff; }
@@ -91,8 +87,7 @@
     .gcs-seg { flex: 1; display: flex; background: #e5e5ea; border-radius: 8px; overflow: hidden; margin-left: 6px; padding: 2px; }
     .gcs-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; border: none; background: transparent; color: var(--sub); border-radius: 6px; }
     .gcs-btn.active { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-    .gcs-scale { font-size: 10px; color: var(--sub); text-align: center; margin-top: 2px; } 
-    .gcs-btn.active .gcs-scale { color: #fff; }
+    .gcs-scale { font-size: 10px; color: var(--sub); text-align: center; margin-top: 2px; } .gcs-btn.active .gcs-scale { color: #fff; }
     
     .btn { background: var(--blue); color: #fff; border: none; border-radius: 10px; padding: 14px 20px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.2s; text-align: center; display: inline-block; }
     .btn:active { opacity: 0.8; transform: scale(0.98); }
@@ -100,11 +95,9 @@
     .btn.small { padding: 10px 16px; font-size: 13px; width: auto; }
     .btn.danger { background: var(--brand); color: #fff; }
     .clear-btn { background: var(--sub); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
-    
     .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;}
     .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
 
-    /* アコーディオン (AMPL等用) */
     details { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
     summary { font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; color: var(--ink); outline: none; }
     summary::-webkit-details-marker { display: none; }
@@ -113,8 +106,7 @@
     details[open] summary { margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
 
     .hidden-panel { display: none; margin-top: 8px; }
-    .tab-content { display: none; } 
-    .tab-content.active { display: block; }
+    .tab-content { display: none; } .tab-content.active { display: block; }
     
     .add-master-btn { background: var(--med-blue); color: var(--med-blue-text); border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; margin-left: 6px; }
     
@@ -131,17 +123,11 @@
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    .chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-    .chart-box { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; margin-bottom:12px; }
-    .chart-link-btn { display:inline-block; margin-top:6px; background:var(--blue); color:#fff; text-decoration:none; padding:8px 12px; font-size:13px; font-weight:bold; border-radius:6px; text-align:center; width:100%; max-width:260px; }
-
-    /* プレビュー用印刷スタイル */
+    /* プレビュー用スタイル */
     .preview-page { background: #fff; border: 1px solid #000; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.4; color: #000; page-break-after: always; }
     .p-title { font-size: 16px; text-align: center; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
     .p-sec-title { font-size: 13px; font-weight: bold; background: #eee; padding: 4px 8px; margin-bottom: 6px; border-left: 4px solid #000; }
-    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size:12px; } 
-    .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: middle; } 
-    .p-table th { background: #f0f0f0; font-weight: bold; }
+    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size:12px; } .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: middle; } .p-table th { background: #f0f0f0; font-weight: bold; }
     
     @media print { 
       body { background: #fff; color: #000; padding:0; } 
@@ -154,16 +140,20 @@
 </head>
 <body>
 
-<div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-vit-jcs" value="不明"></div>
+<div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-dob" value=""><input id="v-vit-jcs" value="不明"></div>
 
-<div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);" id="loader-msg">小児作戦盤 起動中...</div></div>
+<div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);" id="loader-msg">作戦盤システム 起動中...</div></div>
 
 <header>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff;">🏠 ポータル</button>
     <button class="hdr-btn" style="background:var(--line); color:var(--ink);" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児作戦盤<span class="version-tag">V5.5</span></div>  <div class="hdr-group">
+  <div class="title-box">
+    小児作戦盤<span class="version-tag">V5.7</span>
+    <div class="master-time" id="disp-master-time">📡 マスタ未同期</div>
+  </div>
+  <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
 </header>
@@ -184,12 +174,11 @@
 </div>
 
 <div class="tab-container">
-  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1. 入電・MIST</div>
-  <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">2. PAT・バイタル</div>
+  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1. 基本・MIST</div>
+  <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">2. バイタル</div>
   <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">3. 役割分担</div>
   <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">4. シナリオ指示</div>
   <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">5. プレビュー</div>
-  <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">6. 資料</div>
 </div>
 
 <main>
@@ -265,17 +254,17 @@
           <button class="group-btn" data-val="平成" onclick="tBtn('g-era','平成'); calcPeds();">平成</button>
         </div>
         <div class="grid3">
-          <input type="number" class="num-input" id="v-era-y" placeholder="年" oninput="calcPeds();" style="width:100%;">
-          <input type="number" class="num-input" id="v-era-m" placeholder="月" oninput="calcPeds();" style="width:100%;">
-          <input type="number" class="num-input" id="v-era-d" placeholder="日" oninput="calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-era-y" placeholder="年" oninput="forceNum(this); calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-era-m" placeholder="月" oninput="forceNum(this); calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-era-d" placeholder="日" oninput="forceNum(this); calcPeds();" style="width:100%;">
         </div>
         <div style="margin-top: 8px;">
           <input type="date" id="v-dob-cal" onchange="syncCalToEra(this.value);" style="width:100%; padding:8px; font-size:13px;">
         </div>
         <div style="text-align:center; color:var(--sub); font-size:11px; margin:12px 0 8px 0; border-top:1px dashed var(--line); padding-top:8px;">または直接入力</div>
         <div class="grid2">
-          <input type="number" class="num-input" id="v-manual-age-y" placeholder="歳" oninput="calcPeds();" style="width:100%;">
-          <input type="number" class="num-input" id="v-manual-age-m" placeholder="ヶ月" oninput="calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-manual-age-y" placeholder="歳" oninput="forceNum(this); calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-manual-age-m" placeholder="ヶ月" oninput="forceNum(this); calcPeds();" style="width:100%;">
         </div>
 
         <div class="section-label" style="margin-top:16px;">性別</div>
@@ -287,8 +276,8 @@
 
         <div class="section-label" style="margin-top:16px;">実測 体重 / 身長（空欄時は自動換算）</div>
         <div class="grid2">
-          <input type="number" step="0.1" class="num-input" id="v-bw" placeholder="体重 (kg)" oninput="calcPeds();" style="width:100%;">
-          <input type="number" step="0.1" class="num-input" id="v-bh" placeholder="身長 (cm)" oninput="calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-bw" placeholder="体重 (kg)" oninput="forceNum(this); calcPeds();" style="width:100%;">
+          <input type="text" inputmode="decimal" class="num-input" id="v-bh" placeholder="身長 (cm)" oninput="forceNum(this); calcPeds();" style="width:100%;">
         </div>
       </div>
     </div>
@@ -331,8 +320,8 @@
               <button class="group-btn" data-val="あり" onclick="tBtn('g-tx-intub','あり')">あり</button>
             </div>
             <div class="grid2" style="margin-top:8px;">
-              <input type="number" step="0.5" id="v-intub-size" placeholder="サイズ mm" oninput="syncToPrintLayout();">
-              <input type="number" step="0.5" id="v-intub-depth" placeholder="深さ cm" oninput="syncToPrintLayout();">
+              <input type="text" inputmode="decimal" class="num-input" id="v-intub-size" placeholder="サイズ mm" oninput="forceNum(this); syncToPrintLayout();" style="width:100%;">
+              <input type="text" inputmode="decimal" class="num-input" id="v-intub-depth" placeholder="深さ cm" oninput="forceNum(this); syncToPrintLayout();" style="width:100%;">
             </div>
           </details>
 
@@ -359,8 +348,8 @@
               <button class="group-btn" data-val="あり" onclick="tBtn('g-tx-cpr','あり')">あり</button>
             </div>
             <div class="grid2" style="margin-top:8px;">
-              <input type="number" id="v-cpr-dc-count" placeholder="DC回数" oninput="syncToPrintLayout();">
-              <input type="number" id="v-cpr-dc-j" placeholder="J数" oninput="syncToPrintLayout();">
+              <input type="text" inputmode="decimal" class="num-input" id="v-cpr-dc-count" placeholder="DC回数" oninput="forceNum(this); syncToPrintLayout();" style="width:100%;">
+              <input type="text" inputmode="decimal" class="num-input" id="v-cpr-dc-j" placeholder="J数" oninput="forceNum(this); syncToPrintLayout();" style="width:100%;">
             </div>
           </details>
           
@@ -483,32 +472,32 @@
       
       <div class="inline-field">
         <span class="field-label">心拍数 (HR) <span class="normal-range-hint" id="hint-hr"></span></span>
-        <input type="number" id="v-vit-hr" class="num-input" placeholder="bpm" oninput="triggerPEWS();">
+        <input type="text" inputmode="decimal" id="v-vit-hr" class="num-input" placeholder="bpm" oninput="forceNum(this); triggerPEWS();">
       </div>
       <div class="inline-field">
         <span class="field-label">SpO2 (%) <span class="normal-range-hint" id="hint-spo2">目安: 95-100</span></span>
-        <input type="number" id="v-vit-spo2" class="num-input" placeholder="%" oninput="triggerPEWS();">
+        <input type="text" inputmode="decimal" id="v-vit-spo2" class="num-input" placeholder="%" oninput="forceNum(this); triggerPEWS();">
       </div>
       <div class="inline-field">
         <span class="field-label">呼吸数 (RR) <span class="normal-range-hint" id="hint-rr"></span></span>
-        <input type="number" id="v-vit-rr" class="num-input" placeholder="/min" oninput="triggerPEWS();">
+        <input type="text" inputmode="decimal" id="v-vit-rr" class="num-input" placeholder="/min" oninput="forceNum(this); triggerPEWS();">
       </div>
       
       <div class="inline-field">
         <span class="field-label">血圧 (BP) <span class="normal-range-hint" id="hint-bp"></span></span>
         <div style="display:flex; align-items:center; flex:1; justify-content:flex-end;">
-          <input type="number" id="v-vit-bpsys" class="num-input" placeholder="sys" style="width:55px;" oninput="triggerPEWS();">
+          <input type="text" inputmode="decimal" id="v-vit-bpsys" class="num-input" placeholder="sys" style="width:55px;" oninput="forceNum(this); triggerPEWS();">
           <span style="margin:0 4px; font-weight:bold; color:var(--sub);">/</span>
-          <input type="number" id="v-vit-bpdia" class="num-input" placeholder="dia" style="width:55px;" oninput="triggerPEWS();">
+          <input type="text" inputmode="decimal" id="v-vit-bpdia" class="num-input" placeholder="dia" style="width:55px;" oninput="forceNum(this); triggerPEWS();">
         </div>
       </div>
       
       <div class="inline-field">
         <span class="field-label">体温 (BT ℃) <span class="normal-range-hint" id="hint-bt">目安: 36.0-37.5</span></span>
         <div style="display:flex; align-items:center; flex:1; justify-content:flex-end;">
-          <input type="number" id="v-vit-bt-int" class="num-input" style="width:40px;" oninput="if(this.value.length>=2) document.getElementById('v-vit-bt-dec').focus(); triggerPEWS();">
+          <input type="text" inputmode="decimal" id="v-vit-bt-int" class="num-input" style="width:40px;" oninput="forceNum(this); if(this.value.length>=2) document.getElementById('v-vit-bt-dec').focus(); triggerPEWS();">
           <span style="margin:0 2px; font-weight:bold;">.</span>
-          <input type="number" id="v-vit-bt-dec" class="num-input" style="width:30px;" oninput="triggerPEWS();">
+          <input type="text" inputmode="decimal" id="v-vit-bt-dec" class="num-input" style="width:30px;" oninput="forceNum(this); triggerPEWS();">
         </div>
       </div>
       
@@ -651,36 +640,11 @@
     <div id="mirror-preview-area"></div>
     <button class="submit-btn" id="btnSubmit" onclick="submitPedsCase()">事案アーカイブへ保存 💾</button>
   </div>
-
-  <div id="tab-sec7" class="tab-content">
-    <div class="card">
-      <div class="card-header">📊 小児基準成長曲線 (日本小児内分泌学会公式)</div>
-      <div class="card-body">
-        <div class="chart-container">
-          <div class="chart-box">
-            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
-          </div>
-          <div class="chart-box">
-            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜6歳 幼児成長曲線】</p>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
-          </div>
-          <div class="chart-box">
-            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜18歳 児童・学童成長曲線】</p>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
-            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
 </main>
 
 <script>
   // -----------------------------------------------------
-  // V5.5 Javascript
+  // V5.7 Javascript ロジック
   // -----------------------------------------------------
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   
@@ -711,11 +675,18 @@
     });
   }
 
+  // 強制半角化 & ドット許容
+  function forceNum(el) {
+    let val = el.value; if(!val) return;
+    val = val.replace(/[Ａ-Ｚａ-ｚ０-９：・／．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+    val = val.replace(/[^0-9.]/g, '');
+    if (el.value !== val) el.value = val;
+  }
+
   function setOriginMode(m, btnEl) {
     if (btnEl && btnEl.classList.contains('active')) {
       btnEl.classList.remove('active');
-      appState.origin = "";
-      m = "";
+      appState.origin = ""; m = "";
     } else {
       document.querySelectorAll('#g-case-origin .group-btn').forEach(b => b.classList.remove('active'));
       if(btnEl) btnEl.classList.add('active');
@@ -779,9 +750,7 @@
 
     const panelDetails = document.getElementById("panel-me-details");
     if (val === '必要') {
-      if (appState.calcWeight === 0) {
-        alert("⚠️ 体重が入力されていません！\n人工呼吸器の回路サイズ選定のために、体重の入力が必要です。");
-      }
+      if (appState.calcWeight === 0) alert("⚠️ 体重が入力されていません！\n人工呼吸器の回路サイズ選定のために、体重の入力が必要です。");
       panelDetails.style.display = 'block';
     } else {
       panelDetails.style.display = 'none';
@@ -790,8 +759,7 @@
   }
 
   function renderVentilatorOptions() {
-    const box = document.getElementById('box-vent-models');
-    if (!box) return;
+    const box = document.getElementById('box-vent-models'); if (!box) return;
     const w = appState.calcWeight || 0;
     
     let html = `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;">
@@ -801,8 +769,7 @@
     if (master.ventilators && master.ventilators.length > 0) {
       master.ventilators.forEach(v => {
         if (w === 0 || (w >= v.minW && w <= v.maxW)) {
-          let reqText = "";
-          if (v.minW > 0) reqText = `(${v.minW}kg〜)`;
+          let reqText = v.minW > 0 ? `(${v.minW}kg〜)` : "";
           html += `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;">
                     <input type="radio" name="vent_model" value="${v.maker} ${v.model}" onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> <b>${v.model}</b> <span style="font-size:10px;color:var(--sub);">${v.maker} ${reqText}</span>
                     <div style="font-size:10px; color:var(--sub); margin-top:2px;">${v.desc}</div>
@@ -820,28 +787,12 @@
     syncToPrintLayout();
   }
 
-  function setMealTime(val) {
-    if(val === '昨日') {
-      const d = new Date(); d.setDate(d.getDate() - 1);
-      document.getElementById('v-amp-l-date').valueAsDate = d;
-    } else if(val === '今日') {
-      document.getElementById('v-amp-l-date').valueAsDate = new Date();
-    } else {
-      let txt = document.getElementById('v-amp-l-detail').value;
-      if (!txt.includes(val)) {
-        document.getElementById('v-amp-l-detail').value = (txt ? txt + ' ' : '') + val;
-      }
-    }
-    syncToPrintLayout();
-  }
-
- // ★新設: アコーディオンの見出しに現在の状態を色付きで表示する関数
+  // ★ AMPL アコーディオンと色連動
   function updateAmpSummary(key, mode) {
     const group = document.getElementById(`g-amp-${key}`);
     if (group && group.previousElementSibling && group.previousElementSibling.tagName === 'SUMMARY') {
       const summary = group.previousElementSibling;
       const titles = { 'a': '(A) アレルギー', 'm': '(M) 内服薬/定期薬', 'p': '(P) 既往歴/合併症', 'l': '(L) 最終食事' };
-      // 状態に応じて色を変える（不明:グレー、なし/絶食:緑、あり:赤）
       let color = mode === '不明' ? 'var(--sub)' : (mode === 'なし' || mode === '絶食' ? 'var(--success)' : 'var(--brand)');
       summary.innerHTML = `${titles[key]} <span style="font-size:12px; color:${color}; font-weight:bold; margin-left:auto; margin-right:12px;">[${mode}]</span>`;
     }
@@ -856,20 +807,16 @@
       if(btn) btn.classList.add('active');
     }
     
-    // ★修正: パネルのIDを探す時、panel-amp-がない場合は v-amp- を探すように改善
-    let panel = document.getElementById(`panel-amp-${key}`); 
-    if(!panel) panel = document.getElementById(`v-amp-${key}`);
-    
+    let panel = document.getElementById(`panel-amp-${key}`) || document.getElementById(`v-amp-${key}`);
     const isShow = (mode === 'あり' || mode === '摂取あり');
     if(panel) {
       panel.style.display = isShow ? 'block' : 'none'; 
       if(isShow && key === 'l') { 
-        panel.style.display = 'flex'; 
-        panel.style.flexDirection = 'column'; 
+        panel.style.display = 'flex'; panel.style.flexDirection = 'column'; 
         if(!document.getElementById('v-amp-l-date').value) document.getElementById('v-amp-l-date').valueAsDate = new Date(); 
       }
     }
-    updateAmpSummary(key, mode); // 見出しを更新
+    updateAmpSummary(key, mode);
     syncToPrintLayout();
   }
 
@@ -886,16 +833,24 @@
       const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); 
       if(btn) btn.classList.add('active'); 
     }
-    
-    // ★修正: こちらもパネルのID修正を適用
-    let panel = document.getElementById(`panel-amp-${key}`); 
-    if(!panel) panel = document.getElementById(`v-amp-${key}`);
+    let panel = document.getElementById(`panel-amp-${key}`) || document.getElementById(`v-amp-${key}`);
     if(panel) panel.style.display = 'none'; 
-    
-    updateAmpSummary(key, mode); // 見出しを更新
+    updateAmpSummary(key, mode);
     syncToPrintLayout();
   }
-  
+
+  function setMealTime(val) {
+    if(val === '昨日') {
+      const d = new Date(); d.setDate(d.getDate() - 1); document.getElementById('v-amp-l-date').valueAsDate = d;
+    } else if(val === '今日') {
+      document.getElementById('v-amp-l-date').valueAsDate = new Date();
+    } else {
+      let txt = document.getElementById('v-amp-l-detail').value;
+      if (!txt.includes(val)) document.getElementById('v-amp-l-detail').value = (txt ? txt + ' ' : '') + val;
+    }
+    syncToPrintLayout();
+  }
+
   function tBtn(gId, val) {
     const g = document.getElementById(gId); if(!g) return;
     g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
@@ -907,19 +862,14 @@
   function tChipSingle(gId, el) { 
     const g = document.getElementById(gId); if(!g) return; 
     g.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); 
-    el.classList.add('on'); 
-    syncToPrintLayout(); 
+    el.classList.add('on'); syncToPrintLayout(); 
   }
   
   function setTxMain(mode) { 
     const g = document.getElementById('g-tx-main'); if(!g) return;
-    
-    // クリア対応
     const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); 
     if(btn && btn.classList.contains('active') && mode !== '不明') {
-      // トグルで外す
-      btn.classList.remove('active');
-      mode = "不明";
+      btn.classList.remove('active'); mode = "不明";
       const unkBtn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === '不明'); 
       if(unkBtn) unkBtn.classList.add('active');
     } else {
@@ -948,46 +898,30 @@
     if(!confirm("入力をリセットしますか？")) return;
     if(sec === 'origin') {
       setOriginMode('不明', null);
-      document.getElementById('v-referral-facility').value = "";
-      document.getElementById('v-ems-name').value = "";
-      document.getElementById('v-ems-region').value = "";
-      document.getElementById('v-other-origin').value = "";
-      document.getElementById('v-eta-time').value = "";
-      document.getElementById('v-eta-display').textContent = "--";
-      appState.etaText = "";
-      document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue'));
+      document.getElementById('v-referral-facility').value = ""; document.getElementById('v-ems-name').value = "";
+      document.getElementById('v-ems-region').value = ""; document.getElementById('v-other-origin').value = "";
+      document.getElementById('v-eta-time').value = ""; document.getElementById('v-eta-display').textContent = "--";
+      appState.etaText = ""; document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue'));
     } else if (sec === 'patient') {
-      document.getElementById('v-era-y').value = "";
-      document.getElementById('v-era-m').value = "";
-      document.getElementById('v-era-d').value = "";
-      document.getElementById('v-dob-cal').value = "";
-      document.getElementById('v-manual-age-y').value = "";
-      document.getElementById('v-manual-age-m').value = "";
-      document.getElementById('v-bw').value = "";
-      document.getElementById('v-bh').value = "";
-      tBtn('g-era', '西暦'); tBtn('g-sex', '不明');
+      document.getElementById('v-era-y').value = ""; document.getElementById('v-era-m').value = ""; document.getElementById('v-era-d').value = "";
+      document.getElementById('v-dob-cal').value = ""; document.getElementById('v-manual-age-y').value = ""; document.getElementById('v-manual-age-m').value = "";
+      document.getElementById('v-bw').value = ""; document.getElementById('v-bh').value = "";
+      tBtn('g-era', '西暦'); tBtn('g-sex', '不明'); calcPeds();
     } else if (sec === 'mist') {
       document.getElementById('v-case-summary').value = "";
-      document.querySelectorAll('#box-keywords .chip').forEach(c => c.classList.remove('on'));
-      appState.keywords = [];
+      document.querySelectorAll('#box-keywords .chip').forEach(c => c.classList.remove('on')); appState.keywords = [];
     } else if (sec === 'vitals') {
-      document.getElementById('v-vit-hr').value = "";
-      document.getElementById('v-vit-rr').value = "";
-      document.getElementById('v-vit-spo2').value = "";
-      document.getElementById('v-vit-bpsys').value = "";
-      document.getElementById('v-vit-bpdia').value = "";
-      document.getElementById('v-vit-bt-int').value = "";
-      document.getElementById('v-vit-bt-dec').value = "";
-      setOxDevice('なし');
-      document.getElementById('v-ox-flow-free').value = "";
+      document.getElementById('v-vit-hr').value = ""; document.getElementById('v-vit-rr').value = ""; document.getElementById('v-vit-spo2').value = "";
+      document.getElementById('v-vit-bpsys').value = ""; document.getElementById('v-vit-bpdia').value = "";
+      document.getElementById('v-vit-bt-int').value = ""; document.getElementById('v-vit-bt-dec').value = "";
+      setOxDevice('なし'); document.getElementById('v-ox-flow-free').value = "";
       document.querySelectorAll('#g-ox-flow .group-btn').forEach(b => b.classList.remove('active'));
       setConsciousnessTab('不明');
-    } else if(sec==='sec3-pat'){
+    } else if(sec === 'sec3-pat'){
       appState.pat={a:'不明', b:'不明', c:'不明'}; 
       document.querySelectorAll(".chip-grid .chip").forEach(c=>c.classList.remove('on')); 
       document.querySelectorAll(".chip-grid div:first-child").forEach(c=>c.classList.add('on'));
     }
-    calcPeds();
   }
 
   function reportErrorToAdmin(errorInfo, sourceContext) { 
@@ -999,7 +933,7 @@
       const inputEl = document.getElementById(inputId); const val = inputEl.value.trim();
       if (!val) return alert("登録するテキストを入力してください");
       let val2 = "";
-      if (target === "hospital") { val2 = prompt("カテゴリ名を入力してください。\n(例: 小児科, 併設/内科, 夜間・救急, 総合病院, 姶良・伊佐, 北薩, 大隅)", "その他"); if (val2 === null) return; } 
+      if (target === "hospital") { val2 = prompt("カテゴリ名を入力してください。(例: 小児科, 総合病院...)", "その他"); if (val2 === null) return; } 
       else if (target === "staff") { let parts = val.split(" "); if (parts.length > 1) val2 = parts[0]; }
       if(btnEl) { btnEl.textContent = "送信中..."; btnEl.disabled = true; }
       fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 }) })
@@ -1039,9 +973,51 @@
       if(res.masters && res.masters.keywordList) master.keywords = res.masters.keywordList;
       if(res.masters && res.masters.hospitalList) HOSPITAL_DB = res.masters.hospitalList;
       if(res.masters && res.masters.emsList) EMS_DB = res.masters.emsList;
+      
+      const now = new Date();
+      let dEl = document.getElementById('disp-master-time');
+      dEl.innerText = `📡 同期完了: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+      dEl.classList.add('ready');
+      
       buildAppUI();
+      checkUrlParams(); // デブリーフィングからの復元実行
     }
     document.getElementById("global-loader").style.display = "none";
+  }
+
+  // ★ 追加機能: デブリーフィング画面から受け取ったURLのIDで過去データを自動復元する
+  function checkUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const caseId = urlParams.get('caseId');
+    if(caseId) {
+      document.getElementById("loader-msg").innerHTML = "過去の事案データを復元中...";
+      document.getElementById("global-loader").style.display = "flex";
+      
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "fetch_history", keyword: caseId })
+      }).then(res => res.json()).then(data => {
+        document.getElementById("global-loader").style.display = "none";
+        if(data.status === 'success' && data.results && data.results.length > 0) {
+          let item = data.results[0];
+          
+          if(item.weight) document.getElementById('v-bw').value = String(item.weight).replace(/[^0-9.]/g, '');
+          if(item.height) document.getElementById('v-bh').value = String(item.height).replace(/[^0-9.]/g, '');
+          if(item.sex) tBtn('g-sex', item.sex);
+          if(item.summary) document.getElementById('v-case-summary').value = item.summary;
+          if(item.preTx) document.getElementById('v-preinfo').value = item.preTx;
+          
+          if(item.age) {
+            let yMatch = item.age.match(/(\d+)歳/); let mMatch = item.age.match(/(\d+)ヶ月/);
+            if(yMatch) document.getElementById('v-manual-age-y').value = yMatch[1];
+            if(mMatch) document.getElementById('v-manual-age-m').value = mMatch[1];
+          }
+          alert(`【要請番号: ${caseId}】\n当時の患者情報・作戦概要を自動復元しました！`);
+          calcPeds();
+        }
+      }).catch(e => { document.getElementById("global-loader").style.display = "none"; console.error(e); });
+    }
   }
 
   function updateCustomStatus() {
@@ -1223,8 +1199,8 @@
       let mTotal = -1, ageText = "--"; let wtMid = 0, htMid = 0, wtRange = "--", htRange = "--";
       let resolvedAgeY = 0;
       
-      if(ey > 0 && em > 0) {
-        let fullYear = ey; if(era === "令和") fullYear = ey + 2018; else if(era === "平成") fullYear = ey + 1989 - 1; else if(era === "昭和") fullYear = ey + 1926 - 1;
+      if(ey > 0 && em > 0 && ed > 0) {
+        let fullYear = ey; if(era === "令和") fullYear = ey + 2018; else if(era === "平成") fullYear = ey + 1989 - 1; 
         let birth = new Date(fullYear, em - 1, ed || 1), now = new Date(); 
         mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth(); 
         if(ed > 0 && now.getDate() < birth.getDate()) mTotal--; 
@@ -1233,16 +1209,17 @@
         resolvedAgeY = y;
         document.getElementById("v-manual-age-y").value = y; document.getElementById("v-manual-age-m").value = m;
       } else if(!isNaN(manualAgeY) || !isNaN(manualAgeM)) {
-        let y = isNaN(manualAgeY) ? 0 : manualAgeY; let m = isNaN(manualAgeM) ? 0 : manualAgeM; mTotal = y * 12 + m; ageText = `${y}才${m}ヶ月`;
+        let y = isNaN(manualAgeY) ? 0 : manualAgeY; let m = isNaN(manualAgeM) ? 0 : manualAgeM; mTotal = y * 12 + m; ageText = `${y}歳${m}ヶ月`;
         resolvedAgeY = y;
       }
       appState.ageY = resolvedAgeY;
       
-      if(mTotal >= 0) {
-        let sexEl = document.querySelector('#g-sex .active'); let sex = sexEl ? sexEl.dataset.val : "不明"; let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
+      if(mTotal >= 0 && master.weightMaster) {
+        let sexEl = document.querySelector('#g-sex .active'); let sex = sexEl ? sexEl.dataset.val : "不明"; 
+        let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
         if(match) {
-          if(sex === "男児") { wtMid = match.m_mid; wtRange = `${match.m_low} 〜 ${match.m_high}`; htMid = match.m_h_mid; htRange = `${match.m_h_low} 〜 ${match.m_h_high}`; }
-          else { wtMid = match.f_mid; wtRange = `${match.f_low} 〜 ${match.f_high}`; htMid = match.f_h_mid; htRange = `${match.f_h_low} 〜 ${match.f_h_high}`; }
+          if(sex === "男児") { wtMid = match.m_mid; htMid = match.m_h_mid; }
+          else { wtMid = match.f_mid; htMid = match.f_h_mid; }
         }
       }
       
@@ -1252,15 +1229,16 @@
       appState.calcHeight = appState.isBhManual ? inputBh : htMid;
       
       document.getElementById("lbl-age").textContent = ageText; 
-      document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` + (appState.isBwManual? ' (実測)' : ` (${wtRange})`) : "--"; 
+      document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` : "--"; 
       document.getElementById("lbl-weight").style.color = appState.calcWeight > 0 ? "var(--brand)" : "var(--ink)";
-      document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` + (appState.isBhManual? ' (実測)' : ` (${htRange})`) : "--";
+      document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` : "--";
       
       if(document.getElementById('g-ox-device').querySelector('.active').dataset.val === '人工呼吸器') { renderVentilatorOptions(); }
       triggerPEWS();
     } catch(e) {}
   }
 
+  // ★ 安全な丸め関数 (セーフティネット用)
   function getNearestStep(val, stepString, maxLimit) {
     if(!stepString || isNaN(val)) return val;
     let steps = stepString.split(',').map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
@@ -1342,6 +1320,7 @@
       let otherVal = document.getElementById("v-role-other") ? document.getElementById("v-role-other").value.trim() : ""; if(otherVal) roles.other.push(otherVal);
       appState.staffRoles = roles;
 
+      // ★ マスタから計算式を読み込んでセーフティネットを算出
       const setts = master.settings || {};
       const defib1_coef = parseFloat(setts.Defib_First_J_per_kg) || 2;
       const defib2_coef = parseFloat(setts.Defib_Second_J_per_kg) || 4;
@@ -1397,6 +1376,7 @@
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       appState.page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
+      // ★ ME依頼書（人工呼吸器ワークシート）の動的生成
       appState.meReqHTML = "";
       if (reqMe) {
         let ventChecked = document.querySelector('input[name="vent_model"]:checked');
@@ -1442,9 +1422,7 @@
           ${appState.meReqHTML}
         `;
       }
-    } catch(e) {
-      console.error(e);
-    }
+    } catch(e) {}
   }
 
   function clearAllData(ask) { if(ask && confirm("全データをリセットしますか？")) location.reload(); }
