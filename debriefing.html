@@ -3,45 +3,56 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <title>小児救急 デブリーフィング V6.7</title>
+  <meta name="theme-color" content="#f2f2f7">
+  <title>小児救急 デブリーフィング V7.1</title>
   <style>
-    :root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93; --brand: #34c759; --brand-light: #e8f5e9; --blue: #007aff; --line: rgba(60,60,67,0.12); }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; }
-    body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
-    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding: 0 16px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-    .hdr-btn { color: var(--ink); background: #e5e5ea; border: none; font-size: 13px; font-weight: bold; cursor: pointer; padding: 6px 10px; border-radius: 6px; text-decoration: none; }
-    .tab-container { position: fixed; top: 56px; left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
-    .nav-tab { flex: 0 0 auto; padding: 0 8px; height: 44px; line-height: 44px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; } 
-    .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    main { margin-top: 100px; margin-bottom: 60px; padding: 16px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    :root { --bg: #f2f2f7; --card: #ffffff; --ink: #111827; --sub: #6b7280; --brand: #34c759; --brand-light: #e8f5e9; --blue: #007aff; --line: #e5e7eb; --safe-top: env(safe-area-inset-top); --safe-bot: env(safe-area-inset-bottom); }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; padding-bottom: calc(80px + var(--safe-bot)); }
     
-    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 16px; }
+    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .hdr-btn { color: var(--ink); background: #e5e5ea; border: none; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 10px; border-radius: 8px; text-decoration: none; transition: 0.2s; }
+    .hdr-btn:active { opacity: 0.7; }
+    .title-box { text-align: center; font-weight: 800; font-size: 15px; }
+    
+    .tab-container { position: fixed; top: calc(56px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
+    .tab-container::-webkit-scrollbar { display: none; }
+    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } 
+    .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
+    
+    main { margin-top: calc(112px + var(--safe-top)); padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    
+    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 16px; border: 1px solid var(--line); overflow: hidden; }
     .section-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
     
-    input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="time"], textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 10px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); font-weight: 600; }
+    input[type="text"], input[type="number"], input[type="date"], input[type="month"], input[type="time"], textarea, select { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; padding: 12px; border-radius: 8px; margin-bottom: 8px; color: var(--ink); font-weight: 600; -webkit-appearance: none; appearance: none; }
+    input:focus, textarea:focus, select:focus { border-color: var(--blue); }
     input[readonly] { color: var(--sub); background: #eee; }
     
     .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .input-row label { font-size: 11px; font-weight: bold; color: var(--sub); width: 110px; flex-shrink: 0; text-align: right; }
+    .input-row label { font-size: 11px; font-weight: 700; color: var(--sub); width: 60px; flex-shrink: 0; text-align: right; }
     .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
     .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    @media (max-width: 480px) { .grid-3col { grid-template-columns: 1fr 1fr; } }
     
-    .btn-blue { background: var(--blue); color: #fff; border: none; padding: 10px 16px; border-radius: 8px; font-weight: bold; cursor: pointer; white-space: nowrap; }
-    .btn-green { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; }
-    .btn-purple { background: #8b5cf6; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 11px; display: inline-flex; align-items: center; gap: 4px; }
-    .btn-small { background: #e5e5ea; color: var(--ink); border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer; }
+    .btn { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; transition: 0.2s; display: inline-block; text-align: center; text-decoration: none; }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+    .btn.blue { background: var(--blue); }
+    .btn.small { padding: 10px 16px; font-size: 13px; width: auto; }
+    .btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
     
-    .btn-group { display: flex; flex-wrap: wrap; gap: 4px; background: #e5e5ea; padding: 4px; border-radius: 8px; margin-bottom: 12px; }
-    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 11px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s;}
+    .btn-group { display: flex; flex-wrap: wrap; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; margin-bottom: 12px; }
+    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s; min-width:60px; }
     .group-btn.active { background: #fff; color: var(--blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     
     .tl-panel { display: none; background: rgba(242,242,247,0.4); padding: 12px; border-radius: 8px; margin-bottom: 12px; border-left: 4px solid var(--blue); }
     .tl-panel.active { display: block; }
     
     .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; } 
-    .chip { border: 1px solid var(--line); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition:0.15s; } 
+    .chip { border: 1.5px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition:0.15s; } 
+    .chip:active { transform: scale(0.95); }
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
-    .chip.on-blue { background: var(--blue); border-color: var(--blue); color: #fff; }
+    .chip.on-blue { background: #eff6ff; border-color: var(--blue); color: var(--blue); }
     .chip.on-dark { background: #e5e5ea; border-color: var(--ink); color: var(--ink); }
     
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); }
@@ -50,31 +61,39 @@
     .chip-tx-radio { background: #fff; border: 1px solid #007aff; color: #007aff; }
     .chip-tx-radio.active { background: #007aff; color: #fff; }
     
-    .input-highlight { background-color: #e3f2fd !important; border-color: #2196f3 !important; }
+    .input-highlight { background-color: #fef08a !important; border-color: #eab308 !important; }
 
     .tl-row { display: flex; gap: 8px; align-items: flex-start; border-bottom: 1px solid var(--line); padding: 10px 0; }
     .tl-time { font-weight: bold; color: var(--blue); width: 45px; flex-shrink: 0; font-size: 14px; }
     .tl-cat { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: #eee; color: #333; white-space: nowrap; margin-top: 2px; }
-    .tl-content { flex: 1; font-size: 12px; line-height: 1.5; }
+    .tl-content { flex: 1; font-size: 12px; line-height: 1.5; word-wrap: break-word; }
 
     .tab-content { display: none; } .tab-content.active { display: block; }
-    .data-preview { font-size: 12px; background: #f9f9f9; padding: 10px; border-radius: 6px; border-left: 4px solid var(--sub); margin-bottom: 8px; white-space: pre-wrap; }
-    .search-result-item { padding: 12px; border: 1px solid var(--blue); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: 0.2s; }
     
+    .search-result-item { padding: 12px; border: 1px solid var(--blue); border-radius: 8px; margin-bottom: 8px; cursor: pointer; background: #fff; transition: 0.2s; }
+    .search-result-item:active { background: var(--bg); }
+    
+    .data-preview { font-size: 12px; background: #f9fafb; padding: 12px; border-radius: 8px; border-left: 4px solid var(--blue); margin-bottom: 12px; line-height: 1.6; word-wrap: break-word; }
+    
+    /* プレビュー印刷用 */
     .print-report { background: #fff; border: 1px solid #000; padding: 20px; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 16px; }
     .print-report h2 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; font-size: 16px; }
     .print-report h3 { font-size: 13px; background: #eee; padding: 4px 8px; border-left: 4px solid #000; margin-top: 16px; margin-bottom: 8px; }
     .p-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; table-layout: fixed; } 
     .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; word-wrap: break-word; }
-    .p-table th { background: #f0f0f0; }
-    .sub-見出し { font-size: 11px; font-weight: 900; color: var(--sub); margin: 10px 0 4px 0; border-left: 3px solid var(--sub); padding-left: 6px; }
+    .p-table th { background: #f0f0f0; width: 25%; }
 
-    .add-master-btn { background: #e3f2fd; color: #007aff; border: 1px solid #007aff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; white-space: nowrap; }
+    details { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+    summary { font-size: 13px; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; color: var(--ink); outline: none; }
+    summary::-webkit-details-marker { display: none; }
+
+    #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
 
     @media print { 
       body { background: #fff; padding:0; } 
-      header, .tab-container, main > div:not(#tab-sec6), .no-print { display: none !important; }
-      #tab-sec6 { display: block !important; margin: 0; padding: 0; }
+      header, .tab-container, main > div:not(#tab-sec8), .no-print { display: none !important; }
+      #tab-sec8 { display: block !important; margin: 0; padding: 0; }
       .print-report { border: none; padding: 0; }
     }
   </style>
@@ -83,7 +102,6 @@
 
 <datalist id="staff-list"></datalist>
 <datalist id="keyword-list"></datalist>
-<datalist id="history-list"></datalist>
 <datalist id="eval-titles">
   <option value="搬入時(1次評価)">
   <option value="挿管・処置後">
@@ -98,17 +116,19 @@
 
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
-  <div style="font-weight: 800; font-size: 15px; text-align:center;">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">v6.7</span></div>
+  <div class="title-box">振り返り<span style="font-size: 9px; background: var(--brand); color:#fff; padding: 2px 4px; border-radius: 4px; margin-left: 4px;">V7.1</span></div>
   <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
 </header>
 
 <div class="tab-container">
-  <div class="nav-tab active" onclick="switchTab('sec1')">1.検索・事案</div>
-  <div class="nav-tab" onclick="switchTab('sec2')">2.時系列・データ</div>
-  <div class="nav-tab" onclick="switchTab('sec3')">3.症例評価</div>
-  <div class="nav-tab" onclick="switchTab('sec4')">4.ギャップ</div>
-  <div class="nav-tab" onclick="switchTab('sec5')">5.環境</div>
-  <div class="nav-tab" onclick="switchTab('sec6')">6.プレビュー</div>
+  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1.検索</div>
+  <div class="nav-tab" data-tab="sec2" onclick="switchTab('sec2')">2.準備</div>
+  <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">3.時系列</div>
+  <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">4.データ</div>
+  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.症例評価</div>
+  <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">6.チーム</div>
+  <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">7.環境</div>
+  <div class="nav-tab" data-tab="sec8" onclick="switchTab('sec8')">8.確認</div>
 </div>
 
 <main>
@@ -118,182 +138,236 @@
       <div class="grid-3col">
         <div class="input-row"><label>月間</label><input type="month" id="s-month"></div>
         <div class="input-row"><label>スタッフ</label><input type="text" id="s-staff" placeholder="名前" list="staff-list"></div>
-        <div class="input-row"><label>キーワード</label><input type="text" id="s-kw" placeholder="要請番号など" list="keyword-list"></div>
+        <div class="input-row"><label>要請番号</label><input type="text" id="s-kw" placeholder="キーワード等" list="keyword-list"></div>
       </div>
-      <button class="btn-blue" id="btn-search" onclick="fetchHistoryListAdvanced()" style="width:100%;">検索</button>
+      <button class="btn blue" id="btn-search" onclick="fetchHistoryListAdvanced()">検索を実行</button>
       <div id="search-results-area" style="display:none; margin-top:12px;"></div>
     </div>
 
     <div id="mock-data-area" style="display:none;">
       <div class="card">
-        <div class="section-label" style="color:var(--ink); border-bottom-color:var(--line);">📝 当時の想定・作戦内容</div>
+        <div class="section-label" style="color:var(--blue); border-bottom-color:var(--blue);">📝 事前情報（作戦盤データ）</div>
         <div class="data-preview" id="v-fetched-data"></div>
-        <div class="section-label" style="color:var(--blue); margin-top:12px;">🚑 現場で事案に対応したスタッフ</div>
+        <div style="text-align:right;">
+          <a href="index.html" target="_blank" class="btn small ghost" style="color:var(--blue); border-color:var(--blue);">🔗 作戦盤を別タブで開く</a>
+        </div>
+        
+        <div class="section-label" style="margin-top:16px;">🚑 現場で対応したスタッフ</div>
         <div class="chip-grid" id="box-staff-actual"></div>
-        <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a; margin-top:12px;">⚠️ 実際の対応・想定との相違点</div>
-        <textarea id="v-actual-diff" rows="3" placeholder="例: 想定シナリオとは異なり、実際には〇〇の対応を追加で行った..."></textarea>
       </div>
     </div>
-    <button class="btn-green" onclick="switchTab('sec2')">次へ (時系列・データ) ➔</button>
+    <button class="btn" onclick="switchTab('sec2')">次へ (事前準備ギャップ) ➔</button>
   </div>
 
   <div id="tab-sec2" class="tab-content">
-    
     <div class="card">
-      <div class="section-label">
-        <span>⏱️ タイムライン・データ入力</span>
-        <button class="btn-purple" id="ai-main-btn" onclick="openAiModalByTab()">🪄 カルテ写真から読込</button>
-      </div>
+      <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a;">⚠️ 事前準備に対するギャップ評価</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">作戦盤で準備した薬剤・物品・シナリオと、現場での実際の対応のズレを記録します。</div>
+      <textarea id="v-actual-diff" rows="3" placeholder="【実際の対応と相違点】例: 想定シナリオとは異なり、実際には〇〇の対応を追加で行った..."></textarea>
+      <textarea id="v-gap-bad" rows="3" placeholder="【不足・課題】 例: 物品の〇〇が想定より多く必要になった..."></textarea>
+      <textarea id="v-gap-good" rows="2" placeholder="【良かった点】 例: 希釈濃度が明記されていたため準備がスムーズだった..."></textarea>
+      
+      <div class="section-label" style="margin-top:16px;">🛠️ アプリ・マスタ改修提案</div>
+      <textarea id="v-gap-master" rows="2" placeholder="例: 「痙攣重積セット」に〇〇を標準で追加してほしい..."></textarea>
+    </div>
+    <button class="btn" onclick="switchTab('sec3')">次へ (時系列入力) ➔</button>
+  </div>
+
+  <div id="tab-sec3" class="tab-content">
+    <div class="card">
+      <div class="section-label">⏱️ タイムライン入力 (処置・記事)</div>
+      
       <div style="display:flex; gap:6px; align-items: center; margin-bottom: 12px; background: var(--bg); padding: 8px; border-radius: 8px;">
         <div style="font-size:12px; font-weight:bold; color:var(--blue); margin-right:4px;">時刻</div>
-        <input type="time" id="tl-input-time-picker" style="width:110px; margin:0; padding:6px;" onchange="syncTime('picker')">
-        <span style="font-size:10px; color:var(--sub); font-weight:bold;">または</span>
-        <input type="text" id="tl-input-time-text" placeholder="0849" inputmode="numeric" style="width:80px; text-align:center; font-size:16px; margin:0; padding:6px;" oninput="formatTime(this); syncTime('text')">
+        <input type="time" id="tl-time-3" style="width:120px; margin:0;" onchange="syncTime(this.value)">
         <div style="flex:1;"></div>
-        <button class="btn-small" onclick="setNow()">現在時刻</button>
+        <button class="btn small ghost" onclick="setNow()">現在時刻</button>
       </div>
 
-      <div class="btn-group" id="tl-cat-group">
-        <button class="group-btn active" onclick="selectTlCat(this, 'panel-tx', '処置・投薬')">処置・投薬</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-vital', 'バイタル')">バイタル</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-gas', '血液ガス')">血液ガス</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-blood', '採血')">採血</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-exam', '画像・検査')">その他検査</button>
-        <button class="group-btn" onclick="selectTlCat(this, 'panel-txt', '家族・IC')">家族・IC</button>
-        <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat(this, 'panel-txt', '記事')">記事</button>
+      <div class="btn-group" id="tl-cat-group-3">
+        <button class="group-btn active" onclick="selectTlCat('panel-tx', '処置・投薬')">処置・投薬</button>
+        <button class="group-btn" onclick="selectTlCat('panel-txt', '家族・IC')">家族・IC</button>
+        <button class="group-btn" style="color:var(--brand);" onclick="selectTlCat('panel-txt', '記事')">記事</button>
       </div>
 
       <div id="panel-tx" class="tl-panel active">
         <div style="font-size:11px; font-weight:bold; color:var(--blue); margin-bottom:4px;">① 区分を選択</div>
         <div id="tx-kbn-chips" class="chip-grid"></div>
-        
         <div id="tx-dai-container" style="display:none; margin-top:8px;">
           <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:4px;">② 処置・項目を選択</div>
           <div id="tx-dai-chips" class="chip-grid"></div>
         </div>
-
         <div id="tx-detail-container" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-top:8px; margin-bottom:8px;"></div>
-        <input type="text" id="tx-final-text" placeholder="合成された記録テキスト（手修正可）" style="margin-top:4px;">
+        <input type="text" id="tx-final-text" placeholder="合成された記録テキスト（手修正可）">
       </div>
 
       <div id="panel-txt" class="tl-panel">
         <textarea id="tl-text-basic" rows="3" placeholder="記録内容を入力してください"></textarea>
       </div>
 
-      <div id="panel-vital" class="tl-panel">
-        <div class="grid-2col">
-          <div class="input-row"><label>HR</label><input type="number" id="v-hr" class="step-input" placeholder="心拍数(bpm)"></div>
-          <div class="input-row"><label>SpO2</label><input type="number" id="v-spo2" class="step-input" placeholder="(%)"></div>
-          <div class="input-row"><label>RR</label><input type="number" id="v-rr" class="step-input" placeholder="呼吸数(回/分)"></div>
-          <div class="input-row"><label>BP(収)</label><input type="number" id="v-bps" class="step-input" placeholder="sys(mmHg)"></div>
-          <div class="input-row"><label>BP(拡)</label><input type="number" id="v-bpd" class="step-input" placeholder="dia(mmHg)"></div>
-          <div class="input-row"><label>BT</label><input type="number" step="0.1" id="v-bt" class="step-input" placeholder="体温(℃)"></div>
-        </div>
-        <input type="text" id="v-jcs" placeholder="意識レベル（例：JCS 30 / GCS E4V5M6）" list="history-list">
-      </div>
-
-      <div id="panel-gas" class="tl-panel" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
-        <div class="input-row"><label>pH</label><input type="number" step="0.001" id="g-ph" class="step-input"></div>
-        <div class="input-row"><label>pCO2</label><input type="number" step="0.1" id="g-pco2" class="step-input"></div>
-        <div class="input-row"><label>pO2</label><input type="number" step="0.1" id="g-po2" class="step-input"></div>
-        <div class="input-row"><label>BE</label><input type="number" step="0.1" id="g-be" class="step-input"></div>
-        <div class="input-row"><label>HCO3</label><input type="number" step="0.1" id="g-hco3" class="step-input"></div>
-        <div class="input-row"><label>TCO2</label><input type="number" step="0.1" id="g-tco2" class="step-input"></div>
-        <div class="input-row"><label>sO2</label><input type="number" step="0.1" id="g-so2" class="step-input"></div>
-        <div class="input-row"><label>Na</label><input type="number" step="0.1" id="g-na" class="step-input"></div>
-        <div class="input-row"><label>K</label><input type="number" step="0.1" id="g-k" class="step-input"></div>
-        <div class="input-row"><label>iCa</label><input type="number" step="0.01" id="g-ica" class="step-input"></div>
-        <div class="input-row"><label>Glu</label><input type="number" id="g-glu" class="step-input"></div>
-        <div class="input-row"><label>Hct</label><input type="number" step="0.1" id="g-hct" class="step-input"></div>
-        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="g-hb" class="step-input"></div>
-        <div class="input-row"><label>Lac</label><input type="number" step="0.1" id="g-lac" class="step-input"></div>
-      </div>
-
-      <div id="panel-blood" class="tl-panel" style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
-        <div class="sub-見出し">■ 血算・生化学</div>
-        <div class="input-row"><label>WBC</label><input type="number" id="b-wbc" class="step-input"></div>
-        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="b-hb" class="step-input"></div>
-        <div class="input-row"><label>Plt</label><input type="number" id="b-plt" class="step-input"></div>
-        <div class="input-row"><label>AST</label><input type="number" id="b-ast" class="step-input"></div>
-        <div class="input-row"><label>ALT</label><input type="number" id="b-alt" class="step-input"></div>
-        <div class="input-row"><label>LDH</label><input type="number" id="b-ldh" class="step-input"></div>
-        <div class="input-row"><label>CK</label><input type="number" id="b-ck" class="step-input"></div>
-        <div class="input-row"><label>BUN</label><input type="number" step="0.1" id="b-bun" class="step-input"></div>
-        <div class="input-row"><label>Cre</label><input type="number" step="0.01" id="b-cre" class="step-input"></div>
-        <div class="input-row"><label>CRP</label><input type="number" step="0.01" id="b-crp" class="step-input"></div>
-        <div class="input-row"><label>PT-INR</label><input type="number" step="0.01" id="b-inr" class="step-input"></div>
-        <div class="input-row"><label>APTT</label><input type="number" step="0.1" id="b-aptt" class="step-input"></div>
-      </div>
-
-      <div id="panel-exam" class="tl-panel">
-        <div style="font-size:11px; font-weight:bold; color:var(--sub); margin-bottom:6px;">🔬 迅速キット・生理画像・その他フリー検査追加</div>
-        <div class="grid-3col" style="gap:4px; margin-bottom:4px;">
-          <input type="text" id="ex-name" placeholder="検査名(例: エコー)">
-          <input type="text" id="ex-res" placeholder="結果(例: 陽性 / なし)">
-          <input type="text" id="ex-unit" placeholder="単位(任意)">
-        </div>
-        <button class="btn-small" style="background:var(--blue); color:#fff; width:100%; padding:8px;" onclick="addFreeExamRow()">➕ 検査リストへ一時ストック</button>
-        <div id="ex-temporary-list" class="chip-grid" style="margin-top:8px;"></div>
-      </div>
-
-      <button class="btn-blue" id="btn-add-timeline" style="width:100%; margin-top:8px;" onclick="addTimeline()">＋ タイムラインに登録</button>
+      <button class="btn blue" id="btn-add-tl-3" onclick="addTimeline()">＋ タイムラインに登録</button>
       
-      <div id="timeline-list" style="margin-top: 16px; max-height: 250px; overflow-y: auto; background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px;">
+      <details style="margin-top:24px; border:1px dashed #c084fc; background:#faf5ff;">
+        <summary style="color:#6b21a8; font-size:12px; font-weight:normal;">🤖 実験的機能：カルテの経過から自動生成</summary>
+        <div style="font-size:11px; color:#6b7280; margin-top:8px; line-height:1.5;">
+          <b>【使い方と反映先】</b><br>
+          電子カルテなどの経過記録（「14:22 挿管実施」等）を貼り付けると、AIが時系列を分割し<b>直接タイムラインのリストに追加</b>します。
+        </div>
+        <textarea id="bulk-text-input" rows="3" placeholder="カルテ文章を貼り付け..." style="margin-top:8px; border-color:#d8b4fe; font-size:12px;"></textarea>
+        <button class="btn small" style="background:#c084fc; color:#fff; width:100%;" onclick="analyzeBulkKarte(this)">🪄 AIでタイムラインに自動仕分け</button>
+      </details>
+
+      <div id="timeline-list-3" style="margin-top: 16px; max-height: 250px; overflow-y: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px;">
         <div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>
       </div>
     </div>
-
-    <div class="card" style="border: 2px dashed #8b5cf6; background: #faf5ff; margin-top: 16px;">
-      <div class="section-label" style="color:#8b5cf6; border-bottom:1px solid #e9d5ff;">📋 経過テキストの一括取り込み</div>
-      <p style="font-size: 10px; color: #6b21a8; margin-bottom: 6px;">※ AI自動仕分けを使う場合は、各行の先頭に「14:22」形式で時間を記載してください。</p>
-      <textarea id="bulk-text-input" rows="3" placeholder="電子カルテ等からコピーした経過文章を貼り付け..." style="border-color:#d8b4fe; background:#fff; margin-bottom:6px; font-size:13px;"></textarea>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-small" style="flex:1; background:#fff; border:1px solid #8b5cf6; color:#8b5cf6;" onclick="addBulkText()">そのまま1本の「記事」として追加</button>
-        <button class="btn-small" style="flex:1; background:#8b5cf6; color:#fff;" onclick="analyzeBulkKarte()">🪄 AIでタイムラインに自動仕分け</button>
-      </div>
-    </div>
-
-    <button class="btn-green" onclick="switchTab('sec3')">次へ (症例評価) ➔</button>
-  </div>
-
-  <div id="tab-sec3" class="tab-content">
-    <div id="eval-container"></div>
-    <button class="btn-blue" style="width:100%; margin-bottom:16px; background:var(--brand);" onclick="addEvalBlock()">＋ 新しい評価ポイントを追加</button>
-    <button class="btn-green" onclick="switchTab('sec4')">次へ (ギャップ) ➔</button>
+    <button class="btn" onclick="switchTab('sec4')">次へ (データ入力) ➔</button>
   </div>
 
   <div id="tab-sec4" class="tab-content">
     <div class="card">
-      <div class="section-label" style="color:#d48806; border-bottom-color:#fef08a;">⚠️ 事前準備に対するギャップ評価</div>
-      <textarea id="v-gap-bad" rows="3" placeholder="【不足・課題】 例: 想定より多く必要になった..."></textarea>
-      <textarea id="v-gap-good" rows="2" placeholder="【良かった点】 例: 希釈濃度が明記されていたためスムーズだった..."></textarea>
+      <div class="section-label">📊 データ入力</div>
+      
+      <div style="display:flex; gap:6px; align-items: center; margin-bottom: 12px; background: var(--bg); padding: 8px; border-radius: 8px;">
+        <div style="font-size:12px; font-weight:bold; color:var(--blue); margin-right:4px;">時刻</div>
+        <input type="time" id="tl-time-4" style="width:120px; margin:0;" onchange="syncTime(this.value)">
+        <div style="flex:1;"></div>
+        <button class="btn small ghost" onclick="setNow()">現在時刻</button>
+      </div>
+
+      <div class="btn-group" id="tl-cat-group-4">
+        <button class="group-btn active" onclick="selectTlCat('panel-vital', 'バイタル')">バイタル</button>
+        <button class="group-btn" onclick="selectTlCat('panel-gas', '血液ガス')">血液ガス</button>
+        <button class="group-btn" onclick="selectTlCat('panel-blood', '採血')">採血</button>
+        <button class="group-btn" onclick="selectTlCat('panel-exam', '画像・検査')">検査</button>
+      </div>
+
+      <div id="panel-vital" class="tl-panel active">
+        <div class="grid-2col">
+          <div class="input-row"><label>HR</label><input type="number" id="v-hr" placeholder="bpm"></div>
+          <div class="input-row"><label>SpO2</label><input type="number" id="v-spo2" placeholder="%"></div>
+          <div class="input-row"><label>RR</label><input type="number" id="v-rr" placeholder="/min"></div>
+          <div class="input-row"><label>BP(収)</label><input type="number" id="v-bps" placeholder="sys"></div>
+          <div class="input-row"><label>BP(拡)</label><input type="number" id="v-bpd" placeholder="dia"></div>
+          <div class="input-row"><label>BT</label><input type="number" step="0.1" id="v-bt" placeholder="℃"></div>
+        </div>
+        <input type="text" id="v-jcs" placeholder="意識レベル（例：JCS 30 / GCS E4V5M6）" style="margin-top:8px;">
+      </div>
+
+      <div id="panel-gas" class="tl-panel" style="max-height: 280px; overflow-y: auto;">
+        <div class="input-row"><label>pH</label><input type="number" step="0.001" id="g-ph"></div>
+        <div class="input-row"><label>pCO2</label><input type="number" step="0.1" id="g-pco2"></div>
+        <div class="input-row"><label>pO2</label><input type="number" step="0.1" id="g-po2"></div>
+        <div class="input-row"><label>BE</label><input type="number" step="0.1" id="g-be"></div>
+        <div class="input-row"><label>HCO3</label><input type="number" step="0.1" id="g-hco3"></div>
+        <div class="input-row"><label>TCO2</label><input type="number" step="0.1" id="g-tco2"></div>
+        <div class="input-row"><label>sO2</label><input type="number" step="0.1" id="g-so2"></div>
+        <div class="input-row"><label>Na</label><input type="number" step="0.1" id="g-na"></div>
+        <div class="input-row"><label>K</label><input type="number" step="0.1" id="g-k"></div>
+        <div class="input-row"><label>iCa</label><input type="number" step="0.01" id="g-ica"></div>
+        <div class="input-row"><label>Glu</label><input type="number" id="g-glu"></div>
+        <div class="input-row"><label>Hct</label><input type="number" step="0.1" id="g-hct"></div>
+        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="g-hb"></div>
+        <div class="input-row"><label>Lac</label><input type="number" step="0.1" id="g-lac"></div>
+      </div>
+
+      <div id="panel-blood" class="tl-panel" style="max-height: 280px; overflow-y: auto;">
+        <div class="input-row"><label>WBC</label><input type="number" id="b-wbc"></div>
+        <div class="input-row"><label>Hb</label><input type="number" step="0.1" id="b-hb"></div>
+        <div class="input-row"><label>Plt</label><input type="number" id="b-plt"></div>
+        <div class="input-row"><label>AST</label><input type="number" id="b-ast"></div>
+        <div class="input-row"><label>ALT</label><input type="number" id="b-alt"></div>
+        <div class="input-row"><label>LDH</label><input type="number" id="b-ldh"></div>
+        <div class="input-row"><label>CK</label><input type="number" id="b-ck"></div>
+        <div class="input-row"><label>BUN</label><input type="number" step="0.1" id="b-bun"></div>
+        <div class="input-row"><label>Cre</label><input type="number" step="0.01" id="b-cre"></div>
+        <div class="input-row"><label>CRP</label><input type="number" step="0.01" id="b-crp"></div>
+        <div class="input-row"><label>PT-INR</label><input type="number" step="0.01" id="b-inr"></div>
+        <div class="input-row"><label>APTT</label><input type="number" step="0.1" id="b-aptt"></div>
+      </div>
+
+      <div id="panel-exam" class="tl-panel">
+        <div style="font-size:11px; font-weight:bold; color:var(--sub); margin-bottom:6px;">🔬 迅速キット・生理画像・フリー検査</div>
+        <div class="grid-3col">
+          <input type="text" id="ex-name" placeholder="検査名">
+          <input type="text" id="ex-res" placeholder="結果">
+          <input type="text" id="ex-unit" placeholder="単位(任意)">
+        </div>
+        <button class="btn small ghost" style="width:100%; border-color:var(--blue); color:var(--blue);" onclick="addFreeExamRow()">➕ 検査ストックに追加</button>
+        <div id="ex-temporary-list" class="chip-grid" style="margin-top:8px;"></div>
+      </div>
+
+      <button class="btn blue" id="btn-add-tl-4" onclick="addTimeline()">＋ タイムラインに登録</button>
+
+      <details style="margin-top:24px; border:1px dashed #c084fc; background:#faf5ff;">
+        <summary style="color:#6b21a8; font-size:12px; font-weight:normal;">🤖 実験的機能：写真から数値をAI自動入力</summary>
+        <div style="font-size:11px; color:#6b7280; margin-top:8px; line-height:1.5;">
+          <b>【使い方と反映先】</b><br>
+          ① 現在選んでいるカテゴリ（バイタル等）の写真を撮影します。<br>
+          ② AIが数値を読み取り、<b>上の入力フォームに自動で数字を埋めます</b>。<br>
+          ③ 手動で確認してから「＋タイムラインに登録」を押してください。
+        </div>
+        <input type="file" id="ai-file-input" accept="image/jpeg, image/png" style="display:none;" onchange="handleAiFileChange(event)">
+        <button class="btn small" style="background:#c084fc; color:#fff; width:100%; margin-top:8px;" onclick="document.getElementById('ai-file-input').click()">📷 写真を選択してAI解析</button>
+        <div id="ai-file-name" style="font-size:10px; color:#6b7280; text-align:center; margin-top:4px;"></div>
+      </details>
+
+      <div id="timeline-list-4" style="margin-top: 16px; max-height: 250px; overflow-y: auto; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px;"></div>
     </div>
-    <div class="card">
-      <div class="section-label">🗣️ チームとしての評価</div>
-      <textarea id="v-team" rows="3" placeholder="例: 役割分担は機能していたか、リーダーの指示出しやクローズドループなど..."></textarea>
-    </div>
-    <div class="card">
-      <div class="section-label">🛠️ アプリ・マスタ・セットに関する改善策</div>
-      <textarea id="v-gap-master" rows="3" placeholder="例: 「痙攣重積セット」に〇〇を標準で追加してほしい..."></textarea>
-    </div>
-    <button class="btn-green" onclick="switchTab('sec5')">次へ (総括・環境) ➔</button>
+    <button class="btn" onclick="switchTab('sec5')">次へ (症例評価) ➔</button>
   </div>
 
   <div id="tab-sec5" class="tab-content">
+    <div id="eval-container"></div>
+    <button class="btn blue" style="background:var(--brand); margin-bottom:16px;" onclick="addEvalBlock()">＋ 新しい評価ポイントを追加</button>
+    <button class="btn" onclick="switchTab('sec6')">次へ (チーム評価) ➔</button>
+  </div>
+
+  <div id="tab-sec6" class="tab-content">
     <div class="card">
-      <div class="section-label" style="color:var(--brand); border-bottom-color:var(--brand-light);">🎯 総括・次回へのアクションプラン</div>
+      <div class="section-label">✅ ノン・テクニカルスキルの振り返り</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">該当する項目にチェックを入れてください。</div>
+      
+      <label style="display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; background:#fff;">
+        <input type="checkbox" class="team-check" value="リーダーシップ" style="width:20px; height:20px; margin:0;">
+        <span style="font-size:13px; font-weight:bold;">リーダーが明確で、適切に指示を出せていた</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; background:#fff;">
+        <input type="checkbox" class="team-check" value="役割分担" style="width:20px; height:20px; margin:0;">
+        <span style="font-size:13px; font-weight:bold;">各メンバーの役割が明確に分担されていた</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; background:#fff;">
+        <input type="checkbox" class="team-check" value="クローズドループ" style="width:20px; height:20px; margin:0;">
+        <span style="font-size:13px; font-weight:bold;">指示と復唱（クローズドループ）ができていた</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; background:#fff;">
+        <input type="checkbox" class="team-check" value="スピークアップ" style="width:20px; height:20px; margin:0;">
+        <span style="font-size:13px; font-weight:bold;">気兼ねなく意見や指摘（スピークアップ）ができた</span>
+      </label>
+      <label style="display:flex; align-items:center; gap:8px; padding:12px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; background:#fff;">
+        <input type="checkbox" class="team-check" value="安全確認" style="width:20px; height:20px; margin:0;">
+        <span style="font-size:13px; font-weight:bold;">薬剤量・サイズのダブルチェック等、安全管理が機能した</span>
+      </label>
+
+      <div class="section-label" style="margin-top:20px;">💬 チーム連携の詳細（良かった点・課題）</div>
+      <textarea id="v-team" rows="3" placeholder="上記のチェック項目について、具体的にどうだったかを記載してください"></textarea>
+      
+      <div class="section-label" style="margin-top:20px; color:var(--brand); border-bottom-color:var(--brand-light);">🎯 次回へのアクションプラン</div>
       <textarea id="v-action" rows="3" placeholder="例: 今回の振り返りを受けた、チームとしての具体的な改善策..."></textarea>
     </div>
+    <button class="btn" onclick="switchTab('sec7')">次へ (環境・参加者) ➔</button>
+  </div>
 
+  <div id="tab-sec7" class="tab-content">
     <div class="card">
-      <div class="section-label">🏫 デブリーフィング環境・スタッフ情報</div>
+      <div class="section-label">🏫 デブリーフィング環境</div>
       <div class="grid-2col">
         <div class="input-row"><label>開催日</label><input type="date" id="d-date"></div>
-        <div class="input-row"><label>場所</label><input type="text" id="d-place" value="救命センターカンファ室"></div>
+        <div class="input-row"><label>場所</label><input type="text" id="d-place" value="カンファ室"></div>
         <div class="input-row"><label>開始時間</label><input type="time" id="d-time" onchange="calcDuration()"></div>
         <div class="input-row"><label>終了時間</label><input type="time" id="d-end-time" onchange="calcDuration()"></div>
       </div>
-      <div class="input-row" style="justify-content: flex-end;"><label>所要時間</label><input type="text" id="d-duration" readonly placeholder="自動計算(分)" style="width:100px; text-align:center;"></div>
+      <div class="input-row" style="justify-content: flex-end;"><label>所要(分)</label><input type="text" id="d-duration" readonly style="width:80px; text-align:center;"></div>
       
       <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:4px; margin-top:12px;">✍️ 記録者 (タップで1名選択)</div>
       <div class="chip-grid" id="box-staff-recorder"></div>
@@ -303,115 +377,37 @@
       
       <div style="display:flex; align-items:center; margin-top:8px;">
         <input type="text" id="v-staff-other" placeholder="その他の参加者・応援 (フリー入力)" style="flex:1; margin:0;">
-        <button class="add-master-btn" onclick="addMaster('staff', 'v-staff-other')">＋マスタ登録</button>
       </div>
-
     </div>
-    
-    <button class="btn-green" onclick="switchTab('sec6')">次へ (プレビュー・保存) ➔</button>
+    <button class="btn" onclick="switchTab('sec8')">次へ (プレビュー・保存) ➔</button>
   </div>
 
-  <div id="tab-sec6" class="tab-content">
-    <div class="card">
+  <div id="tab-sec8" class="tab-content">
+    <div class="card" style="padding:0; border:none; box-shadow:none;">
       <div id="print-area"></div>
     </div>
-    
     <div class="no-print" style="display:flex; gap:12px;">
-      <button class="btn-blue" id="btn-save-temp" onclick="submitDebrief('作成中')" style="flex:1; background:#8e8e93;">⏸️ 途中保存</button>
-      <button class="btn-blue" id="btn-submit" onclick="submitDebrief('完了')" style="flex:2; background:#1c1c1e;">✅ 完了してアーカイブ保存</button>
+      <button class="btn ghost" id="btn-save-temp" onclick="submitDebrief('作成中')" style="flex:1;">⏸️ 途中保存</button>
+      <button class="btn" id="btn-submit" onclick="submitDebrief('完了')" style="flex:2; background:#1c1c1e;">✅ 完了してアーカイブ保存</button>
     </div>
   </div>
 </main>
 
-<div class="modal-overlay" id="ai-modal">
-  <div class="modal-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h3 style="color:#6b21a8; margin:0;">🪄 画像から抽出 (<span id="ai-target-label"></span>)</h3>
-      <button onclick="closeAiModal()" style="background:none; border:none; font-size:20px; cursor:pointer;">×</button>
-    </div>
-    <p style="font-size:11px; color:var(--sub); margin-bottom:12px;">※ 電解質や血ガスレシートなど、数値を正面からハッキリ撮影した画像を選択してください。</p>
-    <div style="display:flex; gap:8px; margin-bottom:8px;">
-      <input type="file" id="ai-file-input" accept="image/jpeg, image/png" style="display:none;" onchange="handleAiFileChange(event)">
-      <button class="btn-blue" style="background:#6b21a8; flex:1;" onclick="document.getElementById('ai-file-input').click()">📷 スクショを選択 / 撮影</button>
-    </div>
-    <div id="ai-file-name" style="font-size:11px; color:var(--sub); margin-bottom:8px; text-align:center;"></div>
-    <button class="btn-purple" id="btn-ai-analyze" onclick="analyzeKarte()" style="margin-top:12px; width:100%; justify-content:center; padding:10px;">🤖 AIで読み取りを実行</button>
-  </div>
-</div>
-
 <script>
+  // ====================================================
+  // システムロジック
+  // ====================================================
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let currentCategory = '処置・投薬';
   let currentSelectedDai = ""; 
-
-  let historyWords = JSON.parse(localStorage.getItem('pedsDict')) || [];
   let masterStaff = []; let masterKeywords = []; let masterTreatments = [];
   let currentCaseData = {}; 
   
   let timelineArray = [];
   let evalBlocks = [ { id: Date.now(), title: "搬入時(1次評価)", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
   let temporaryExams = []; let editingRowId = null; 
-  let currentAiTarget = ""; let currentAiImageBase64 = null; let currentAiMimeType = null;
-
-  function reportErrorToAdmin(errorInfo, sourceContext) {
-    try {
-      fetch(GAS_API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "デブリーフィング: " + sourceContext })
-      }).catch(e => console.log(e));
-    } catch(e) {}
-  }
-
-  function addMaster(target, inputId) {
-    const inputEl = document.getElementById(inputId);
-    const val = inputEl.value.trim();
-    if (!val) return alert("登録するテキストを入力してください");
-    
-    let val2 = "";
-    if (target === "staff") {
-      let parts = val.split(" ");
-      if (parts.length > 1) val2 = parts[0]; 
-    }
-
-    const btn = event.target;
-    btn.textContent = "送信中..."; btn.disabled = true;
-
-    fetch(GAS_API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 })
-    })
-    .then(res => res.json())
-    .then(data => {
-      btn.textContent = "＋マスタ登録"; btn.disabled = false;
-      if (data.status === "success") {
-        alert("マスタに登録しました！\n（次にアプリを開いた時から名簿に反映されます）");
-        inputEl.value = "";
-      } else {
-        alert("エラー: " + data.message);
-      }
-    })
-    .catch(err => {
-      btn.textContent = "＋マスタ登録"; btn.disabled = false;
-      alert("通信エラー: " + err.message);
-    });
-  }
-
-  function loadMasterData() {
-    const loader = document.getElementById("global-loader");
-    const msg = document.getElementById("loader-msg");
-    loader.style.display = "flex"; msg.innerHTML = "システム起動中...";
-    let oldScript = document.getElementById("gas-script"); if(oldScript) oldScript.remove();
-    let script = document.createElement('script'); script.id = "gas-script";
-    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function() { 
-      msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; 
-      reportErrorToAdmin("マスタ取得のJSONP通信エラーがブラウザレベルで発生しました。ネットワーク遮断の可能性があります。", "初期ロード(onerror)");
-    };
-    document.body.appendChild(script);
-  }
+  let currentAiImageBase64 = null; let currentAiMimeType = null;
 
   window.onload = () => {
     document.getElementById("d-date").valueAsDate = new Date();
@@ -419,13 +415,33 @@
     loadMasterData();
   };
 
+  function switchTab(id) {
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); 
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector(`.nav-tab[data-tab="${id}"]`).classList.add('active'); 
+    document.getElementById('tab-' + id).classList.add('active'); 
+    window.scrollTo(0,0);
+    
+    // タブに合わせてデフォルトカテゴリを設定
+    if(id === 'sec3') selectTlCat('panel-tx', '処置・投薬');
+    if(id === 'sec4') selectTlCat('panel-vital', 'バイタル');
+    if(id === 'sec8') generatePreview();
+  }
+
+  function loadMasterData() {
+    const loader = document.getElementById("global-loader");
+    const msg = document.getElementById("loader-msg");
+    loader.style.display = "flex"; msg.innerHTML = "システム起動中...";
+    let script = document.createElement('script'); 
+    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
+    script.onerror = function() { 
+      msg.innerHTML = "通信エラー発生<br><button onclick='loadMasterData()'>🔄 再試行する</button>"; 
+    };
+    document.body.appendChild(script);
+  }
+
   function jsonpCallback(res) {
     document.getElementById("global-loader").style.display = "none";
-    if (res && res.status === "error") { 
-      alert("マスタ取得エラー: " + res.message); 
-      reportErrorToAdmin(res.message, "初期ロード(JSONP戻り値エラー)");
-      return; 
-    }
     if (res && res.status === "success") {
       if(res.masters && res.masters.staffList) {
         masterStaff = res.masters.staffList.map(s => s.displayName);
@@ -448,191 +464,160 @@
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
   }
 
+  function selectSingleChip(el, boxId, onClass) { 
+    document.querySelectorAll(`#${boxId} .chip`).forEach(c => c.classList.remove(onClass)); 
+    el.classList.add(onClass); 
+  }
+
+  function fetchHistoryListAdvanced() {
+    const sMonth = document.getElementById("s-month").value; 
+    const sStaff = document.getElementById("s-staff").value.trim(); 
+    const sKw = document.getElementById("s-kw").value.trim();
+    const btn = document.getElementById("btn-search");
+    
+    btn.textContent = "検索中..."; btn.disabled = true;
+    
+    fetch(GAS_API_URL, { 
+      method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+      body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) 
+    })
+    .then(res => res.json()).then(data => {
+      btn.textContent = "検索を実行"; btn.disabled = false;
+      const resArea = document.getElementById("search-results-area");
+      if (data.status === "not_found") { 
+        resArea.style.display = "block"; resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; 
+      } else if (data.status === "success") {
+        resArea.style.display = "block";
+        resArea.innerHTML = data.results.map(item => {
+          const safeItem = JSON.stringify(item).replace(/'/g, "&#39;");
+          return `<div class="search-result-item" onclick='selectCase(${safeItem})'>
+                    <div style="font-weight:bold; color:var(--blue);">${(item.date||"").split('T')[0]} ｜ ${item.id}</div>
+                    <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
+                  </div>`;
+        }).join("");
+      } else alert("データベースエラー: " + data.message);
+    }).catch(err => { btn.textContent = "検索を実行"; btn.disabled = false; alert("通信エラー: " + err.message); });
+  }
+
+  function selectCase(item) {
+    currentCaseData = item;
+    document.getElementById("search-results-area").style.display = "none";
+    document.getElementById("mock-data-area").style.display = "block";
+    
+    let planInfo = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト(準備)】\n${item.protocol}`;
+    document.getElementById("v-fetched-data").innerText = planInfo;
+    
+    if(item.vitals) {
+      let vMatch = item.vitals.match(/HR:\s*(\d+).*SpO2:\s*(\d+).*RR:\s*(\d+).*BP:\s*(\d+)\/(\d+).*BT:\s*([0-9.]+)/);
+      if(vMatch) {
+        document.getElementById("v-hr").value = vMatch[1]; document.getElementById("v-spo2").value = vMatch[2]; document.getElementById("v-rr").value = vMatch[3];
+        document.getElementById("v-bps").value = vMatch[4]; document.getElementById("v-bpd").value = vMatch[5]; document.getElementById("v-bt").value = vMatch[6];
+      }
+      let jMatch = item.vitals.match(/意識レベル:\s*([^｜\n]+)/); if(jMatch) document.getElementById("v-jcs").value = jMatch[1].trim();
+    }
+    
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
+    .then(res => res.json()).then(data => {
+      if (data && data.debriefData) {
+        const d = data.debriefData;
+        ['actualDiff','gapBad','gapGood','gapMaster','team','action'].forEach(k => { if(d[k]) document.getElementById("v-"+k.replace(/([A-Z])/g, "-$1").toLowerCase()).value = d[k]; });
+        if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
+        if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
+      }
+    }).catch(err => { console.error(err); });
+  }
+
+  // --- タイムライン・データ関連 ---
+  function syncTime(val) {
+    document.getElementById("tl-time-3").value = val;
+    document.getElementById("tl-time-4").value = val;
+  }
+  
+  function setNow() {
+    const now = new Date(); const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0');
+    syncTime(`${h}:${m}`);
+  }
+
+  function selectTlCat(panelId, catName) {
+    currentCategory = catName;
+    const isSec3 = ['処置・投薬','家族・IC','記事'].includes(catName);
+    const gId = isSec3 ? 'tl-cat-group-3' : 'tl-cat-group-4';
+    
+    document.querySelectorAll(`#${gId} .group-btn`).forEach(b => b.classList.remove('active')); 
+    const btn = Array.from(document.querySelectorAll(`#${gId} .group-btn`)).find(b => b.textContent === catName);
+    if(btn) btn.classList.add('active');
+
+    const panels = isSec3 ? ['panel-tx','panel-txt'] : ['panel-vital','panel-gas','panel-blood','panel-exam'];
+    panels.forEach(p => document.getElementById(p).style.display = "none");
+    document.getElementById(panelId).style.display = "block";
+  }
+
+  // 処置マスタ関連
   function renderTxCategories() {
     let cats = [...new Set(masterTreatments.map(t => t.category))].filter(Boolean);
     document.getElementById("tx-kbn-chips").innerHTML = cats.map(c => `<div class="chip chip-tx" onclick="selectTxKbn('${c}', this)">${c}</div>`).join("");
   }
-
   function selectTxKbn(kbn, el) {
-    document.querySelectorAll('#tx-kbn-chips .chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    
+    document.querySelectorAll('#tx-kbn-chips .chip').forEach(c => c.classList.remove('active')); el.classList.add('active');
     let dais = [...new Set(masterTreatments.filter(t => t.category === kbn).map(t => t.large))].filter(Boolean);
     document.getElementById("tx-dai-container").style.display = "block";
     document.getElementById("tx-dai-chips").innerHTML = dais.map(d => `<div class="chip chip-tx-opt" onclick="selectTxDai('${d}', this)">${d}</div>`).join("");
-    
-    document.getElementById("tx-detail-container").style.display = "none";
-    document.getElementById("tx-final-text").value = "";
-    currentSelectedDai = "";
+    document.getElementById("tx-detail-container").style.display = "none"; document.getElementById("tx-final-text").value = ""; currentSelectedDai = "";
   }
-
   function selectTxDai(dai, el) {
-    document.querySelectorAll('#tx-dai-chips .chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
-    currentSelectedDai = dai;
-    
+    document.querySelectorAll('#tx-dai-chips .chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); currentSelectedDai = dai;
     let items = masterTreatments.filter(t => t.large === dai);
     let html = `<div style="font-size:11px; font-weight:bold; color:#2e7d32; margin-bottom:6px;">③ 詳細記録 (${dai})</div>`;
-    
     let grouped = {}; let noMedium = [];
-    items.forEach(item => {
-      if (item.medium) {
-        if (!grouped[item.medium]) grouped[item.medium] = [];
-        grouped[item.medium].push(item);
-      } else { noMedium.push(item); }
-    });
-    
-    if (noMedium.length > 0) {
-      html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;">`;
-      html += noMedium.map(opt => createOptionInput(opt, 'その他')).join("");
-      html += `</div>`;
-    }
-    
-    for (let m in grouped) {
-      html += `<div style="font-size:11px; font-weight:bold; color:var(--sub); margin-top:6px; margin-bottom:4px;">■ ${m}</div>`;
-      html += `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;">`;
-      html += grouped[m].map(opt => createOptionInput(opt, m)).join("");
-      html += `</div>`;
-    }
-    
-    document.getElementById("tx-detail-container").innerHTML = html;
-    document.getElementById("tx-detail-container").style.display = "block";
-    updateTxFinalText();
+    items.forEach(item => { if (item.medium) { if (!grouped[item.medium]) grouped[item.medium] = []; grouped[item.medium].push(item); } else { noMedium.push(item); } });
+    if (noMedium.length > 0) { html += `<div class="chip-grid">` + noMedium.map(opt => createOptionInput(opt, 'その他')).join("") + `</div>`; }
+    for (let m in grouped) { html += `<div style="font-size:11px; font-weight:bold; color:var(--sub); margin-top:6px; margin-bottom:4px;">■ ${m}</div><div class="chip-grid">` + grouped[m].map(opt => createOptionInput(opt, m)).join("") + `</div>`; }
+    document.getElementById("tx-detail-container").innerHTML = html; document.getElementById("tx-detail-container").style.display = "block"; updateTxFinalText();
   }
-
   function createOptionInput(opt, mediumGroup) {
-    let text = opt.name;
-    let isNumber = opt.style.includes("数値") || opt.style.includes("ml") || opt.style.includes("cm") || text.includes("「");
-    let isText = opt.style.includes("フリー");
-    let isRadio = opt.style.includes("プルダウン"); 
-    
-    if (isNumber) {
-      let placeholder = text.replace(/[「」\u3000 ]/g, '');
-      return `<input type="number" class="tx-num-input" data-group="${mediumGroup}" data-val="${text}" placeholder="${placeholder}" style="width:70px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
-    } else if (isText) {
-      return `<input type="text" class="tx-text-input" data-group="${mediumGroup}" data-val="${text}" placeholder="詳細入力" style="flex:1; min-width:120px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`;
-    } else {
-      let cls = isRadio ? 'chip-tx-radio' : 'chip-tx-opt';
-      return `<div class="chip ${cls}" data-group="${mediumGroup}" onclick="toggleTxChip(this, ${isRadio})">${text}</div>`;
-    }
+    let text = opt.name; let isNumber = opt.style.includes("数値") || opt.style.includes("ml") || opt.style.includes("cm") || text.includes("「"); let isText = opt.style.includes("フリー"); let isRadio = opt.style.includes("プルダウン"); 
+    if (isNumber) { let placeholder = text.replace(/[「」\u3000 ]/g, ''); return `<input type="number" class="tx-num-input" data-group="${mediumGroup}" data-val="${text}" placeholder="${placeholder}" style="width:70px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`; } 
+    else if (isText) { return `<input type="text" class="tx-text-input" data-group="${mediumGroup}" data-val="${text}" placeholder="詳細" style="flex:1; min-width:100px; padding:4px; font-size:12px; margin:0;" oninput="updateTxFinalText()">`; } 
+    else { let cls = isRadio ? 'chip-tx-radio' : 'chip-tx-opt'; return `<div class="chip ${cls}" data-group="${mediumGroup}" onclick="toggleTxChip(this, ${isRadio})">${text}</div>`; }
   }
-
   function toggleTxChip(el, isRadio) {
-    if (isRadio) { 
-      let group = el.getAttribute('data-group');
-      document.querySelectorAll(`#tx-detail-container .chip-tx-radio[data-group="${group}"]`).forEach(c => {
-        if(c !== el) c.classList.remove('active');
-      });
-    }
-    el.classList.toggle('active');
-    updateTxFinalText();
+    if (isRadio) { let group = el.getAttribute('data-group'); document.querySelectorAll(`#tx-detail-container .chip-tx-radio[data-group="${group}"]`).forEach(c => { if(c !== el) c.classList.remove('active'); }); }
+    el.classList.toggle('active'); updateTxFinalText();
   }
-
   function updateTxFinalText() {
-    if (!currentSelectedDai) return;
-    let groups = {};
-    
-    document.querySelectorAll('#tx-detail-container .chip-tx-opt.active, #tx-detail-container .chip-tx-radio.active').forEach(chip => {
-      let g = chip.getAttribute('data-group');
-      if (!groups[g]) groups[g] = []; groups[g].push(chip.textContent);
-    });
-    
-    document.querySelectorAll('#tx-detail-container .tx-num-input').forEach(input => {
-      if (input.value) {
-        let g = input.getAttribute('data-group');
-        if (!groups[g]) groups[g] = [];
-        let valTemplate = input.getAttribute('data-val'); 
-        let filled = valTemplate.replace(/「.*」/, input.value);
-        if(!filled.includes(input.value)) filled = input.value + valTemplate.replace(/[「」\u3000 ]/g, '');
-        groups[g].push(filled);
-      }
-    });
-
-    document.querySelectorAll('#tx-detail-container .tx-text-input').forEach(input => {
-      if (input.value) {
-        let g = input.getAttribute('data-group');
-        if (!groups[g]) groups[g] = []; groups[g].push(input.value);
-      }
-    });
-    
-    let parts = [];
-    for (let g in groups) {
-      if (g === 'undefined' || g === 'null' || g === 'その他' || g === '') {
-        parts.push(groups[g].join(', '));
-      } else {
-        parts.push(`${g}: ${groups[g].join(', ')}`);
-      }
-    }
-    
-    let finalText = currentSelectedDai;
-    if (parts.length > 0) finalText += ` [${parts.join(' / ')}]`;
-    document.getElementById("tx-final-text").value = finalText;
+    if (!currentSelectedDai) return; let groups = {};
+    document.querySelectorAll('#tx-detail-container .chip-tx-opt.active, #tx-detail-container .chip-tx-radio.active').forEach(chip => { let g = chip.getAttribute('data-group'); if (!groups[g]) groups[g] = []; groups[g].push(chip.textContent); });
+    document.querySelectorAll('#tx-detail-container .tx-num-input').forEach(input => { if (input.value) { let g = input.getAttribute('data-group'); if (!groups[g]) groups[g] = []; let valTemplate = input.getAttribute('data-val'); let filled = valTemplate.replace(/「.*」/, input.value); if(!filled.includes(input.value)) filled = input.value + valTemplate.replace(/[「」\u3000 ]/g, ''); groups[g].push(filled); } });
+    document.querySelectorAll('#tx-detail-container .tx-text-input').forEach(input => { if (input.value) { let g = input.getAttribute('data-group'); if (!groups[g]) groups[g] = []; groups[g].push(input.value); } });
+    let parts = []; for (let g in groups) { if (g === 'undefined' || g === 'null' || g === 'その他' || g === '') { parts.push(groups[g].join(', ')); } else { parts.push(`${g}: ${groups[g].join(', ')}`); } }
+    let finalText = currentSelectedDai; if (parts.length > 0) finalText += ` [${parts.join(' / ')}]`; document.getElementById("tx-final-text").value = finalText;
   }
 
   function addFreeExamRow() {
     let name = document.getElementById("ex-name").value.trim(); let res = document.getElementById("ex-res").value.trim(); let unit = document.getElementById("ex-unit").value.trim();
     if(!name || !res) return alert("検査名と結果を入力してください");
     temporaryExams.push({ name: name, res: res, unit: unit });
-    document.getElementById("ex-name").value = ""; document.getElementById("ex-res").value = ""; document.getElementById("ex-unit").value = "";
-    renderFreeExamChips();
+    document.getElementById("ex-name").value = ""; document.getElementById("ex-res").value = ""; document.getElementById("ex-unit").value = ""; renderFreeExamChips();
   }
-  function renderFreeExamChips() {
-    document.getElementById("ex-temporary-list").innerHTML = temporaryExams.map((x, i) => `<div class="chip on-dark" onclick="temporaryExams.splice(${i},1); renderFreeExamChips();">📎 ${x.name}: ${x.res}${x.unit} ✕</div>`).join("");
-  }
-
-  function selectTlCat(btn, panelId, catName) {
-    document.querySelectorAll('#tl-cat-group .group-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentCategory = catName;
-    document.querySelectorAll('.tl-panel').forEach(p => p.style.display = "none");
-    document.getElementById(panelId).style.display = "block";
-    document.getElementById("ai-main-btn").style.display = (panelId==='panel-txt') ? "none" : "inline-flex";
-  }
-
-  function syncTime(source) {
-    const picker = document.getElementById("tl-input-time-picker"); const text = document.getElementById("tl-input-time-text");
-    if (source === 'picker' && picker.value) text.value = picker.value; else if (source === 'text') { if (text.value.length === 5 && text.value.includes(':')) picker.value = text.value; else picker.value = ""; }
-  }
-  function formatTime(input) {
-    let val = input.value.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/[^0-9]/g, '');
-    if (val.length >= 4) { let h = val.substring(0, 2); let m = val.substring(2, 4); if(parseInt(h) > 23) h = "23"; if(parseInt(m) > 59) m = "59"; input.value = `${h}:${m}`; syncTime('text'); } else { input.value = val; }
-  }
-  function setNow() {
-    const now = new Date(); const h = String(now.getHours()).padStart(2, '0'); const m = String(now.getMinutes()).padStart(2, '0');
-    document.getElementById("tl-input-time-picker").value = `${h}:${m}`; document.getElementById("tl-input-time-text").value = `${h}:${m}`; syncTime('text');
-  }
-
-  function calcDuration() {
-    let st = document.getElementById("d-time").value; let ed = document.getElementById("d-end-time").value;
-    if(st && ed) {
-      let stD = new Date("1970/01/01 " + st); let edD = new Date("1970/01/01 " + ed);
-      let diffM = (edD - stD) / 60000;
-      if(diffM < 0) diffM += 24 * 60;
-      document.getElementById("d-duration").value = diffM;
-    }
-  }
+  function renderFreeExamChips() { document.getElementById("ex-temporary-list").innerHTML = temporaryExams.map((x, i) => `<div class="chip on-dark" onclick="temporaryExams.splice(${i},1); renderFreeExamChips();">📎 ${x.name}: ${x.res}${x.unit} ✕</div>`).join(""); }
 
   function addTimeline() {
-    const timeInput = document.getElementById("tl-input-time-text"); let time = timeInput.value;
-    if(time.length !== 5 || !time.includes(':')) return alert("時間は 08:49 の形式で入力してください。");
+    let time = document.getElementById("tl-time-3").value || document.getElementById("tl-time-4").value;
+    if(!time || time.length !== 5 || !time.includes(':')) return alert("時刻を入力してください");
     let contentText = ""; let rawValues = {};
 
     if (currentCategory === '処置・投薬') {
       let txt = document.getElementById("tx-final-text").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; rawValues = { "tx-final-text": txt };
-      document.getElementById("tx-final-text").value = "";
-      document.querySelectorAll('#tx-detail-container .chip').forEach(c => c.classList.remove('active'));
-      document.querySelectorAll('#tx-detail-container input').forEach(i => i.value = "");
+      document.getElementById("tx-final-text").value = ""; document.querySelectorAll('#tx-detail-container .chip').forEach(c => c.classList.remove('active')); document.querySelectorAll('#tx-detail-container input').forEach(i => i.value = "");
     } else if (currentCategory === '記事' || currentCategory === '家族・IC') {
       let txt = document.getElementById("tl-text-basic").value; if(!txt) return alert("内容を入力してください");
       contentText = txt; rawValues = { "tl-text-basic": txt };
       document.getElementById("tl-text-basic").value = "";
     } else if (currentCategory === '画像・検査') {
-      if(temporaryExams.length === 0) {
-        return alert("検査が追加されていません");
-      } else {
-        contentText = temporaryExams.map(x => `【${x.name}】${x.res}${x.unit}`).join(" | ");
-        rawValues = { "temporaryExams": JSON.parse(JSON.stringify(temporaryExams)) };
-        temporaryExams = []; renderFreeExamChips();
-      }
+      if(temporaryExams.length === 0) return alert("検査が追加されていません");
+      contentText = temporaryExams.map(x => `【${x.name}】${x.res}${x.unit}`).join(" | "); rawValues = { "temporaryExams": JSON.parse(JSON.stringify(temporaryExams)) };
+      temporaryExams = []; renderFreeExamChips();
     } else {
       let panelId = currentCategory === 'バイタル' ? 'panel-vital' : (currentCategory === '血液ガス' ? 'panel-gas' : 'panel-blood');
       let parts = [];
@@ -649,7 +634,8 @@
     if(editingRowId !== null) {
       let idx = timelineArray.findIndex(x => x.rowId === editingRowId);
       if(idx > -1) { timelineArray[idx].time = time; timelineArray[idx].cat = currentCategory; timelineArray[idx].contentText = contentText; timelineArray[idx].rawValues = rawValues; }
-      editingRowId = null; document.getElementById("btn-add-timeline").textContent = "＋ タイムラインに登録";
+      editingRowId = null; 
+      document.getElementById("btn-add-tl-3").textContent = "＋ タイムラインに登録"; document.getElementById("btn-add-tl-4").textContent = "＋ タイムラインに登録";
     } else {
       timelineArray.push({ rowId: Date.now(), time: time, cat: currentCategory, contentText: contentText, rawValues: rawValues });
     }
@@ -658,185 +644,151 @@
   }
 
   function renderTimeline() {
-    const list = document.getElementById("timeline-list"); list.innerHTML = "";
-    if (timelineArray.length === 0) { list.innerHTML = '<div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>'; return; }
-    timelineArray.sort((a,b) => a.time.localeCompare(b.time));
-    timelineArray.forEach(item => {
-      list.innerHTML += `
-        <div class="tl-row">
-          <div class="tl-time">${item.time}</div>
-          <div class="tl-cat">${item.cat}</div>
-          <div class="tl-content">${item.contentText}</div>
-          <div class="no-print" style="display:flex; gap:4px;">
-            <button class="btn-small" style="background:var(--bg); color:var(--blue);" onclick="editTimelineRow(${item.rowId})">✏️</button>
-            <button class="btn-small" style="background:#ffcdd2; color:#b71c1c;" onclick="deleteTimelineRow(${item.rowId})">✕</button>
-          </div>
-        </div>`;
-    });
+    let html = "";
+    if (timelineArray.length === 0) { html = '<div style="font-size:12px; color:var(--sub); text-align:center; padding: 20px;">まだ記録がありません</div>'; }
+    else {
+      timelineArray.sort((a,b) => a.time.localeCompare(b.time));
+      timelineArray.forEach(item => {
+        html += `
+          <div class="tl-row">
+            <div class="tl-time">${item.time}</div>
+            <div class="tl-cat">${item.cat}</div>
+            <div class="tl-content">${item.contentText}</div>
+            <div class="no-print" style="display:flex; gap:4px;">
+              <button class="btn small ghost" style="color:var(--blue); padding:4px 8px;" onclick="editTimelineRow(${item.rowId})">✏️</button>
+              <button class="btn small ghost" style="color:var(--brand); padding:4px 8px; border-color:#fca5a5; background:#fef2f2;" onclick="deleteTimelineRow(${item.rowId})">✕</button>
+            </div>
+          </div>`;
+      });
+    }
+    document.getElementById("timeline-list-3").innerHTML = html;
+    document.getElementById("timeline-list-4").innerHTML = html;
   }
 
   function editTimelineRow(rowId) {
     let item = timelineArray.find(x => x.rowId === rowId); if(!item) return;
     editingRowId = rowId;
-    document.getElementById("btn-add-timeline").textContent = "💾 タイムラインを変更（上書き）";
-    document.getElementById("tl-input-time-text").value = item.time;
-    document.getElementById("tl-input-time-picker").value = item.time;
+    document.getElementById("btn-add-tl-3").textContent = "💾 変更を上書き"; document.getElementById("btn-add-tl-4").textContent = "💾 変更を上書き";
+    syncTime(item.time);
     
-    let targetTab = Array.from(document.querySelectorAll('.group-btn')).find(b => b.textContent === item.cat || (item.cat==='血液ガス'&&b.textContent==='血液ガス'));
-    if(targetTab) targetTab.click();
-    
-    if (item.cat === '処置・投薬') {
-      document.getElementById("tx-final-text").value = item.rawValues["tx-final-text"] || "";
-      document.getElementById("tx-final-text").classList.add('input-highlight');
+    // タブの移動
+    if(['処置・投薬','記事','家族・IC'].includes(item.cat)) {
+      switchTab('sec3'); selectTlCat(item.cat === '処置・投薬' ? 'panel-tx' : 'panel-txt', item.cat);
     } else {
-      if(item.rawValues && item.rawValues.temporaryExams) {
-        temporaryExams = JSON.parse(JSON.stringify(item.rawValues.temporaryExams)); renderFreeExamChips();
-      } else if(item.rawValues) {
-        for(let key in item.rawValues) {
-          let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); }
-        }
-      }
+      switchTab('sec4');
+      if(item.cat === 'バイタル') selectTlCat('panel-vital', item.cat);
+      if(item.cat === '血液ガス') selectTlCat('panel-gas', item.cat);
+      if(item.cat === '採血') selectTlCat('panel-blood', item.cat);
+      if(item.cat === '画像・検査') selectTlCat('panel-exam', item.cat);
+    }
+    
+    if (item.cat === '処置・投薬') { document.getElementById("tx-final-text").value = item.rawValues["tx-final-text"] || ""; document.getElementById("tx-final-text").classList.add('input-highlight'); } 
+    else {
+      if(item.rawValues && item.rawValues.temporaryExams) { temporaryExams = JSON.parse(JSON.stringify(item.rawValues.temporaryExams)); renderFreeExamChips(); } 
+      else if(item.rawValues) { for(let key in item.rawValues) { let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); } } }
     }
   }
 
-  function deleteTimelineRow(rowId) {
-    if(!confirm("削除しますか？")) return;
-    timelineArray = timelineArray.filter(x => x.rowId !== rowId); renderTimeline();
-  }
+  function deleteTimelineRow(rowId) { if(!confirm("削除しますか？")) return; timelineArray = timelineArray.filter(x => x.rowId !== rowId); renderTimeline(); }
 
-  function addBulkText() {
-    let txt = document.getElementById("bulk-text-input").value.trim(); if(!txt) return alert("文章がありません。");
-    let time = document.getElementById("tl-input-time-text").value;
-    if(time.length !== 5) return alert("有効な時間（例：14:22）を指定してください。");
-    timelineArray.push({ rowId: Date.now(), time: time, cat: "記事", contentText: txt, rawValues: { "tl-text-basic": txt } });
-    renderTimeline(); document.getElementById("bulk-text-input").value = "";
-  }
-
-  function analyzeBulkKarte() {
+  function analyzeBulkKarte(btnEl) {
     const textData = document.getElementById("bulk-text-input").value.trim();
     if (!textData) return alert("経過文章を貼り付けてください。");
-    const btn = event.target; btn.textContent = "🤖 解析中..."; btn.disabled = true;
+    const originalText = btnEl.textContent; btnEl.textContent = "🤖 解析中..."; btnEl.disabled = true;
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: textData }) })
     .then(res => res.json()).then(data => {
-      btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false;
-      if (data.status === "error") {
-        alert("AI解析エラー: " + data.message);
-        reportErrorToAdmin(data.message, "AI一括仕分け");
-        return;
-      }
+      btnEl.textContent = originalText; btnEl.disabled = false;
+      if (data.status === "error") return alert("AI解析エラー: " + data.message);
       let resData = data.data;
       if (Array.isArray(resData)) {
         resData.forEach(item => { if(item.time && item.contentText) timelineArray.push({ rowId: Date.now()+Math.random(), time: item.time, cat: item.cat || "記事", contentText: item.contentText, rawValues: { "tl-text-basic": item.contentText } }); });
         renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("自動追加しました！");
       }
-    }).catch(err => { 
-      alert("通信エラー: " + err.message); btn.textContent = "🪄 AIでタイムラインに自動仕分け"; btn.disabled = false; 
-      reportErrorToAdmin(err.message, "AI一括仕分け通信時");
-    });
+    }).catch(err => { alert("通信エラー: " + err.message); btnEl.textContent = originalText; btnEl.disabled = false; });
   }
 
-  function fetchHistoryListAdvanced() {
-    const sMonth = document.getElementById("s-month").value; 
-    const sStaff = document.getElementById("s-staff").value.trim(); 
-    const sKw = document.getElementById("s-kw").value.trim();
-    const btn = document.getElementById("btn-search");
+  // --- AI写真解析 ---
+  function handleAiFileChange(event) {
+    const file = event.target.files[0]; if (!file) return;
+    document.getElementById("ai-file-name").innerText = "📎 " + file.name;
+    const reader = new FileReader(); reader.onload = function(e) { currentAiImageBase64 = e.target.result; currentAiMimeType = file.type; runImageAi(); }; reader.readAsDataURL(file);
+  }
+  function runImageAi() {
+    if (!currentAiImageBase64) return;
+    let target = 'vital'; if(currentCategory === '血液ガス') target = 'blood'; if(currentCategory === '採血') target = 'blood'; if(currentCategory === '画像・検査') target = 'exam';
+    const btn = document.querySelector('button[onclick="document.getElementById(\'ai-file-input\').click()"]'); 
+    const originalText = btn.textContent; btn.textContent = "🤖 解析中... (約10〜15秒)"; btn.disabled = true;
     
-    btn.textContent = "検索中..."; 
-    btn.disabled = true;
-    
-    fetch(GAS_API_URL, { 
-      method: "POST", 
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-      body: JSON.stringify({ action: "fetch_history", month: sMonth, staff: sStaff, keyword: sKw }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-      btn.textContent = "検索"; 
-      btn.disabled = false;
-      
-      const resArea = document.getElementById("search-results-area");
-      
-      if (data.status === "not_found") { 
-        resArea.style.display = "block"; 
-        resArea.innerHTML = "<div style='color:var(--brand); font-weight:bold;'>該当なし</div>"; 
-      } 
-      else if (data.status === "success") {
-        resArea.style.display = "block";
-        resArea.innerHTML = data.results.map(item => {
-          const safeItem = JSON.stringify(item).replace(/'/g, "&#39;");
-          return `<div class="search-result-item" onclick='selectCase(${safeItem})'>
-                    <div style="font-weight:bold; color:var(--blue);">${(item.date||"").split('T')[0]} ｜ ${item.id}</div>
-                    <div style="font-size:11px; color:var(--sub); margin-top:2px;">${item.age} / ${(item.summary||"").substring(0,30)}...</div>
-                  </div>`;
-        }).join("");
-      } 
-      else {
-        alert("データベースエラー: " + (data.message || "原因不明"));
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: target, imageText: "", imageBase64: currentAiImageBase64, mimeType: currentAiMimeType }) })
+    .then(res => res.json()).then(data => {
+      btn.textContent = originalText; btn.disabled = false;
+      if (data.status === "error") return alert("AI解析エラー: " + data.message);
+      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
+      for(let key in resData) {
+        let el = document.getElementById(key.replace('v_','v-').replace('g_','g-').replace('b_','b-'));
+        if(el) { el.value = resData[key]; el.classList.add('input-highlight'); }
       }
-    })
-    .catch(err => {
-      btn.textContent = "検索"; 
-      btn.disabled = false;
-      alert("通信エラーが発生しました: " + err.message);
-    });
+      alert("フォームに数値を入力しました。必ず確認して「タイムラインに登録」を押してください。");
+      document.getElementById("ai-file-name").innerText = ""; currentAiImageBase64 = null;
+    }).catch(err => { alert("通信エラー: " + err.message); btn.textContent = originalText; btn.disabled = false; document.getElementById("ai-file-name").innerText = ""; currentAiImageBase64 = null; });
   }
 
-  function selectCase(item) {
-    currentCaseData = item;
-    document.getElementById("search-results-area").style.display = "none";
-    document.getElementById("mock-data-area").style.display = "block";
-    document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト】\n${item.protocol}`;
-    
-    if(item.vitals) {
-      let vMatch = item.vitals.match(/HR:\s*(\d+).*SpO2:\s*(\d+).*RR:\s*(\d+).*BP:\s*(\d+)\/(\d+).*BT:\s*([0-9.]+)/);
-      if(vMatch) {
-        document.getElementById("v-hr").value = vMatch[1]; document.getElementById("v-spo2").value = vMatch[2]; document.getElementById("v-rr").value = vMatch[3];
-        document.getElementById("v-bps").value = vMatch[4]; document.getElementById("v-bpd").value = vMatch[5]; document.getElementById("v-bt").value = vMatch[6];
-      }
-      let jMatch = item.vitals.match(/意識レベル:\s*([^｜\n]+)/); if(jMatch) document.getElementById("v-jcs").value = jMatch[1].trim();
+  // --- 評価ブロック ---
+  function renderEvalBlocks() {
+    const container = document.getElementById("eval-container");
+    container.innerHTML = evalBlocks.map((ev, index) => `
+      <div class="card" style="margin-bottom:12px; border-left:4px solid var(--brand);">
+        <div style="font-weight:bold; color:var(--brand); margin-bottom:8px;">🩺 評価 #${index+1}</div>
+        <div style="display:flex; gap:8px; margin-bottom:12px;">
+          <input type="text" placeholder="評価のタイミング (例:搬入時)" list="eval-titles" value="${ev.title}" onchange="updateEval(${ev.id}, 'title', this.value)" style="flex:2; margin:0;">
+          <input type="time" value="${ev.time}" onchange="updateEval(${ev.id}, 'time', this.value)" style="flex:1; margin:0;">
+        </div>
+        <div class="grid-2col">
+          <div><div style="font-size:11px; font-weight:bold;">A (気道)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'a', this.value)">${ev.a}</textarea></div>
+          <div><div style="font-size:11px; font-weight:bold;">B (呼吸)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'b', this.value)">${ev.b}</textarea></div>
+          <div><div style="font-size:11px; font-weight:bold;">C (循環)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'c', this.value)">${ev.c}</textarea></div>
+          <div><div style="font-size:11px; font-weight:bold;">D (中枢)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'd', this.value)">${ev.d}</textarea></div>
+          <div><div style="font-size:11px; font-weight:bold;">E (環境)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'e', this.value)">${ev.e}</textarea></div>
+          <div><div style="font-size:11px; font-weight:bold;">F (家族)</div><textarea rows="1" onchange="updateEval(${ev.id}, 'f', this.value)">${ev.f}</textarea></div>
+        </div>
+      </div>`).join("");
+  }
+  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); }
+  function updateEval(id, key, val) { const ev = evalBlocks.find(e => e.id === id); if(ev) ev[key] = val; }
+
+  function calcDuration() {
+    let st = document.getElementById("d-time").value; let ed = document.getElementById("d-end-time").value;
+    if(st && ed) {
+      let stD = new Date("1970/01/01 " + st); let edD = new Date("1970/01/01 " + ed);
+      let diffM = (edD - stD) / 60000; if(diffM < 0) diffM += 24 * 60;
+      document.getElementById("d-duration").value = diffM;
     }
-    
-    fetch(GAS_API_URL, { 
-      method: "POST", 
-      headers: { "Content-Type": "text/plain;charset=utf-8" }, 
-      body: JSON.stringify({ action: "fetch_debrief", id: item.id }) 
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data && data.debriefData) {
-        const d = data.debriefData;
-        document.getElementById("v-actual-diff").value = d.actualDiff || "";
-        ['gapBad','gapGood','gapMaster','team','action'].forEach(k => { if(d[k]) document.getElementById("v-"+k.replace(/([A-Z])/g, "-$1").toLowerCase()).value = d[k]; });
-        if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
-        if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
-      }
-    })
-    .catch(err => {
-      console.error("Debrief fetch error:", err);
-      alert("事案の詳細データ取得に失敗しました。");
-    });
   }
 
   function generatePreview() {
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark') ? document.querySelector('#box-staff-recorder .chip.on-dark').textContent : "未指定";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
     let debriefs = []; document.querySelectorAll('#box-staff-debrief .chip.on').forEach(c=>debriefs.push(c.textContent));
+    
     let combined = [];
-    timelineArray.forEach(t => combined.push({ time: t.time, html: `<tr><td style="width:10%; text-align:center; font-weight:bold;">${t.time}</td><td style="width:15%; text-align:center; color:var(--blue); font-weight:bold;">${t.cat}</td><td style="width:75%;">${t.contentText}</td></tr>` }));
+    timelineArray.forEach(t => combined.push({ time: t.time, html: `<tr><td style="width:12%; text-align:center; font-weight:bold;">${t.time}</td><td style="width:18%; text-align:center; color:var(--blue); font-weight:bold;">${t.cat}</td><td>${t.contentText}</td></tr>` }));
     evalBlocks.forEach((ev) => {
       if(ev.a||ev.b||ev.c||ev.d||ev.e||ev.f) {
         let txt = `<b>[${ev.title||'評価'}]</b> ` + ['a','b','c','d','e','f'].map(k => ev[k] ? `${k.toUpperCase()}:${ev[k]}` : '').filter(Boolean).join(' | ');
-        combined.push({ time: ev.time || "99:99", html: `<tr style="background:#e8f5e9;"><td style="width:10%; text-align:center; font-weight:bold;">${ev.time||'--:--'}</td><td style="width:15%; text-align:center; color:var(--brand); font-weight:bold;">症例評価</td><td style="width:75%; font-size:11px;">${txt}</td></tr>` });
+        combined.push({ time: ev.time || "99:99", html: `<tr style="background:#e8f5e9;"><td style="width:12%; text-align:center; font-weight:bold;">${ev.time||'--:--'}</td><td style="width:18%; text-align:center; color:var(--brand); font-weight:bold;">症例評価</td><td style="font-size:11px;">${txt}</td></tr>` });
       }
     });
     combined.sort((a,b) => a.time.localeCompare(b.time));
+    
     let planHTML = currentCaseData.id ? `
-      <div style="background:#f2f2f7; padding:10px; border-radius:6px; border:1px solid var(--line); margin-bottom:12px; font-size:11px;">
-        <div style="font-weight:bold; color:var(--blue); margin-bottom:4px;">📋 事前情報（作戦盤 Plan 引き継ぎデータ）</div>
-        <b>年齢/性別/体重:</b> ${currentCaseData.age} / ${currentCaseData.sex||'不明'} / ${currentCaseData.weight}kg ｜ <b>指示プロトコル:</b> ${currentCaseData.protocol||'なし'}<br>
+      <div style="background:#f9fafb; padding:12px; border-radius:8px; border:1px solid var(--line); margin-bottom:16px; font-size:11px; line-height:1.5;">
+        <div style="font-weight:bold; color:var(--blue); margin-bottom:4px;">📋 作戦盤 (Plan) 情報</div>
+        <b>年齢/性別/体重:</b> ${currentCaseData.age} / ${currentCaseData.sex||'不明'} / ${currentCaseData.weight}kg ｜ <b>プロトコル:</b> ${currentCaseData.protocol||'なし'}<br>
         <b>初期PAT/バイタル:</b> ${currentCaseData.pat||''} ｜ ${currentCaseData.vitals||''}<br>
         <b>役割分担:</b> L:${currentCaseData.roles?.leader||''} ｜ A:${currentCaseData.roles?.airway||''} ｜ C:${currentCaseData.roles?.cpr||''} ｜ D:${currentCaseData.roles?.route||''} ｜ R:${currentCaseData.roles?.record||''}
       </div>` : '';
+
+    let checks = []; document.querySelectorAll('.team-check:checked').forEach(cb => checks.push(cb.value));
 
     document.getElementById("print-area").innerHTML = `
       <div class="print-report">
@@ -848,29 +800,39 @@
           <tr><th>記録者</th><td colspan="3">${recorder}</td></tr>
         </table>
         ${planHTML}
-        <h3>■ 【Plan】 実際の対応と相違点</h3>
-        <div style="background:#fffde6; padding:8px; border-left:4px solid #d48806; font-size:11px; margin-bottom:8px;"><b>実対応スタッフ:</b> ${actuals.join(', ')}<br><b>想定との相違点:</b><br>${document.getElementById("v-actual-diff").value}</div>
-        <h3>■ 【Do & Check】 タイムライン実績</h3>
-        <table class="p-table" style="width:100%;"><tbody>${combined.map(c=>c.html).join("")}</tbody></table>
-        <h3>■ 【Action】 ギャップ評価・次回へのプラン</h3>
+        
+        <h3>■ 【Plan】 事前準備のギャップと実際の対応</h3>
         <table class="p-table">
+          <tr><th>実際の対応スタッフ</th><td>${actuals.join(', ')}</td></tr>
+          <tr><th>想定との相違点</th><td>${document.getElementById("v-actual-diff").value.replace(/\n/g, '<br>')}</td></tr>
           <tr><th>準備の不足・課題</th><td>${document.getElementById("v-gap-bad").value.replace(/\n/g, '<br>')}</td></tr>
           <tr><th>準備の良かった点</th><td>${document.getElementById("v-gap-good").value.replace(/\n/g, '<br>')}</td></tr>
-          <tr><th>チーム連携・資機材課題</th><td>${document.getElementById("v-team").value.replace(/\n/g, '<br>')}</td></tr>
-          <tr><th>マスタ・セット改修提案</th><td>${document.getElementById("v-gap-master").value.replace(/\n/g, '<br>')}</td></tr>
+        </table>
+
+        <h3>■ 【Do & Check】 タイムラインとデータ</h3>
+        <table class="p-table" style="width:100%;"><tbody>${combined.length ? combined.map(c=>c.html).join("") : '<tr><td colspan="3" style="text-align:center;">記録なし</td></tr>'}</tbody></table>
+        
+        <h3>■ 【Action】 チーム評価と次回へのプラン</h3>
+        <table class="p-table">
+          <tr><th>ノンテクニカルスキル</th><td>${checks.length ? checks.join(' / ') : 'チェックなし'}</td></tr>
+          <tr><th>チーム連携の詳細</th><td>${document.getElementById("v-team").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>マスタ・セット改修</th><td>${document.getElementById("v-gap-master").value.replace(/\n/g, '<br>')}</td></tr>
           <tr><th>次回アクションプラン</th><td style="font-weight:bold; color:var(--brand);">${document.getElementById("v-action").value.replace(/\n/g, '<br>')}</td></tr>
         </table>
       </div>`;
   }
 
   function submitDebrief(statusFlag) {
-    if(!currentCaseData.id) return alert("事案を検索・紐づけしてください。");
+    if(!currentCaseData.id) return alert("事案を検索して選択してください。");
     const btnTemp = document.getElementById("btn-save-temp"); const btnComp = document.getElementById("btn-submit");
     btnTemp.disabled = true; btnComp.disabled = true;
 
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark') ? document.querySelector('#box-staff-recorder .chip.on-dark').textContent : "";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
     let debriefs = []; document.querySelectorAll('#box-staff-debrief .chip.on').forEach(c=>debriefs.push(c.textContent));
+    let checks = []; document.querySelectorAll('.team-check:checked').forEach(cb => checks.push(cb.value));
+
+    let teamStr = "【スキル】" + (checks.length ? checks.join(" / ") : "なし") + "\n\n【詳細】\n" + document.getElementById("v-team").value;
 
     let f_hr="", f_spo2="", f_rr="", f_bps="", f_bpd="", f_bt="", f_jcs="", f_pews="";
     let f_ph="", f_pco2="", f_po2="", f_hco3="", f_be="", f_lac="";
@@ -897,7 +859,7 @@
       payload: {
         id: currentCaseData.id, date: currentCaseData.date, patientInfo: `年齢:${currentCaseData.age} / 体重:${currentCaseData.weight}kg`, debriefStaffs: debriefs.join(', ') + " " + document.getElementById("v-staff-other").value,
         summary: currentCaseData.summary || "", timeline: fullTimeline,
-        gapBad: document.getElementById("v-gap-bad").value, gapGood: document.getElementById("v-gap-good").value, gapMaster: document.getElementById("v-gap-master").value, team: document.getElementById("v-team").value, action: document.getElementById("v-action").value,
+        gapBad: document.getElementById("v-gap-bad").value, gapGood: document.getElementById("v-gap-good").value, gapMaster: document.getElementById("v-gap-master").value, team: teamStr, action: document.getElementById("v-action").value,
         recorder: recorder, actualStaffs: actuals.join(', '), actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dEndTime: document.getElementById("d-end-time").value, dDuration: document.getElementById("d-duration").value, dPlace: document.getElementById("d-place").value,
         evalA: evalBlocks[0]?.a||"", evalB: evalBlocks[0]?.b||"", evalC: evalBlocks[0]?.c||"", evalD: evalBlocks[0]?.d||"", evalE: evalBlocks[0]?.e||"", evalF: evalBlocks[0]?.f||"", status: statusFlag,
         first_hr: f_hr, first_spo2: f_spo2, first_rr: f_rr, first_bps: f_bps, first_bpd: f_bpd, first_bt: f_bt, first_jcs: f_jcs, first_pews: f_pews,
@@ -908,82 +870,8 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
     .then(res => res.json()).then(data => {
       if(data.status === "success") { alert("正常に保存されました！"); location.reload(); }
-      else {
-        alert("保存エラー: " + data.message);
-        reportErrorToAdmin(data.message, "デブリーフィング保存レスポンスエラー");
-        btnTemp.disabled=false; btnComp.disabled=false;
-      }
-    }).catch(err => { 
-      alert("保存失敗: " + err.message); 
-      reportErrorToAdmin(err.message, "デブリーフィング保存通信時");
-      btnTemp.disabled=false; btnComp.disabled=false; 
-    });
-  }
-
-  function openAiModalByTab() {
-    let target = currentCategory === 'バイタル' ? 'vital' : (currentCategory === '血液ガス' ? 'blood' : 'exam'); openAiModal(target);
-  }
-  function openAiModal(target) {
-    currentAiTarget = target;
-    const labels = { "timeline":"タイムライン自動抽出", "vital":"バイタルサイン抽出", "blood":"血液ガス・採血抽出", "exam":"検査・画像所見抽出" };
-    document.getElementById("ai-target-label").innerText = labels[target];
-    document.getElementById("ai-modal").classList.add("show");
-  }
-  function closeAiModal() { document.getElementById("ai-modal").classList.remove("show"); document.getElementById("ai-file-name").innerText = ""; currentAiImageBase64 = null; }
-  function handleAiFileChange(event) {
-    const file = event.target.files[0]; if (!file) return;
-    document.getElementById("ai-file-name").innerText = "📎 " + file.name;
-    const reader = new FileReader(); reader.onload = function(e) { currentAiImageBase64 = e.target.result; currentAiMimeType = file.type; }; reader.readAsDataURL(file);
-  }
-  function analyzeKarte() {
-    if (!currentAiImageBase64) return alert("画像を選択してください。");
-    const btn = document.getElementById("btn-ai-analyze"); btn.textContent = "🤖 解析中... (約10秒)"; btn.disabled = true;
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: currentAiTarget, imageText: "", imageBase64: currentAiImageBase64, mimeType: currentAiMimeType }) })
-    .then(res => res.json()).then(data => {
-      btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false;
-      if (data.status === "error") {
-        alert("AI解析エラー: " + data.message);
-        reportErrorToAdmin(data.message, "AI画像解析レスポンスエラー");
-        return;
-      }
-      let resData = data.data; if(!resData) return alert("抽出できませんでした。");
-      for(let key in resData) {
-        let el = document.getElementById(key.replace('v_','v-').replace('g_','g-').replace('b_','b-'));
-        if(el) { el.value = resData[key]; el.classList.add('input-highlight'); }
-      }
-      alert("数値を入力フォームに展開しました！間違っている箇所があれば手動で直してください。"); closeAiModal();
-    }).catch(err => { 
-      alert("通信エラー: " + err.message); btn.textContent = "🤖 AIで読み取りを実行"; btn.disabled = false; 
-      reportErrorToAdmin(err.message, "AI画像解析通信時");
-    });
-  }
-
-  function renderEvalBlocks() {
-    const container = document.getElementById("eval-container");
-    container.innerHTML = evalBlocks.map((ev, index) => `
-      <div class="eval-block">
-        <div class="eval-block-header"><div style="font-weight:bold; color:var(--brand);">🩺 評価 #${index+1}</div></div>
-        <div style="display:flex; gap:8px; margin-bottom:12px;">
-          <input type="text" placeholder="評価名" list="eval-titles" value="${ev.title}" onchange="updateEval(${ev.id}, 'title', this.value)" style="flex:2; margin:0;">
-          <input type="time" value="${ev.time}" onchange="updateEval(${ev.id}, 'time', this.value)" style="flex:1; margin:0; padding:6px;">
-        </div>
-        <div class="grid-2col">
-          <div>A<textarea rows="1" onchange="updateEval(${ev.id}, 'a', this.value)">${ev.a}</textarea></div>
-          <div>B<textarea rows="1" onchange="updateEval(${ev.id}, 'b', this.value)">${ev.b}</textarea></div>
-          <div>C<textarea rows="1" onchange="updateEval(${ev.id}, 'c', this.value)">${ev.c}</textarea></div>
-          <div>D<textarea rows="1" onchange="updateEval(${ev.id}, 'd', this.value)">${ev.d}</textarea></div>
-          <div>E<textarea rows="1" onchange="updateEval(${ev.id}, 'e', this.value)">${ev.e}</textarea></div>
-          <div>F<textarea rows="1" onchange="updateEval(${ev.id}, 'f', this.value)">${ev.f}</textarea></div>
-        </div>
-      </div>`).join("");
-  }
-  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "追加評価", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); }
-  function updateEval(id, key, val) { const ev = evalBlocks.find(e => e.id === id); if(ev) ev[key] = val; }
-  function selectSingleChip(el, boxId, onClass) { document.querySelectorAll(`#${boxId} .chip`).forEach(c => c.classList.remove(onClass)); el.classList.add(onClass); }
-  function switchTab(id) {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    event.target.classList.add('active'); document.getElementById('tab-' + id).classList.add('active'); window.scrollTo(0,0);
-    if (id === 'sec6') generatePreview();
+      else { alert("保存エラー: " + data.message); btnTemp.disabled=false; btnComp.disabled=false; }
+    }).catch(err => { alert("保存失敗: " + err.message); btnTemp.disabled=false; btnComp.disabled=false; });
   }
 </script>
 </body>
