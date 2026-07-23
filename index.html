@@ -50,6 +50,7 @@
     .normal-range-hint { font-size: 11px; color: var(--blue); font-weight: bold; margin-left: 8px; }
     
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     .time-row { display: flex; gap: 8px; align-items: center; }
     
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; transition: 0.2s; }
@@ -149,7 +150,7 @@
     <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff;">🏠 ポータル</button>
     <button class="hdr-btn" style="background:var(--line); color:var(--ink);" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児作戦盤<span class="version-tag">V5.3</span></div>
+  <div class="title-box">小児作戦盤<span class="version-tag">V5.4</span></div>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
@@ -200,9 +201,12 @@
         </div>
 
         <div id="panel-ems" class="hidden-panel" style="padding:0; background:transparent; border:none;">
-          <div class="section-label" style="margin-top:12px;">要請消防本部 / 救急隊 <button class="add-master-btn" onclick="addMaster('ems', 'v-ems-name', this)">＋マスタ登録</button></div>
-          <input type="text" id="v-ems-name" autocomplete="off" placeholder="手入力 または 下のリストから選択" oninput="syncToPrintLayout()">
-          <div class="chips" id="g-ems-region"></div>
+          <div class="section-label" style="margin-top:12px;">要請消防本部 / 救急隊 <button class="add-master-btn" onclick="addMasterEms(this)">＋マスタ登録</button></div>
+          <div class="grid2">
+            <input type="text" id="v-ems-region" autocomplete="off" placeholder="地域 (例: 鹿児島市)" oninput="syncToPrintLayout()">
+            <input type="text" id="v-ems-name" autocomplete="off" placeholder="隊名 (例: 中央救急)" oninput="syncToPrintLayout()">
+          </div>
+          <div class="chips" id="g-ems-region" style="margin-top:8px;"></div>
           <div class="chips" id="box-ems-chips"></div>
         </div>
 
@@ -242,11 +246,15 @@
           <button class="group-btn" data-val="令和" onclick="tBtn('g-era','令和'); calcPeds();">令和</button>
           <button class="group-btn" data-val="平成" onclick="tBtn('g-era','平成'); calcPeds();">平成</button>
         </div>
-        <div class="grid2">
+        <div class="grid3">
           <input type="text" class="num-input" inputmode="numeric" id="v-era-y" placeholder="年" oninput="forceHalf(this); calcPeds();" style="width:100%;">
           <input type="text" class="num-input" inputmode="numeric" id="v-era-m" placeholder="月" oninput="forceHalf(this); calcPeds();" style="width:100%;">
+          <input type="text" class="num-input" inputmode="numeric" id="v-era-d" placeholder="日" oninput="forceHalf(this); calcPeds();" style="width:100%;">
         </div>
-        <div style="text-align:center; color:var(--sub); font-size:11px; margin:8px 0;">または直接入力</div>
+        <div style="margin-top: 8px;">
+          <input type="date" id="v-dob-cal" onchange="syncCalToEra(this.value);" style="width:100%; padding:8px; font-size:13px;">
+        </div>
+        <div style="text-align:center; color:var(--sub); font-size:11px; margin:12px 0 8px 0; border-top:1px dashed var(--line); padding-top:8px;">または直接入力</div>
         <div class="grid2">
           <input type="text" class="num-input" inputmode="numeric" id="v-manual-age-y" placeholder="歳" oninput="forceHalf(this); calcPeds();" style="width:100%;">
           <input type="text" class="num-input" inputmode="numeric" id="v-manual-age-m" placeholder="ヶ月" oninput="forceHalf(this); calcPeds();" style="width:100%;">
@@ -408,7 +416,15 @@
         <div style="display:flex; gap:8px; margin-bottom:8px;">
           <div class="btn-group" id="g-ox-device" style="flex:1;"><button class="group-btn active" data-val="なし" onclick="tBtn('g-ox-device','なし'); toggleVent(false);">なし(RA)</button><button class="group-btn" data-val="経鼻" onclick="tBtn('g-ox-device','経鼻'); toggleVent(false);">経鼻</button><button class="group-btn" data-val="マスク" onclick="tBtn('g-ox-device','マスク'); toggleVent(false);">マスク</button><button class="group-btn" data-val="リザーバ" onclick="tBtn('g-ox-device','リザーバ'); toggleVent(false);">リザーバ</button><button class="group-btn" data-val="人工呼吸器" onclick="tBtn('g-ox-device','人工呼吸器'); toggleVent(true);">人工呼吸器</button></div>
         </div>
-        <div class="btn-group" id="g-ox-flow" style="margin:0;"><button class="group-btn active" data-val="-" onclick="tBtn('g-ox-flow','-')">流量...</button><button class="group-btn" data-val="1L/min" onclick="tBtn('g-ox-flow','1L/min')">1L/min</button><button class="group-btn" data-val="2L/min" onclick="tBtn('g-ox-flow','2L/min')">2L</button><button class="group-btn" data-val="4L/min" onclick="tBtn('g-ox-flow','4L/min')">4L</button><button class="group-btn" data-val="6L/min" onclick="tBtn('g-ox-flow','6L/min')">6L</button><button class="group-btn" data-val="10L/min" onclick="tBtn('g-ox-flow','10L/min')">10L</button><button class="group-btn" data-val="15L/min" onclick="tBtn('g-ox-flow','15L/min')">15L</button></div>
+        <div class="btn-group" id="g-ox-flow" style="margin:0;">
+          <button class="group-btn" data-val="1L/min" onclick="setO2Flow('1L/min', this)">1L</button>
+          <button class="group-btn" data-val="2L/min" onclick="setO2Flow('2L/min', this)">2L</button>
+          <button class="group-btn" data-val="4L/min" onclick="setO2Flow('4L/min', this)">4L</button>
+          <button class="group-btn" data-val="6L/min" onclick="setO2Flow('6L/min', this)">6L</button>
+          <button class="group-btn" data-val="10L/min" onclick="setO2Flow('10L/min', this)">10L</button>
+          <button class="group-btn" data-val="15L/min" onclick="setO2Flow('15L/min', this)">15L</button>
+        </div>
+        <input type="text" id="v-ox-flow-free" placeholder="流量フリー入力 (例: 3L)" oninput="document.querySelectorAll('#g-ox-flow .group-btn').forEach(b=>b.classList.remove('active')); syncToPrintLayout();" style="margin-top:8px; border:1px solid var(--line);">
         <div id="panel-vent" class="hidden-panel"><input type="text" id="v-ox-vent-memo" autocomplete="off" placeholder="呼吸器設定詳細 (SIMV, PEEP, 濃度等)" oninput="syncToPrintLayout()"></div>
       </div>
 
@@ -569,32 +585,20 @@
   }
 
   function formatTimeAdd(minutes) {
-    const d = new Date();
-    d.setMinutes(d.getMinutes() + minutes);
+    const d = new Date(); d.setMinutes(d.getMinutes() + minutes);
     return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
 
   function setETA(label, minAdd, maxAdd, btn) {
     if (btn.classList.contains('active-blue')) {
-      btn.classList.remove('active-blue');
-      appState.etaText = "";
-      document.getElementById('v-eta-display').textContent = "--";
-      document.getElementById('v-eta-time').value = "";
+      btn.classList.remove('active-blue'); appState.etaText = ""; document.getElementById('v-eta-display').textContent = "--"; document.getElementById('v-eta-time').value = "";
     } else {
-      document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue'));
-      btn.classList.add('active-blue');
-      
-      if (label === '不明') {
-        appState.etaText = "不明";
-      } else if (label === 'それ以上') {
-        appState.etaText = `${formatTimeAdd(minAdd)} 以降`;
-      } else if (minAdd === 0) {
-        appState.etaText = `${formatTimeAdd(maxAdd)} 頃`;
-      } else {
-        appState.etaText = `${formatTimeAdd(minAdd)} 〜 ${formatTimeAdd(maxAdd)} 頃`;
-      }
-      document.getElementById('v-eta-display').textContent = appState.etaText;
-      document.getElementById('v-eta-time').value = ""; 
+      document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue')); btn.classList.add('active-blue');
+      if (label === '不明') appState.etaText = "不明";
+      else if (label === 'それ以上') appState.etaText = `${formatTimeAdd(minAdd)} 以降`;
+      else if (minAdd === 0) appState.etaText = `${formatTimeAdd(maxAdd)} 頃`;
+      else appState.etaText = `${formatTimeAdd(minAdd)} 〜 ${formatTimeAdd(maxAdd)} 頃`;
+      document.getElementById('v-eta-display').textContent = appState.etaText; document.getElementById('v-eta-time').value = ""; 
     }
     syncToPrintLayout();
   }
@@ -606,124 +610,75 @@
     syncToPrintLayout();
   }
 
+  function setO2Flow(val, btn) {
+    document.querySelectorAll('#g-ox-flow .group-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    document.getElementById('v-ox-flow-free').value = val;
+    syncToPrintLayout();
+  }
+
   function toggleAmpInput(key, mode) {
-    appState.ampStatus[key] = mode;
-    const group = document.getElementById(`g-amp-${key}`);
-    group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    const panel = document.getElementById(`panel-amp-${key}`);
-    const isShow = (mode === 'あり' || mode === '摂取あり');
-    panel.style.display = isShow ? 'block' : 'none';
-    if(isShow && key === 'l') {
-        panel.style.display = 'flex';
-        panel.style.flexDirection = 'column';
-    }
+    appState.ampStatus[key] = mode; const group = document.getElementById(`g-amp-${key}`);
+    group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
+    const panel = document.getElementById(`panel-amp-${key}`); const isShow = (mode === 'あり' || mode === '摂取あり');
+    panel.style.display = isShow ? 'block' : 'none'; if(isShow && key === 'l') { panel.style.display = 'flex'; panel.style.flexDirection = 'column'; }
     syncToPrintLayout();
   }
 
-  function setAmpleAllNone() {
-    ['a','m','p'].forEach(k => { toggleAmpInputState(k, 'なし'); });
-    toggleAmpInputState('l', '絶食');
-  }
-
+  function setAmpleAllNone() { ['a','m','p'].forEach(k => { toggleAmpInputState(k, 'なし'); }); toggleAmpInputState('l', '絶食'); }
   function toggleAmpInputState(key, mode) {
-    appState.ampStatus[key] = mode;
-    const group = document.getElementById(`g-amp-${key}`);
-    if(group) {
-        group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-        const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode);
-        if(btn) btn.classList.add('active');
-    }
-    const panel = document.getElementById(`panel-amp-${key}`);
-    if(panel) panel.style.display = 'none';
-    syncToPrintLayout();
+    appState.ampStatus[key] = mode; const group = document.getElementById(`g-amp-${key}`);
+    if(group) { group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active')); const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); if(btn) btn.classList.add('active'); }
+    const panel = document.getElementById(`panel-amp-${key}`); if(panel) panel.style.display = 'none'; syncToPrintLayout();
   }
 
   function tBtn(gId, val) {
-    const g = document.getElementById(gId);
-    if(!g) return;
+    const g = document.getElementById(gId); if(!g) return;
     g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
-    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === val);
-    if(btn) btn.classList.add('active');
+    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === val); if(btn) btn.classList.add('active');
     syncToPrintLayout();
   }
 
-  function tChipSingle(gId, el) {
-    const g = document.getElementById(gId);
-    if(!g) return;
-    g.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-    el.classList.add('on');
-    syncToPrintLayout();
-  }
+  function tChipSingle(gId, el) { const g = document.getElementById(gId); if(!g) return; g.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); syncToPrintLayout(); }
+  function setTxMain(mode) { tBtn('g-tx-main', mode); document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none'; syncToPrintLayout(); }
+  function switchTab(tabId) { document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabId)); window.scrollTo(0,0); }
 
-  function setTxMain(mode) {
-    tBtn('g-tx-main', mode);
-    document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none';
-    syncToPrintLayout();
-  }
-
-  function switchTab(tabId) {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabId));
-    window.scrollTo(0,0);
-  }
-
-  function reportErrorToAdmin(errorInfo, sourceContext) {
-    try { fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "作戦盤: " + sourceContext }) }).catch(e => console.log(e)); } catch(e) {}
-  }
+  function reportErrorToAdmin(errorInfo, sourceContext) { try { fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "作戦盤: " + sourceContext }) }).catch(e=>e); } catch(e) {} }
 
   function addMaster(target, inputId, btnEl) {
     try {
-      const inputEl = document.getElementById(inputId);
-      const val = inputEl.value.trim();
+      const inputEl = document.getElementById(inputId); const val = inputEl.value.trim();
       if (!val) return alert("登録するテキストを入力してください");
-      
       let val2 = "";
-      if (target === "hospital") {
-        val2 = prompt("カテゴリ名を入力してください。\n(例: 小児科, 併設/内科, 夜間・救急, 総合病院, 姶良・伊佐, 北薩, 大隅)", "その他");
-        if (val2 === null) return;
-      } else if (target === "ems") {
-        val2 = prompt("地域名を入力してください。\n(例: 鹿児島市, 姶良市, 霧島市, その他地域)", "鹿児島市");
-        if (val2 === null) return;
-      } else if (target === "staff") {
-        let parts = val.split(" ");
-        if (parts.length > 1) val2 = parts[0]; 
-      }
-
+      if (target === "hospital") { val2 = prompt("カテゴリ名を入力してください。\n(例: 小児科, 併設/内科, 夜間・救急, 総合病院, 姶良・伊佐, 北薩, 大隅)", "その他"); if (val2 === null) return; } 
+      else if (target === "staff") { let parts = val.split(" "); if (parts.length > 1) val2 = parts[0]; }
       if(btnEl) { btnEl.textContent = "送信中..."; btnEl.disabled = true; }
+      fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 }) })
+      .then(res => res.json()).then(data => {
+        if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
+        if (data.status === "success") { alert("マスタに登録しました！\n（次にアプリを開いた時から反映されます）"); inputEl.value = ""; } else alert("エラー: " + data.message);
+      }).catch(err => { if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; } alert("通信エラー: " + err.message); });
+    } catch(err) { alert("処理エラーが発生しました: " + err.message); if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; } }
+  }
 
-      fetch(GAS_API_URL, {
-        method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "add_to_master", target: target, val1: val, val2: val2 })
-      })
-      .then(res => res.json())
-      .then(data => {
+  function addMasterEms(btnEl) {
+    try {
+      const region = document.getElementById('v-ems-region').value.trim(); const name = document.getElementById('v-ems-name').value.trim();
+      if(!region || !name) return alert("地域と隊名の両方を入力してください");
+      if(btnEl) { btnEl.textContent = "送信中..."; btnEl.disabled = true; }
+      fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "add_to_master", target: "ems", val1: name, val2: region }) })
+      .then(res => res.json()).then(data => {
         if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
-        if (data.status === "success") {
-          alert("マスタに登録しました！\n（次にアプリを開いた時から反映されます）");
-          inputEl.value = "";
-        } else alert("エラー: " + data.message);
-      })
-      .catch(err => {
-        if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
-        alert("通信エラー: " + err.message);
-      });
-    } catch(err) {
-      alert("処理エラーが発生しました: " + err.message);
-      if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; }
-    }
+        if (data.status === "success") { alert("マスタに登録しました！"); document.getElementById('v-ems-name').value = ""; } else alert("エラー: " + data.message);
+      }).catch(err => { if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; } alert("通信エラー: " + err.message); });
+    } catch(err) { alert("処理エラー: " + err.message); if(btnEl) { btnEl.textContent = "＋マスタ登録"; btnEl.disabled = false; } }
   }
 
   window.onload = function() {
     const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    let script = document.createElement('script'); 
-    script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
-    script.onerror = function() {
-      document.getElementById("loader-msg").innerHTML = "通信エラー<br><button onclick='location.reload()'>再試行</button>";
-    };
-    document.body.appendChild(script);
-    addFreeStaffRow(); 
+    let script = document.createElement('script'); script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
+    script.onerror = function() { document.getElementById("loader-msg").innerHTML = "通信エラー<br><button onclick='location.reload()'>再試行</button>"; };
+    document.body.appendChild(script); addFreeStaffRow(); 
   };
 
   function jsonpCallback(res) {
@@ -739,25 +694,15 @@
   }
 
   function updateCustomStatus() {
-    let activeScenarios = [];
-    document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => { activeScenarios.push(sChip.textContent); });
-    let expectedItems = new Set();
-    activeScenarios.forEach(sName => {
-      let sc = master.scenarios.find(s => s.name === sName);
-      if(sc) sc.items.forEach(i => expectedItems.add(i)); 
-    });
+    let activeScenarios = []; document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => { activeScenarios.push(sChip.textContent); });
+    let expectedItems = new Set(); activeScenarios.forEach(sName => { let sc = master.scenarios.find(s => s.name === sName); if(sc) sc.items.forEach(i => expectedItems.add(i)); });
     document.querySelectorAll('.chip-item').forEach(c => c.classList.remove('chip-manual'));
     let isCustomized = false;
     document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => {
-      let sName = sChip.textContent; let sc = master.scenarios.find(s => s.name === sName); if (!sc) return;
-      let isModified = false;
-      sc.items.forEach(itemName => { if (!appState.checkedItems[itemName]) isModified = true; });
-      sChip.classList.toggle('modified', isModified);
-      if(isModified) isCustomized = true;
+      let sName = sChip.textContent; let sc = master.scenarios.find(s => s.name === sName); if (!sc) return; let isModified = false;
+      sc.items.forEach(itemName => { if (!appState.checkedItems[itemName]) isModified = true; }); sChip.classList.toggle('modified', isModified); if(isModified) isCustomized = true;
     });
-    document.querySelectorAll('.chip-item.on').forEach(c => {
-      if (!expectedItems.has(c.dataset.name)) { c.classList.add('chip-manual'); isCustomized = true; }
-    });
+    document.querySelectorAll('.chip-item.on').forEach(c => { if (!expectedItems.has(c.dataset.name)) { c.classList.add('chip-manual'); isCustomized = true; } });
     appState.isCustomized = isCustomized;
   }
 
@@ -767,16 +712,8 @@
       tbody.innerHTML = master.staff.map((st) => {
         let uiLabel = `<span style="font-size:10px;color:var(--sub)">${st.roleType||''} ${st.dept||''}</span><br><b>${st.displayName}</b>`;
         let printLabel = `${st.dept||''}${st.lastName||''}` + (st.phone ? `(${st.phone})` : '');
-        return `
-        <tr>
-          <td class="name-cell">${uiLabel}</td>
-          <td><input type="checkbox" class="staff-check" data-role="leader" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="airway" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="cpr" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="route" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="record" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
-        </tr>
-      `}).join("");
+        return `<tr><td class="name-cell">${uiLabel}</td><td><input type="checkbox" class="staff-check" data-role="leader" data-print="${printLabel}" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check" data-role="airway" data-print="${printLabel}" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check" data-role="cpr" data-print="${printLabel}" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check" data-role="route" data-print="${printLabel}" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check" data-role="record" data-print="${printLabel}" onchange="syncToPrintLayout()"></td></tr>`
+      }).join("");
     }
 
     const kwBox = document.getElementById("box-keywords");
@@ -796,14 +733,7 @@
         let chip = document.createElement('div'); chip.className = "chip chip-scenario"; chip.textContent = s.name;
         chip.onclick = function() {
           let isOn = !chip.classList.contains('on'); chip.classList.toggle('on', isOn);
-          if(s.items && s.items.length > 0) {
-            s.items.forEach(itemName => {
-              appState.checkedItems[itemName] = isOn; 
-              Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => {
-                if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn);
-              });
-            });
-          }
+          if(s.items && s.items.length > 0) { s.items.forEach(itemName => { appState.checkedItems[itemName] = isOn; Array.from(document.querySelectorAll('.chip-item')).forEach(itemChip => { if(itemChip.dataset.name === itemName) itemChip.classList.toggle('on', isOn); }); }); }
           updateCustomStatus(); calcPeds();
         };
         if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
@@ -826,8 +756,7 @@
       let uniqEquip = [...new Set(master.equipment.map(e => e.name))].filter(Boolean);
       uniqEquip.forEach(name => {
         let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name; chip.textContent = name;
-        chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); };
-        eBox.appendChild(chip);
+        chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); }; eBox.appendChild(chip);
       });
     }
     calcPeds();
@@ -843,15 +772,14 @@
   function expandEms(reg, btn) {
     document.querySelectorAll("#g-ems-region .chip").forEach(b => b.classList.remove('active-blue')); btn.classList.add('active-blue');
     const eb = document.getElementById("box-ems-chips");
+    document.getElementById('v-ems-region').value = reg; 
     if(!reg || !EMS_DB[reg]) { eb.innerHTML = ''; return; }
     eb.innerHTML = EMS_DB[reg].map(e => `<div class="chip" onclick="document.getElementById('v-ems-name').value=this.textContent; syncToPrintLayout();">${e}</div>`).join("");
   }
 
   function tChipKw(chip) { 
     chip.classList.toggle('on'); const kw = chip.textContent; 
-    if(chip.classList.contains('on')){ if(!appState.keywords.includes(kw)) appState.keywords.push(kw); } 
-    else { appState.keywords = appState.keywords.filter(k=>k!==kw); } 
-    syncToPrintLayout();
+    if(chip.classList.contains('on')){ if(!appState.keywords.includes(kw)) appState.keywords.push(kw); } else { appState.keywords = appState.keywords.filter(k=>k!==kw); } syncToPrintLayout();
   }
 
   function addFreeStaffRow() {
@@ -876,7 +804,6 @@
     if(m==='不明'){ appState.gcs={e:'不明',v:'不明',m:'不明'}; document.getElementById('gcs-total').innerText="E-- V-- M-- = --点"; } triggerPEWS(); 
   }
   function sChip(el, gId, val) { document.querySelectorAll(`#cg-${gId} .chip`).forEach(c=>c.classList.remove('on')); el.classList.add('on'); document.getElementById("v-vit-jcs").value = val; triggerPEWS(); }
-  
   function quickSetGCS(val) { if(val===15) { setGCS('e','4'); setGCS('v','5'); setGCS('m','6'); } if(val===3) { setGCS('e','1'); setGCS('v','1'); setGCS('m','1'); } }
   function setGCS(type, val) {
     appState.gcs[type] = String(val); document.querySelectorAll(`#gcs-${type}-group .gcs-btn`).forEach(b => { b.classList.toggle('active', String(b.dataset.val) === String(val)); });
@@ -889,7 +816,7 @@
   function triggerPEWS() {
     try {
       const hr = parseInt(document.getElementById("v-vit-hr").value) || 0; const rr = parseInt(document.getElementById("v-vit-rr").value) || 0; const spo2 = parseInt(document.getElementById("v-vit-spo2").value) || 100; const sys = parseInt(document.getElementById("v-vit-bpsys").value) || 0; const jcs = document.getElementById("v-vit-jcs").value; const devEl = document.querySelector('#g-ox-device .active'); const dev = devEl ? devEl.dataset.val : "なし";
-      let pews = 0; const ageY = parseInt(document.getElementById("v-manual-age-y").value) || 0;
+      let pews = 0; const ageY = appState.ageY || 0;
       let elHr = document.getElementById("v-vit-hr"), elRr = document.getElementById("v-vit-rr"), elSp = document.getElementById("v-vit-spo2"), elBp = document.getElementById("v-vit-bpsys");
       elHr.className="num-input"; elRr.className="num-input"; elSp.className="num-input"; elBp.className="num-input";
 
@@ -909,14 +836,27 @@
     } catch(e) {}
   }
 
+  function syncCalToEra(val) {
+    if(!val) return;
+    const parts = val.split('-'); if(parts.length !== 3) return;
+    const y = parseInt(parts[0]), m = parseInt(parts[1]), d = parseInt(parts[2]);
+    document.getElementById("v-era-m").value = m; document.getElementById("v-era-d").value = d;
+    if (y >= 2019) { tBtn('g-era','令和'); document.getElementById("v-era-y").value = (y - 2018); } 
+    else if (y >= 1989) { tBtn('g-era','平成'); document.getElementById("v-era-y").value = (y - 1989 + 1); }
+    else { tBtn('g-era','西暦'); document.getElementById("v-era-y").value = y; }
+    calcPeds();
+  }
+
   function calcPeds() {
     try {
       const eraEl = document.querySelector('#g-era .active'); const era = eraEl ? eraEl.dataset.val : "西暦"; 
-      const eyStr = document.getElementById("v-era-y").value; const emStr = document.getElementById("v-era-m").value; const edStr = document.getElementById("v-era-d").value;
-      const ey = parseInt(eyStr) || 0; const em = parseInt(emStr) || 0; const ed = parseInt(edStr) || 0;
+      const ey = parseInt(document.getElementById("v-era-y").value) || 0; 
+      const em = parseInt(document.getElementById("v-era-m").value) || 0; 
+      const ed = parseInt(document.getElementById("v-era-d").value) || 0;
       
-      const manualAgeYStr = document.getElementById("v-manual-age-y").value; const manualAgeMStr = document.getElementById("v-manual-age-m").value;
-      const manualAgeY = parseInt(manualAgeYStr); const manualAgeM = parseInt(manualAgeMStr);
+      const manualAgeY = parseInt(document.getElementById("v-manual-age-y").value); 
+      const manualAgeM = parseInt(document.getElementById("v-manual-age-m").value);
+      
       let mTotal = -1, ageText = "--"; let wtMid = 0, htMid = 0, wtRange = "--", htRange = "--";
       let resolvedAgeY = 0;
       
@@ -946,9 +886,9 @@
       appState.calcHeight = appState.isBhManual ? inputBh : htMid;
       
       document.getElementById("lbl-age").textContent = ageText; 
-      document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` + (!appState.isBwManual? ` (${wtRange})`:'') : "--"; 
+      document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` + (appState.isBwManual? ' (実測)' : ` (${wtRange})`) : "--"; 
       document.getElementById("lbl-weight").style.color = appState.calcWeight > 0 ? "var(--brand)" : "var(--ink)";
-      document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` + (!appState.isBhManual? ` (${htRange})`:'') : "--";
+      document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` + (appState.isBhManual? ' (実測)' : ` (${htRange})`) : "--";
       triggerPEWS();
     } catch(e) {}
   }
@@ -960,16 +900,11 @@
       const bhLabel = appState.isBhManual ? "実測身長" : "目安身長";
 
       const dateEta = `${document.getElementById("v-date").value}`;
-      
       const originStr = appState.origin || "未選択";
       let facility = "未入力";
-      if (originStr === "紹介") {
-         facility = document.getElementById("v-referral-facility").value || "未入力";
-      } else if (originStr === "救急") {
-         facility = document.getElementById("v-ems-name").value || "未入力";
-      } else if (originStr === "その他") {
-         facility = document.getElementById("v-other-origin").value || "未入力";
-      }
+      if (originStr === "紹介") { facility = document.getElementById("v-referral-facility").value || "未入力"; } 
+      else if (originStr === "救急") { facility = document.getElementById("v-ems-name").value || "未入力"; } 
+      else if (originStr === "その他") { facility = document.getElementById("v-other-origin").value || "未入力"; }
       const etaStr = appState.etaText || "--";
 
       let preTxParts = [];
@@ -996,13 +931,10 @@
         } else preTxParts.push(`蘇生:${tCpr}`);
       } else { preTxParts.push(`実施処置: ${tMain}`); }
 
-      const vPreinfo = document.getElementById("v-preinfo");
-      if (vPreinfo && vPreinfo.value.trim()) preTxParts.push(vPreinfo.value.trim());
+      const vPreinfo = document.getElementById("v-preinfo"); if (vPreinfo && vPreinfo.value.trim()) preTxParts.push(vPreinfo.value.trim());
       appState.preTxText = preTxParts.join(' / '); 
 
-      const vSummary = document.getElementById("v-case-summary");
-      const summaryText = vSummary ? vSummary.value : "";
-      
+      const vSummary = document.getElementById("v-case-summary"); const summaryText = vSummary ? vSummary.value : "";
       const preinfoText = `【入電・発生場所】: ${originStr} (${facility})\n【要請・紹介目的】: ${appState.keywords.join(", ")}\n【前医・現場処置】: ${appState.preTxText}\n【経過・概要・特記】: ${summaryText}`;
       
       let lText = "不明"; 
@@ -1014,7 +946,7 @@
       const vitalsHTML = `HR: ${document.getElementById("v-vit-hr").value || "未"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "未"}% ｜ RR: ${document.getElementById("v-vit-rr").value || "未"} ｜ BP: ${document.getElementById("v-vit-bpsys").value || "-"}/${document.getElementById("v-vit-bpdia").value || "-"} mmHg ｜ BT: ${btVal}℃<br><b>意識レベル:</b> JCS ${document.getElementById("v-vit-jcs").value} / GCS ${document.getElementById("gcs-total").textContent.split(" = ")[0]} ｜ <b>総合PEWS:</b> ${appState.pews}点 ｜ <b>PAT:</b> A:${appState.pat.a}/B:${appState.pat.b}/C:${appState.pat.c}`;
 
       const devEl = document.querySelector('#g-ox-device .active'); const devStr = devEl ? devEl.textContent : "なし";
-      const flowEl = document.querySelector('#g-ox-flow .active'); const flowStr = flowEl ? flowEl.textContent : "-";
+      const flowStr = document.getElementById('v-ox-flow-free').value || "-";
       let o2Text = `デバイス: ${devStr} ｜ 流量: ${flowStr}`;
       if(devStr.includes("人工呼吸器")) o2Text += ` ｜ 詳細: ${document.getElementById("v-ox-vent-memo").value || ""}`;
 
@@ -1022,102 +954,35 @@
 
       let roles = {leader:[], airway:[], cpr:[], route:[], record:[], other:[]};
       document.querySelectorAll('#staff-tbody .staff-check:checked').forEach(cb => { roles[cb.dataset.role].push(cb.dataset.print); });
-      document.querySelectorAll('#free-staff-tbody .free-staff-row').forEach(tr => {
-        let n = tr.querySelector('.free-name').value.trim(); if(!n) return;
-        tr.querySelectorAll('.free-check:checked').forEach(cb => { roles[cb.dataset.role].push(n); });
-      });
-      let otherVal = document.getElementById("v-role-other") ? document.getElementById("v-role-other").value.trim() : "";
-      if(otherVal) roles.other.push(otherVal);
+      document.querySelectorAll('#free-staff-tbody .free-staff-row').forEach(tr => { let n = tr.querySelector('.free-name').value.trim(); if(!n) return; tr.querySelectorAll('.free-check:checked').forEach(cb => { roles[cb.dataset.role].push(n); }); });
+      let otherVal = document.getElementById("v-role-other") ? document.getElementById("v-role-other").value.trim() : ""; if(otherVal) roles.other.push(otherVal);
       appState.staffRoles = roles;
 
-      let safeTube = "換算不能";
-      let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW);
-      if(tubeItem) safeTube = tubeItem.size;
-      let tubeDepth = appState.ageY >= 1 ? (appState.ageY/2 + 12) : (wt/2 + 8);
-      let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); 
+      let safeTube = "換算不能"; let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); if(tubeItem) safeTube = tubeItem.size;
+      let tubeDepth = appState.ageY >= 1 ? (appState.ageY/2 + 12) : (wt/2 + 8); let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); 
       
-      let safetyNetHTML = `
-      <div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div>
-      <table class="p-table" style="border:2px solid #d32f2f; margin-bottom:0;">
-        <tr>
-          <th style="background:#fffde6;">除細動 (J)</th>
-          <td>初回: <b>${wt>0 ? (wt * 2).toFixed(0) : '--'} J</b> ➔ 2回目以降: <b>${wt>0 ? (wt * 4).toFixed(0) : '--'} J</b></td>
-          <th style="background:#fffde6;">アドレナリン(0.1%)<br><span style="font-size:9px;">※1万倍希釈(0.01mg/mL)</span></th>
-          <td>1回: <b style="font-size:16px; color:#d32f2f;">${wt>0 ? safeAdre : '--'} mL</b> (上限10mL) <br><span style="font-size:10px;">(3〜5分おきに反復)</span></td>
-        </tr>
-        <tr>
-          <th style="background:#fffde6;">気管チューブサイズ</th>
-          <td><b>${wt>0 ? safeTube : '--'}</b></td>
-          <th style="background:#fffde6;">気管チューブ固定長</th>
-          <td>口角: <b>${wt>0 ? tubeDepth.toFixed(1) : '--'} cm</b></td>
-        </tr>
-      </table>`;
+      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f; margin-bottom:0;"><tr><th style="background:#fffde6;">除細動 (J)</th><td>初回: <b>${wt>0 ? (wt * 2).toFixed(0) : '--'} J</b> ➔ 2回目以降: <b>${wt>0 ? (wt * 4).toFixed(0) : '--'} J</b></td><th style="background:#fffde6;">アドレナリン(0.1%)<br><span style="font-size:9px;">※1万倍希釈(0.01mg/mL)</span></th><td>1回: <b style="font-size:16px; color:#d32f2f;">${wt>0 ? safeAdre : '--'} mL</b> (上限10mL) <br><span style="font-size:10px;">(3〜5分おきに反復)</span></td></tr><tr><th style="background:#fffde6;">気管チューブサイズ</th><td><b>${wt>0 ? safeTube : '--'}</b></td><th style="background:#fffde6;">気管チューブ固定長</th><td>口角: <b>${wt>0 ? tubeDepth.toFixed(1) : '--'} cm</b></td></tr></table>`;
 
       appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付/ETA</th><td>${dateEta} / ${etaStr}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>${safetyNetHTML}`;
 
-      let dRows2 = ""; master.drugs.forEach(d => { 
-        if(appState.checkedItems[d.btnName]) { 
-          let concText = (d.concMg>0 && d.concVol>0) ? `<br><span style="font-size:10px; color:var(--brand);">（1mL ＝ ${(d.concMg / d.concVol).toPrecision(4).replace(/\.?0+$/, '')} ${d.unit.replace(/\/kg.*/, '')}含有）</span>` : "";
-          dRows2 += `<tr><td><b>${d.name}</b> <br><span style="font-size:10px; color:var(--blue);">[規格] ${d.spec||'-'}</span></td><td>${d.comp||'-'} ${concText}</td><td>${d.note||'-'}</td></tr>`; 
-        } 
-      });
+      let dRows2 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.btnName]) { let concText = (d.concMg>0 && d.concVol>0) ? `<br><span style="font-size:10px; color:var(--brand);">（1mL ＝ ${(d.concMg / d.concVol).toPrecision(4).replace(/\.?0+$/, '')} ${d.unit.replace(/\/kg.*/, '')}含有）</span>` : ""; dRows2 += `<tr><td><b>${d.name}</b> <br><span style="font-size:10px; color:var(--blue);">[規格] ${d.spec||'-'}</span></td><td>${d.comp||'-'} ${concText}</td><td>${d.note||'-'}</td></tr>`; } });
       appState.page2HTML = ` <div class="p-title">小児救急事前準備作戦盤 【2. 準備薬剤リスト】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>指示対象 薬剤名</th><th>組成・希釈方法</th><th>備考 / 注意点</th></tr></thead><tbody>${dRows2 || '<tr><td colspan="3" style="text-align:center;">選択薬剤なし</td></tr>'}</tbody></table></div>`;
 
-      let dRows3 = ""; master.drugs.forEach(d => { 
-        if(appState.checkedItems[d.btnName] && d.type === "単発薬") { 
-          let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0; 
-          let cntText = (d.maxDose < 9999 && dose>0) ? `<br><span style="color:var(--brand);font-size:10px;">上限迄 約${Math.floor(d.maxDose/dose)}回可</span>` : "";
-          dRows3 += `<tr><td><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><td>${dose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限量: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit} ${cntText}</td></tr>`; 
-        } 
-      });
+      let dRows3 = ""; master.drugs.forEach(d => { if(appState.checkedItems[d.btnName] && d.type === "単発薬") { let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0; let cntText = (d.maxDose < 9999 && dose>0) ? `<br><span style="color:var(--brand);font-size:10px;">上限迄 約${Math.floor(d.maxDose/dose)}回可</span>` : ""; dRows3 += `<tr><td><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><td>${dose.toFixed(2)} ${d.unit.replace('/kg','')}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限量: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit} ${cntText}</td></tr>`; } });
       appState.page3HTML = `<div class="p-title">小児救急事前準備作戦盤 【3. ベッドサイド静注投与量クイック表 (ショット)】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>静注薬剤名 / 組成</th><th>実投与 用量</th><th>実際のIV静注液量(mL)</th><th>上限量 / 目安</th></tr></thead><tbody>${dRows3 || '<tr><td colspan="4" style="text-align:center;">単発薬なし</td></tr>'}</tbody></table></div>`;
 
       let dRows4 = ""; master.drugs.forEach(d => { 
         if(appState.checkedItems[d.btnName] && d.type === "持続薬") { 
            let indicatorHTML = "";
            if(wt>0 && d.concMg>0 && d.concVol>0) {
-             if(d.unit.includes("γ") || d.unit.includes("μg/kg/min")) {
-               let concU_mL = (d.concMg / d.concVol) * 1000;
-               let gamma_per_mlh = concU_mL / (60 * wt);
-               let mlh_per_gamma = (60 * wt) / concU_mL;
-               indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${gamma_per_mlh.toFixed(2)}</b> γ<br>1 γ = <b>${mlh_per_gamma.toFixed(2)}</b> mL/h</div>`;
-             } else if(d.unit.includes("mg/kg/h")) {
-               let mg_per_mlh = (d.concMg / d.concVol) / wt;
-               let mlh_per_mg = wt / (d.concMg / d.concVol);
-               indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${mg_per_mlh.toFixed(2)}</b> mg/k/h<br>1 mg/k/h = <b>${mlh_per_mg.toFixed(2)}</b> mL/h</div>`;
-             }
+             if(d.unit.includes("γ") || d.unit.includes("μg/kg/min")) { let concU_mL = (d.concMg / d.concVol) * 1000; let gamma_per_mlh = concU_mL / (60 * wt); let mlh_per_gamma = (60 * wt) / concU_mL; indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${gamma_per_mlh.toFixed(2)}</b> γ<br>1 γ = <b>${mlh_per_gamma.toFixed(2)}</b> mL/h</div>`; } 
+             else if(d.unit.includes("mg/kg/h")) { let mg_per_mlh = (d.concMg / d.concVol) / wt; let mlh_per_mg = wt / (d.concMg / d.concVol); indicatorHTML = `<div style="margin-top:4px; font-size:10px; background:var(--med-blue); padding:4px; border-radius:4px;">1 mL/h = <b>${mg_per_mlh.toFixed(2)}</b> mg/k/h<br>1 mg/k/h = <b>${mlh_per_mg.toFixed(2)}</b> mL/h</div>`; }
            }
-
            let trs = `<tr><td rowspan="4" style="width:25%;"><b>${d.name}</b> <br><span style="font-size:10px;">${d.comp||''}</span>${indicatorHTML}<br><span style="font-size:10px; color:var(--sub);">${d.note||''}</span></td>`;
-           trs += `<th style="background:#fffde6;">${d.unit}</th>`;
-           for(let i=0; i<5; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; }
-           trs += `</tr><tr><th>mL/h</th>`;
-           for(let i=0; i<5; i++){
-              let val = "-";
-              if(d.steps[i] && wt>0 && d.concMg && d.concVol) {
-                 let concU_mL = (d.concMg / d.concVol) * 1000;
-                 let flow = (d.steps[i] * wt * 60) / concU_mL;
-                 if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol);
-                 val = flow.toFixed(2);
-              }
-              trs += `<td>${val}</td>`;
-           }
-           trs += `</tr>`;
-           trs += `<tr><th style="background:#fffde6;">${d.unit}</th>`;
-           for(let i=5; i<10; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; }
-           trs += `</tr><tr><th>mL/h</th>`;
-           for(let i=5; i<10; i++){
-              let val = "-";
-              if(d.steps[i] && wt>0 && d.concMg && d.concVol) {
-                 let concU_mL = (d.concMg / d.concVol) * 1000;
-                 let flow = (d.steps[i] * wt * 60) / concU_mL;
-                 if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol);
-                 val = flow.toFixed(2);
-              }
-              trs += `<td>${val}</td>`;
-           }
-           trs += `</tr>`;
-           dRows4 += trs;
+           trs += `<th style="background:#fffde6;">${d.unit}</th>`; for(let i=0; i<5; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; } trs += `</tr><tr><th>mL/h</th>`;
+           for(let i=0; i<5; i++){ let val = "-"; if(d.steps[i] && wt>0 && d.concMg && d.concVol) { let concU_mL = (d.concMg / d.concVol) * 1000; let flow = (d.steps[i] * wt * 60) / concU_mL; if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol); val = flow.toFixed(2); } trs += `<td>${val}</td>`; } trs += `</tr>`;
+           trs += `<tr><th style="background:#fffde6;">${d.unit}</th>`; for(let i=5; i<10; i++){ trs += `<td style="background:#fffde6;font-weight:bold;">${d.steps[i]||'-'}</td>`; } trs += `</tr><tr><th>mL/h</th>`;
+           for(let i=5; i<10; i++){ let val = "-"; if(d.steps[i] && wt>0 && d.concMg && d.concVol) { let concU_mL = (d.concMg / d.concVol) * 1000; let flow = (d.steps[i] * wt * 60) / concU_mL; if(d.unit.includes("mg/kg/h")) flow = (d.steps[i] * wt) / (d.concMg / d.concVol); val = flow.toFixed(2); } trs += `<td>${val}</td>`; } trs += `</tr>`; dRows4 += trs;
         } 
       });
       appState.page4HTML = `<div class="p-title">小児救急事前準備作戦盤 【4. ベッドサイド静注投与量クイック表 (持続)】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th>静注薬剤名 / 備考</th><th colspan="6">投与量 / 流量換算マトリックス</th></tr></thead><tbody>${dRows4 || '<tr><td colspan="7" style="text-align:center;">持続薬なし</td></tr>'}</tbody></table></div>`;
@@ -1136,8 +1001,6 @@
       }
     } catch(e) {}
   }
-
-  function clearAllData(ask) { if(ask && confirm("全データをリセットしますか？")) location.reload(); }
 
   function submitPedsCase() {
     syncToPrintLayout(); 
@@ -1176,32 +1039,12 @@
       }
     };
     
-    document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; 
-    document.getElementById("btnSubmit").disabled = true;
-    
-    fetch(GAS_API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if(data.status === "success") {
-        document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存済 ✅"; 
-        document.getElementById("btnSubmit").style.background = "var(--success)";
-      } else {
-        alert("保存エラー: " + data.message);
-        reportErrorToAdmin(data.message, "事案保存レスポンスエラー");
-        document.getElementById("btnSubmit").disabled = false; 
-        document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾";
-      }
-    })
-    .catch(error => {
-      alert("通信エラーが発生しました: " + error.message);
-      reportErrorToAdmin(error.message, "事案保存通信時");
-      document.getElementById("btnSubmit").disabled = false; 
-      document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾";
-    });
+    document.getElementById("btnSubmit").textContent = "事案アーカイブへ送信中..."; document.getElementById("btnSubmit").disabled = true;
+    fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+    .then(response => response.json()).then(data => {
+      if(data.status === "success") { document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存済 ✅"; document.getElementById("btnSubmit").style.background = "var(--success)"; } 
+      else { alert("保存エラー: " + data.message); reportErrorToAdmin(data.message, "事案保存レスポンスエラー"); document.getElementById("btnSubmit").disabled = false; document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾"; }
+    }).catch(error => { alert("通信エラーが発生しました: " + error.message); reportErrorToAdmin(error.message, "事案保存通信時"); document.getElementById("btnSubmit").disabled = false; document.getElementById("btnSubmit").textContent = "事案アーカイブへ保存 💾"; });
   }
 </script>
 </body>
