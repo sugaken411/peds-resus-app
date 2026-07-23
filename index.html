@@ -6,41 +6,70 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f2f2f7">
-  <title>小児疾患・蘇生作戦盤</title>
+  <title>小児疾患・蘇生作戦盤 V5</title>
   <style>
-    :root { --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93; --brand: #d32f2f; --brand-light: #ffebeb; --blue: #007aff; --med-blue: #e3f2fd; --med-blue-text: #1565c0; --success: #34c759; --warn: #ffcc00; --warn-light: #fffde6; --line: rgba(60,60,67,0.12); }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-    body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+    :root { 
+      --bg: #f2f2f7; --card: #ffffff; --ink: #111827; --sub: #6b7280; 
+      --brand: #d32f2f; --brand-light: #fef2f2; --blue: #007aff; 
+      --med-blue: #eff6ff; --med-blue-text: #1d4ed8; --success: #22c55e; 
+      --warn: #f59e0b; --warn-light: #fffbeb; --line: #e5e7eb;
+      --safe-top: env(safe-area-inset-top);
+      --safe-bottom: env(safe-area-inset-bottom);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; padding-bottom: calc(60px + var(--safe-bottom)); }
     
-    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: env(safe-area-inset-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
-    .hdr-group { display: flex; gap: 12px; align-items: center; }
-    .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+    header { position: fixed; top: 0; left: 0; right: 0; height: 56px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    .hdr-group { display: flex; gap: 8px; align-items: center; }
+    .hdr-btn { color: var(--blue); background: none; border: none; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 6px 10px; border-radius: 8px; transition: 0.2s;}
+    .hdr-btn:active { opacity: 0.7; }
     .title-box { text-align: center; font-weight: 800; font-size: 15px; } 
-    .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
+    .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
     
-    .tab-container { position: fixed; top: calc(56px + env(safe-area-inset-top)); left: 0; right: 0; height: 44px; background: #fff; border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; } .tab-container::-webkit-scrollbar { display: none; }
-    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 11px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    main { margin-top: calc(100px + env(safe-area-inset-top)); margin-bottom: 60px; padding: 16px; }
+    .status-bar { position: fixed; top: calc(56px + var(--safe-top)); left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; padding: 8px 12px; z-index: 99; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+    .status-item { text-align: center; }
+    .status-label { font-size: 10px; color: var(--sub); font-weight: 700; margin-bottom: 2px; }
+    .status-val { font-size: 15px; font-weight: 800; color: var(--blue); }
+    .status-val.highlight { color: var(--brand); }
+
+    .tab-container { position: fixed; top: calc(108px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 98; scrollbar-width: none; } .tab-container::-webkit-scrollbar { display: none; }
+    .nav-tab { flex: 0 0 auto; padding: 0 16px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; transition: 0.2s; } .nav-tab.active { color: var(--ink); border-bottom-color: var(--ink); }
     
-    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden; }
+    main { margin-top: calc(160px + var(--safe-top)); padding: 12px; }
+    
+    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--line); overflow: hidden; }
+    .card-header { padding: 12px 16px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--line); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+    .card-body { padding: 16px; }
     .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
     .card-title-flex { display: flex; justify-content: space-between; align-items: center; }
-    .section-label { font-size: 11px; font-weight: 700; color: var(--sub); text-transform: uppercase; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    
+    .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-top: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .section-label:first-child { margin-top: 0; }
     .inline-field { display: flex; align-items: center; padding: 12px 16px; border-bottom: 0.5px solid var(--line); } .inline-field:last-child { border-bottom: none; }
     .field-label { font-size: 14px; font-weight: 600; flex: 1; }
     .normal-range-hint { font-size: 11px; color: var(--blue); font-weight: bold; margin-left: 8px; }
-    select, input[type="text"], input[type="date"], input[type="time"] { text-align: right; font-size: 15px; border: none; background: transparent; color: var(--blue); outline: none; flex: 1; margin-left: 10px; font-weight: 600; }
-    input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 6px; border-radius: 6px; width: 60px; border: none; color: var(--blue); outline: none; font-weight: 600; }
-    textarea { width: 100%; border: 1px solid var(--line); font-size: 14px; background: var(--bg); outline: none; resize: none; color: var(--ink); line-height: 1.5; padding: 10px; border-radius: 8px; }
     
-    .btn-group { display: flex; flex-wrap: wrap; gap: 4px; background: #e5e5ea; padding: 4px; border-radius: 8px; }
-    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 12px; font-weight: bold; border-radius: 6px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s;}
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .time-row { display: flex; gap: 8px; align-items: center; }
+    
+    input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; transition: 0.2s; }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--med-blue); }
+    textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 14px; color: var(--ink); line-height: 1.5; outline: none; resize: none; min-height: 80px; }
+    input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 6px; border-radius: 6px; width: 60px; border: none; color: var(--blue); outline: none; font-weight: 600; }
+    
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; }
+    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s; min-width: 60px; }
     .group-btn.active { background: #fff; color: var(--ink); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .group-btn.alert-mode.active { background: var(--brand); color: #fff; }
     
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; margin-bottom: 8px; } 
     .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } 
-    .chip { border: 1px solid var(--line); border-radius: 20px; padding: 6px 12px; font-size: 12px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition:0.15s; } 
+    .chip { border: 1.5px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--sub); user-select: none; background: var(--bg); transition:0.15s; display: inline-flex; align-items: center; justify-content: center; } 
+    .chip:active { transform: scale(0.95); }
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
+    .chip.active-blue { background: var(--med-blue); border-color: var(--blue); color: var(--med-blue-text); }
     
     .chip-scenario { background: var(--card); }
     .chip-scenario.on { background: var(--med-blue); border-color: var(--blue); color: var(--med-blue-text); }
@@ -57,40 +86,54 @@
     .gcs-btn.active { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     .gcs-scale { font-size: 10px; color: var(--sub); text-align: center; margin-top: 2px; } .gcs-btn.active .gcs-scale { color: #fff; }
     
-    .hidden-panel { display: none; background: rgba(242,242,247,0.5); padding: 12px; border-radius: 8px; margin: 8px 16px; border-left: 3px solid var(--blue); }
+    .btn { background: var(--blue); color: #fff; border: none; border-radius: 10px; padding: 14px 20px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; transition: 0.2s; text-align: center; display: inline-block; }
+    .btn:active { opacity: 0.8; transform: scale(0.98); }
+    .btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
+    .btn.small { padding: 10px 16px; font-size: 13px; width: auto; }
+    .btn.danger { background: var(--brand); color: #fff; }
+    .clear-btn { background: var(--sub); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
+    .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;}
+    .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
+
+    /* アコーディオン (AMPL等用) */
+    details { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
+    summary { font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; color: var(--ink); outline: none; }
+    summary::-webkit-details-marker { display: none; }
+    summary::after { content: '＋'; color: var(--blue); font-size: 18px; font-weight: bold; }
+    details[open] summary::after { content: '−'; }
+    details[open] summary { margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+
+    .hidden-panel { display: none; margin-top: 8px; }
+    .tab-content { display: none; } .tab-content.active { display: block; }
+    
+    .add-master-btn { background: var(--med-blue); color: var(--med-blue-text); border: none; padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; margin-left: 6px; }
     
     .staff-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; background: #fff; }
     .staff-table th, .staff-table td { padding: 8px 4px; border: 1px solid var(--line); text-align: center; vertical-align: middle; }
     .staff-table th { background: var(--bg); font-weight: bold; }
     .staff-table td.name-cell { text-align: left; padding-left: 8px; line-height: 1.4; font-weight: 600; }
     .staff-check { width: 22px; height: 22px; cursor: pointer; }
-
-    .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s;}
-    .submit-btn:disabled { opacity: 0.8; cursor: not-allowed; }
-    .clear-btn { background: var(--sub); color: #fff; padding: 6px 12px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
-    .add-master-btn { background: #e3f2fd; color: #007aff; border: 1px solid #007aff; padding: 4px 8px; border-radius: 6px; font-size: 10px; font-weight: bold; cursor: pointer; margin-left: 6px; white-space: nowrap; }
     
     .v-alert-1 { background-color: #fff9db !important; color: #856404 !important; font-weight: bold; }
     .v-alert-2 { background-color: #f8d7da !important; color: #721c24 !important; font-weight: bold; }
     .v-alert-3 { background-color: #dc3545 !important; color: #ffffff !important; font-weight: bold; }
-
-    .tab-content { display: none; } .tab-content.active { display: block; }
     
+    #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    .chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
+    .chart-box { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; margin-bottom:12px; }
+    .chart-link-btn { display:inline-block; margin-top:6px; background:var(--blue); color:#fff; text-decoration:none; padding:8px 12px; font-size:13px; font-weight:bold; border-radius:6px; text-align:center; width:100%; max-width:260px; }
+
+    /* プレビュー用印刷スタイル */
     .preview-page { background: #fff; border: 1px solid #000; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.4; color: #000; page-break-after: always; }
     .p-title { font-size: 16px; text-align: center; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
     .p-sec-title { font-size: 13px; font-weight: bold; background: #eee; padding: 4px 8px; margin-bottom: 6px; border-left: 4px solid #000; }
     .p-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size:12px; } .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: middle; } .p-table th { background: #f0f0f0; font-weight: bold; }
     
-    .chart-container { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
-    .chart-box { background:#fff; border:1px solid var(--line); border-radius:8px; padding:10px; display:flex; flex-direction:column; align-items:center; margin-bottom:12px; }
-    .chart-link-btn { display:inline-block; margin-top:6px; background:var(--blue); color:#fff; text-decoration:none; padding:8px 12px; font-size:13px; font-weight:bold; border-radius:6px; text-align:center; width:100%; max-width:260px; }
-
-    #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
-    .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
-
     @media print { 
       body { background: #fff; color: #000; padding:0; } 
-      header, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
+      header, .status-bar, .tab-container, main > div:not(#tab-sec6) { display: none !important; }
       #tab-sec6 { display: block !important; margin: 0; padding: 0; }
       .submit-btn { display: none !important; }
       .preview-page { border:none; box-shadow:none; padding: 0; margin-bottom:0; } 
@@ -99,238 +142,234 @@
 </head>
 <body>
 
-<div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-dob" value=""><input id="v-vit-jcs" value="不明"></div>
+<div style="display:none;"><input id="v-id" value=""><input id="v-date" value=""><input id="v-dob" value=""></div>
 
 <div id="global-loader"><div class="spinner"></div><div style="margin-top:16px; font-weight:800; color:var(--ink);" id="loader-msg">小児作戦盤 起動中...</div></div>
 
 <header>
   <div class="hdr-group">
-    <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff; padding:6px 10px; border-radius:6px;">🏠 ポータル</button>
-    <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
+    <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff;">🏠 ポータル</button>
+    <button class="hdr-btn" style="background:var(--line); color:var(--ink);" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児疾患・作戦盤<span class="version-tag">v4.16</span></div>
+  <div class="title-box">小児作戦盤<span class="version-tag">V5.1</span></div>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
 </header>
 
+<div class="status-bar">
+  <div class="status-item">
+    <div class="status-label">判定年齢</div>
+    <div class="status-val" id="lbl-age">--</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">計算体重</div>
+    <div class="status-val highlight" id="lbl-weight">--</div>
+  </div>
+  <div class="status-item">
+    <div class="status-label">計算身長</div>
+    <div class="status-val" id="lbl-height">--</div>
+  </div>
+</div>
+
 <div class="tab-container">
-  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1.基本情報</div>
-  <div class="nav-tab" data-tab="sec2" onclick="switchTab('sec2')">2.経緯・AMPL</div>
-  <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">3.PAT・バイタル</div>
-  <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">4.役割分担</div>
-  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.シナリオ指示</div>
-  <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">6.プレビュー</div>
-  <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">7.資料</div>
+  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1. 入電・MIST</div>
+  <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">2. PAT・バイタル</div>
+  <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">3. 役割分担</div>
+  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">4. シナリオ指示</div>
+  <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">5. プレビュー</div>
+  <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">6. 資料</div>
 </div>
 
 <main>
   <div id="tab-sec1" class="tab-content active">
+    
     <div class="card">
-      <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">① 基本パラメータ入力</div>
-        <button class="clear-btn" onclick="clearSection('sec1')">クリア</button>
-      </div>
-      
-      <div class="inline-field">
-        <div class="field-label">事案発現種別</div>
+      <div class="card-header">📞 入電元・到着予定</div>
+      <div class="card-body">
+        <div class="section-label">入電元（事案種別）</div>
         <div class="btn-group" id="g-case-origin">
-          <button class="group-btn active" data-val="紹介受入" onclick="setOriginMode('紹介受入')">紹介受入</button>
-          <button class="group-btn alert-mode" data-val="救急搬送" onclick="setOriginMode('救急搬送')">救急搬送</button>
+          <button class="group-btn active" data-val="救急搬送" onclick="setOriginMode('救急搬送')">救急隊 (119)</button>
+          <button class="group-btn" data-val="紹介受入" onclick="setOriginMode('紹介受入')">医療機関 (転院)</button>
+          <button class="group-btn" data-val="その他" onclick="setOriginMode('その他')">その他 (直歩等)</button>
+        </div>
+
+        <div id="panel-referral" class="hidden-panel" style="padding:0; background:transparent; border:none;">
+          <div class="section-label" style="margin-top:12px;">紹介元医療機関 <button class="add-master-btn" onclick="addMaster('hospital', 'v-referral-facility', this)">＋マスタ登録</button></div>
+          <input type="text" id="v-referral-facility" autocomplete="off" placeholder="手入力 または 下のリストから選択" oninput="syncToPrintLayout()">
+          <div class="chips" id="g-hosp-cat"></div>
+          <div class="chips" id="box-hospital-chips"></div>
+        </div>
+
+        <div id="panel-ems" class="hidden-panel" style="padding:0; background:transparent; border:none; display:block;">
+          <div class="section-label" style="margin-top:12px;">要請消防本部 / 救急隊</div>
+          <input type="text" id="v-ems-name" placeholder="例：鹿児島市中央救急" oninput="syncToPrintLayout()">
+        </div>
+
+        <div class="section-label" style="margin-top:16px;">到着予定 (ETA)</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <input type="time" id="v-eta" style="flex:1;" onchange="syncToPrintLayout();">
+        </div>
+        <div class="chips" style="margin-top:8px;">
+          <div class="chip" onclick="setETA(5)">5分以内</div>
+          <div class="chip" onclick="setETA(15)">15分頃</div>
+          <div class="chip" onclick="setETA(30)">30分頃</div>
+          <div class="chip" onclick="setETA(60)">1時間頃</div>
         </div>
       </div>
-      <div class="inline-field"><span class="field-label">到着予定(ETA)</span><input type="time" id="v-eta" style="width:120px;" onchange="syncToPrintLayout();"></div>
+    </div>
 
-      <div class="card-section" style="background: rgba(242,242,247,0.4);">
-        <div class="section-label">生年月日 (いずれかで入力)</div>
+    <div class="card">
+      <div class="card-header">🧑‍⚕️ 患者属性</div>
+      <div class="card-body">
+        <div class="section-label">生年月日 または 推定年齢</div>
         <div class="btn-group" id="g-era" style="margin-bottom:8px;">
           <button class="group-btn active" data-val="西暦" onclick="tBtn('g-era','西暦'); calcPeds();">西暦</button>
           <button class="group-btn" data-val="令和" onclick="tBtn('g-era','令和'); calcPeds();">令和</button>
           <button class="group-btn" data-val="平成" onclick="tBtn('g-era','平成'); calcPeds();">平成</button>
-          <button class="group-btn" data-val="昭和" onclick="tBtn('g-era','昭和'); calcPeds();">昭和</button>
         </div>
-        <div style="display:flex; gap:4px; align-items:center; margin-bottom:8px;">
-          <input type="text" id="v-era-y" class="num-input" autocomplete="off" inputmode="numeric" placeholder="年" oninput="forceHalf(this); calcPeds();">年
-          <input type="text" id="v-era-m" class="num-input" autocomplete="off" inputmode="numeric" placeholder="月" oninput="forceHalf(this); calcPeds();">月
-          <input type="text" id="v-era-d" class="num-input" autocomplete="off" inputmode="numeric" placeholder="日" oninput="forceHalf(this); calcPeds();">日
-          <span style="font-size:11px; margin:0 4px; color:var(--sub);">or</span>
-          <input type="date" id="v-dob-cal" autocomplete="off" onchange="syncCalToEra(this.value);" style="width:30px; padding:0; margin:0;">
+        <div class="grid2">
+          <input type="number" id="v-era-y" placeholder="年" oninput="forceHalf(this); calcPeds();">
+          <input type="number" id="v-era-m" placeholder="月" oninput="forceHalf(this); calcPeds();">
         </div>
-        <div style="border-top:1px dashed var(--line); padding-top:8px; display:flex; gap:4px; align-items:center;">
-          <span style="font-size:13px; font-weight:bold; color:var(--sub);">【不明時】直接年齢:</span>
-          <input type="text" id="v-manual-age-y" class="num-input" autocomplete="off" inputmode="numeric" placeholder="才" oninput="forceHalf(this); calcPeds();">才
-          <input type="text" id="v-manual-age-m" class="num-input" autocomplete="off" inputmode="numeric" placeholder="ヶ月" oninput="forceHalf(this); calcPeds();">ヶ月
+        <div style="text-align:center; color:var(--sub); font-size:11px; margin:8px 0;">または直接入力</div>
+        <div class="grid2">
+          <input type="number" id="v-manual-age-y" placeholder="歳" oninput="forceHalf(this); calcPeds();">
+          <input type="number" id="v-manual-age-m" placeholder="ヶ月" oninput="forceHalf(this); calcPeds();">
         </div>
-      </div>
 
-      <div class="inline-field"><span class="field-label">性別</span>
-        <div class="btn-group" id="g-sex" style="flex:2;">
+        <div class="section-label" style="margin-top:16px;">性別</div>
+        <div class="btn-group" id="g-sex">
           <button class="group-btn active" data-val="不明" onclick="tBtn('g-sex','不明'); calcPeds();">不明</button>
           <button class="group-btn" data-val="男児" onclick="tBtn('g-sex','男児'); calcPeds();">男児</button>
           <button class="group-btn" data-val="女児" onclick="tBtn('g-sex','女児'); calcPeds();">女児</button>
         </div>
-      </div>
-      <div class="inline-field"><span class="field-label">実測体重 (kg)</span><input type="text" id="v-bw" class="num-input" autocomplete="off" inputmode="decimal" placeholder="空欄=換算" oninput="forceHalf(this); calcPeds();" style="width:100px;"></div>
-      <div class="inline-field"><span class="field-label">実測身長 (cm)</span><input type="text" id="v-bh" class="num-input" autocomplete="off" inputmode="decimal" placeholder="空欄=換算" oninput="forceHalf(this); calcPeds();" style="width:100px;"></div>
-      
-      <div class="card-section" style="background:#f9f9f9; padding:10px;">
-        <div style="display:flex; justify-content:space-around; text-align:center;">
-          <div><div style="font-size:10px; color:var(--sub); font-weight:bold;">確定判定年齢</div><div id="lbl-age" style="font-size:14px; font-weight:bold; color:var(--blue); margin-top:4px;">--</div></div>
-          <div><div style="font-size:10px; color:var(--sub); font-weight:bold;">計算体重 (Mid)</div><div id="lbl-weight" style="font-size:14px; font-weight:bold; color:var(--ink); margin-top:4px;">--</div></div>
-          <div><div style="font-size:10px; color:var(--sub); font-weight:bold;">計算身長 (Mid)</div><div id="lbl-height" style="font-size:14px; font-weight:bold; color:var(--ink); margin-top:4px;">--</div></div>
-        </div>
-      </div>
-    </div>
-    <button class="submit-btn" onclick="switchTab('sec2')">次へ (経緯・AMPL) ➔</button>
-  </div>
 
-  <div id="tab-sec2" class="tab-content">
-    <div class="card" id="card-referral-selector">
-      <div class="card-section"><div class="section-label">📋 紹介元医療機関</div></div>
-      <div class="inline-field">
-        <input type="text" id="v-referral-facility" autocomplete="off" placeholder="手入力または下記から展開" style="text-align:left; width:100%; margin:0;" oninput="syncToPrintLayout()">
-        <button class="add-master-btn" onclick="addMaster('hospital', 'v-referral-facility', this)">＋マスタ登録</button>
-      </div>
-      <div class="card-section">
-        <div class="btn-group" style="flex-wrap:wrap; margin:0;" id="g-hosp-cat">
-          </div>
-      </div>
-      <div class="card-section hidden-panel" id="panel-hospital-chips" style="margin:0 16px 16px; border-left:none; background:var(--bg);">
-        <div class="chip-grid" id="box-hospital-chips"></div>
+        <div class="section-label" style="margin-top:16px;">実測 体重 / 身長（空欄時は自動換算）</div>
+        <div class="grid2">
+          <input type="text" id="v-bw" class="num-input" inputmode="decimal" placeholder="体重 (kg)" oninput="forceHalf(this); calcPeds();" style="width:100%;">
+          <input type="text" id="v-bh" class="num-input" inputmode="decimal" placeholder="身長 (cm)" oninput="forceHalf(this); calcPeds();" style="width:100%;">
+        </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-section">
-        <div class="section-label">紹介目的・診断名・受傷機転</div>
-        <textarea id="v-case-title" rows="1" autocomplete="off" placeholder="例：痙攣重積、急性脳症疑い..." oninput="syncToPrintLayout()"></textarea>
-      </div>
-      <div class="card-section">
-        <div class="section-label" style="display:flex; justify-content:space-between; align-items:center;">
-          <span>キーワード (タップで追加)</span>
-          <div style="display:flex;">
-            <input type="text" id="v-new-kw" placeholder="新規" style="width:70px; padding:4px; font-size:11px; margin:0;">
-            <button class="add-master-btn" style="margin-left:4px;" onclick="addMaster('keyword', 'v-new-kw', this)">＋マスタ登録</button>
-          </div>
+      <div class="card-header">📝 Mechanism / Medical complaint (主訴・概要)</div>
+      <div class="card-body">
+        <div class="section-label">キーワード <button class="add-master-btn" onclick="addMaster('keyword', 'v-new-kw', this)">＋マスタ登録</button></div>
+        <div style="display:flex; gap:8px; margin-bottom:8px;">
+          <input type="text" id="v-new-kw" placeholder="新規キーワード入力" style="flex:1;">
         </div>
-        <div class="chip-grid" id="box-keywords" style="margin-bottom:8px;"></div>
-      </div>
-      <div class="card-section"><div class="section-label">経過・概要</div>
-        <textarea id="v-case-summary" rows="3" autocomplete="off" placeholder="前医や現場での経過、特記指示内容を入力..." oninput="syncToPrintLayout()"></textarea>
+        <div class="chips" id="box-keywords"></div>
+        
+        <div class="section-label" style="margin-top:12px;">受傷機転・概要・経過</div>
+        <textarea id="v-case-summary" rows="4" placeholder="前医や現場での経過、MISTのI(Injuries/Illness)等を入力..." oninput="syncToPrintLayout()"></textarea>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">② 現場・前医での実施処置</div>
-        <div class="btn-group" id="g-tx-main" style="margin:0;">
+      <div class="card-header">💉 Treatment (搬入前処置)</div>
+      <div class="card-body">
+        <div class="btn-group" id="g-tx-main" style="margin-bottom:12px;">
           <button class="group-btn active" data-val="不明" onclick="setTxMain('不明')">不明</button>
           <button class="group-btn" data-val="なし" onclick="setTxMain('なし')">なし</button>
-          <button class="group-btn alert-mode" data-val="あり" onclick="setTxMain('あり')">あり(詳細展開)</button>
-        </div>
-      </div>
-      
-      <div id="panel-tx-details" class="hidden-panel" style="display:none; padding:0; margin:0; border:none; background:transparent;">
-        <div class="inline-field">
-          <div class="field-label">気管挿管</div>
-          <div class="btn-group" id="g-tx-intub"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-intub','不明'); tPanel('panel-intub',false);">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-intub','なし'); tPanel('panel-intub',false);">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="tBtn('g-tx-intub','あり'); tPanel('panel-intub',true);">あり</button></div>
-        </div>
-        <div class="hidden-panel" id="panel-intub">
-          <div style="display:flex; gap:8px; margin-bottom:6px; align-items:center;">
-            <span style="font-size:12px; font-weight:bold;">サイズ</span>
-            <div class="btn-group" id="g-intub-size" style="flex:1; margin:0; flex-wrap:nowrap; overflow-x:auto;">
-              <button class="group-btn" data-val="2.5" onclick="tBtn('g-intub-size','2.5')">2.5</button><button class="group-btn" data-val="3.0" onclick="tBtn('g-intub-size','3.0')">3.0</button><button class="group-btn" data-val="3.5" onclick="tBtn('g-intub-size','3.5')">3.5</button><button class="group-btn" data-val="4.0" onclick="tBtn('g-intub-size','4.0')">4.0</button><button class="group-btn" data-val="4.5" onclick="tBtn('g-intub-size','4.5')">4.5</button><button class="group-btn" data-val="5.0" onclick="tBtn('g-intub-size','5.0')">5.0</button><button class="group-btn" data-val="5.5" onclick="tBtn('g-intub-size','5.5')">5.5</button><button class="group-btn" data-val="他" onclick="tBtn('g-intub-size','他')">他</button>
-            </div>
-            <input type="text" id="v-intub-depth" class="num-input" autocomplete="off" inputmode="decimal" placeholder="深さcm" style="background:#fff; padding:6px; border-radius:4px; width:60px;" oninput="forceHalf(this); syncToPrintLayout();">
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:bold;">カフ</span>
-            <div class="btn-group" id="g-tx-cuff" style="margin:0; flex:1;"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-cuff','不明')">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-cuff','なし')">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-cuff','あり')">あり</button></div>
-            <input type="text" id="v-intub-cuffvol" class="num-input" autocomplete="off" inputmode="decimal" placeholder="量(mL)" style="background:#fff; padding:6px; border-radius:4px; width:60px;" oninput="forceHalf(this); syncToPrintLayout();">
-          </div>
-        </div>
-
-        <div class="inline-field">
-          <div class="field-label">静脈路(IV/IO)</div>
-          <div class="btn-group" id="g-tx-iv"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-iv','不明'); tPanel('panel-iv',false);">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-iv','なし'); tPanel('panel-iv',false);">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="tBtn('g-tx-iv','あり'); tPanel('panel-iv',true);">あり</button></div>
-        </div>
-        <div class="hidden-panel" id="panel-iv">
-          <div class="btn-group" id="g-iv-site" style="margin:0 0 8px 0;"><button class="group-btn active" data-val="右上肢" onclick="tBtn('g-iv-site','右上肢')">右上肢</button><button class="group-btn" data-val="左上肢" onclick="tBtn('g-iv-site','左上肢')">左上肢</button><button class="group-btn" data-val="右下肢" onclick="tBtn('g-iv-site','右下肢')">右下肢</button><button class="group-btn" data-val="左下肢" onclick="tBtn('g-iv-site','左下肢')">左下肢</button></div>
-          <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px;">
-            <div class="btn-group" id="g-iv-g" style="margin:0; flex:1;"><button class="group-btn" data-val="20G" onclick="tBtn('g-iv-g','20G')">20G</button><button class="group-btn" data-val="22G" onclick="tBtn('g-iv-g','22G')">22G</button><button class="group-btn active" data-val="24G" onclick="tBtn('g-iv-g','24G')">24G</button><button class="group-btn" data-val="骨髄針" onclick="tBtn('g-iv-g','骨髄針')">IO</button></div>
-          </div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span style="font-size:12px; font-weight:bold;">本数</span>
-            <div class="btn-group" id="g-iv-num" style="margin:0; flex:1;"><button class="group-btn active" data-val="1本" onclick="tBtn('g-iv-num','1本')">1本</button><button class="group-btn" data-val="2本" onclick="tBtn('g-iv-num','2本')">2本</button><button class="group-btn" data-val="3本" onclick="tBtn('g-iv-num','3本')">3本</button><button class="group-btn" data-val="4本以上" onclick="tBtn('g-iv-num','4本以上')">4本〜</button></div>
-          </div>
-        </div>
-
-        <div class="inline-field">
-          <div class="field-label">蘇生・除細動</div>
-          <div class="btn-group" id="g-tx-cpr"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-cpr','不明'); tPanel('panel-cpr',false);">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-cpr','なし'); tPanel('panel-cpr',false);">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="tBtn('g-tx-cpr','あり'); tPanel('panel-cpr',true);">あり</button></div>
-        </div>
-        <div class="hidden-panel" id="panel-cpr">
-          <div class="btn-group" id="g-cpr-rhythm" style="margin:0 0 8px 0; flex-wrap:wrap;"><button class="group-btn active" data-val="不明" onclick="tBtn('g-cpr-rhythm','不明')">波形不明</button><button class="group-btn" data-val="VF/pVT" onclick="tBtn('g-cpr-rhythm','VF/pVT')">VF/VT</button><button class="group-btn" data-val="PEA" onclick="tBtn('g-cpr-rhythm','PEA')">PEA</button><button class="group-btn" data-val="Asys" onclick="tBtn('g-cpr-rhythm','Asys')">Asys</button></div>
-          <div style="display:flex; gap:8px;"><input type="text" id="v-cpr-dc-count" class="num-input" autocomplete="off" inputmode="numeric" placeholder="DC回数" style="width:100%; background:#fff;" oninput="forceHalf(this); syncToPrintLayout();"><input type="text" id="v-cpr-dc-j" class="num-input" autocomplete="off" inputmode="numeric" placeholder="J数" style="width:100%; background:#fff;" oninput="forceHalf(this); syncToPrintLayout();"></div>
+          <button class="group-btn" style="color:var(--brand);" data-val="あり" onclick="setTxMain('あり')">あり (詳細を展開)</button>
         </div>
         
-        <div class="card-section" style="background:#fffde6; border-left:4px solid var(--warn); margin-top:12px; border-radius:6px; padding:10px;">
-          <div class="section-label" style="color:#d48806; margin-bottom:4px;">✍️ その他の処置・フリー記録</div>
-          <textarea id="v-preinfo" rows="3" autocomplete="off" placeholder="投与薬剤(アドレナリン等)、固定、その他特記事項を自由に記録してください" oninput="syncToPrintLayout()" style="border:1px solid #d48806; background:#fff;"></textarea>
+        <div id="panel-tx-details" class="hidden-panel" style="background:transparent; border:none; padding:0;">
+          <details>
+            <summary>気管挿管</summary>
+            <div class="btn-group" id="g-tx-intub"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-intub','不明');">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-intub','なし');">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-intub','あり');">あり</button></div>
+            <div class="grid2" style="margin-top:8px;">
+              <input type="number" id="v-intub-size" placeholder="サイズ mm" oninput="syncToPrintLayout();">
+              <input type="number" id="v-intub-depth" placeholder="深さ cm" oninput="syncToPrintLayout();">
+            </div>
+          </details>
+
+          <details>
+            <summary>静脈路 (IV/IO)</summary>
+            <div class="btn-group" id="g-tx-iv"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-iv','不明');">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-iv','なし');">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-iv','あり');">あり</button></div>
+            <div class="chips" id="g-iv-site" style="margin-top:8px;"><div class="chip on" data-val="右上肢" onclick="tChipSingle('g-iv-site', this)">右上肢</div><div class="chip" data-val="左上肢" onclick="tChipSingle('g-iv-site', this)">左上肢</div><div class="chip" data-val="右下肢" onclick="tChipSingle('g-iv-site', this)">右下肢</div><div class="chip" data-val="左下肢" onclick="tChipSingle('g-iv-site', this)">左下肢</div></div>
+          </details>
+
+          <details>
+            <summary>蘇生・除細動 (CPA)</summary>
+            <div class="btn-group" id="g-tx-cpr"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-cpr','不明');">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-cpr','なし');">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-cpr','あり');">あり</button></div>
+            <div class="grid2" style="margin-top:8px;">
+              <input type="number" id="v-cpr-dc-count" placeholder="DC回数" oninput="syncToPrintLayout();">
+              <input type="number" id="v-cpr-dc-j" placeholder="J数" oninput="syncToPrintLayout();">
+            </div>
+          </details>
+          
+          <div class="section-label">その他処置・薬剤フリーテキスト</div>
+          <textarea id="v-preinfo" rows="2" placeholder="投与薬剤、固定、特記事項" oninput="syncToPrintLayout()"></textarea>
         </div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">AMPL プロファイル</div>
-        <button class="clear-btn" style="background:var(--success);" onclick="setAmpleAllNone()">一括「なし/絶食」</button>
+      <div class="card-header">
+        <span>📋 AMPL プロファイル</span>
+        <button class="btn small ghost" style="padding:4px 8px; font-size:11px;" onclick="setAmpleAllNone()">一括「なし/絶食」</button>
       </div>
-      
-      <div class="inline-field"><div class="field-label">(A) アレルギー</div><div class="btn-group" id="g-amp-a"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('a','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('a','なし')">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="toggleAmpInput('a','あり')">あり</button></div></div>
-      <div class="hidden-panel" id="panel-amp-a"><input type="text" id="v-amp-a" autocomplete="off" placeholder="➔具体的なアレルギー物質等を入力" style="width:100%;text-align:left;background:#fff;padding:8px;border-radius:6px;border:none;outline:none;" oninput="syncToPrintLayout()"></div>
+      <div class="card-body" style="padding:8px 16px;">
+        <details>
+          <summary>(A) アレルギー</summary>
+          <div class="btn-group" id="g-amp-a"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('a','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('a','なし')">なし</button><button class="group-btn" data-val="あり" onclick="toggleAmpInput('a','あり')">あり</button></div>
+          <input type="text" id="v-amp-a" class="hidden-panel" placeholder="アレルギー物質等" oninput="syncToPrintLayout()" style="display:none; width:100%; margin-top:8px;">
+        </details>
+        
+        <details>
+          <summary>(M) 内服薬/定期薬</summary>
+          <div class="btn-group" id="g-amp-m"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('m','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('m','なし')">なし</button><button class="group-btn" data-val="あり" onclick="toggleAmpInput('m','あり')">あり</button></div>
+          <input type="text" id="v-amp-m" class="hidden-panel" placeholder="内服薬等" oninput="syncToPrintLayout()" style="display:none; width:100%; margin-top:8px;">
+        </details>
 
-      <div class="inline-field"><div class="field-label">(M) 内服薬/定期薬</div><div class="btn-group" id="g-amp-m"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('m','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('m','なし')">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="toggleAmpInput('m','あり')">あり</button></div></div>
-      <div class="hidden-panel" id="panel-amp-m"><input type="text" id="v-amp-m" autocomplete="off" placeholder="➔定期薬・前医先行投与内容を入力" style="width:100%;text-align:left;background:#fff;padding:8px;border-radius:6px;border:none;outline:none;" oninput="syncToPrintLayout()"></div>
+        <details>
+          <summary>(P) 既往歴/合併症</summary>
+          <div class="btn-group" id="g-amp-p"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('p','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('p','なし')">なし</button><button class="group-btn" data-val="あり" onclick="toggleAmpInput('p','あり')">あり</button></div>
+          <input type="text" id="v-amp-p" class="hidden-panel" placeholder="既往歴等" oninput="syncToPrintLayout()" style="display:none; width:100%; margin-top:8px;">
+        </details>
 
-      <div class="inline-field"><div class="field-label">(P) 既往歴/合併症</div><div class="btn-group" id="g-amp-p"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('p','不明')">不明</button><button class="group-btn" data-val="なし" onclick="toggleAmpInput('p','なし')">なし</button><button class="group-btn alert-mode" data-val="あり" onclick="toggleAmpInput('p','あり')">あり</button></div></div>
-      <div class="hidden-panel" id="panel-amp-p"><input type="text" id="v-amp-p" autocomplete="off" placeholder="➔熱性痙攣歴、喘息、手術歴等を入力" style="width:100%;text-align:left;background:#fff;padding:8px;border-radius:6px;border:none;outline:none;" oninput="syncToPrintLayout()"></div>
-
-      <div class="card-section" style="border-top:0.5px solid var(--line);">
-        <div class="section-label">(L) 最終食事ステータス</div>
-        <div class="inline-field" style="padding:4px 0 10px 0;"><div class="field-label" style="font-size:13px; color:var(--sub);">摂取状況</div><div class="btn-group" id="g-amp-l"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('l','不明')">不明</button><button class="group-btn" data-val="絶食" onclick="toggleAmpInput('l','絶食')">絶食</button><button class="group-btn alert-mode" data-val="摂取あり" onclick="toggleAmpInput('l','摂取あり')">摂取あり</button></div></div>
-        <div class="hidden-panel" id="panel-amp-l" style="background:none; border:none; padding:0; margin:0;">
-          <div class="btn-group" id="g-l-time" style="margin:0 0 8px 0;"><button class="group-btn" data-val="朝食" onclick="tBtn('g-l-time','朝食')">朝食</button><button class="group-btn" data-val="昼食" onclick="tBtn('g-l-time','昼食')">昼食</button><button class="group-btn" data-val="夕食" onclick="tBtn('g-l-time','夕食')">夕食</button><button class="group-btn" data-val="前日" onclick="tBtn('g-l-time','前日')">前日</button></div>
-          <div style="display:flex; gap:6px; margin-bottom:6px;"><input type="date" id="v-amp-l-date" style="flex:1; border:1px solid var(--line); padding:6px; border-radius:6px; background:#fff;" onchange="syncToPrintLayout()"><input type="time" id="v-amp-l-time" style="flex:1; border:1px solid var(--line); padding:6px; border-radius:6px; background:#fff;" onchange="syncToPrintLayout()"></div>
-          <input type="text" id="v-amp-l-detail" autocomplete="off" placeholder="➔食べた固形物や水分内容" style="width:100%;text-align:left;background:#fff;padding:8px;border-radius:6px;border:1px solid var(--line);" oninput="syncToPrintLayout()">
-        </div>
+        <details>
+          <summary>(L) 最終食事</summary>
+          <div class="btn-group" id="g-amp-l"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('l','不明')">不明</button><button class="group-btn" data-val="絶食" onclick="toggleAmpInput('l','絶食')">絶食</button><button class="group-btn" data-val="摂取あり" onclick="toggleAmpInput('l','摂取あり')">摂取あり</button></div>
+          <div id="panel-amp-l" class="hidden-panel" style="display:none; margin-top:8px; padding:0; background:none; border:none;">
+            <div class="grid2" style="margin-bottom:8px;">
+              <input type="date" id="v-amp-l-date" onchange="syncToPrintLayout()">
+              <input type="time" id="v-amp-l-time" onchange="syncToPrintLayout()">
+            </div>
+            <input type="text" id="v-amp-l-detail" placeholder="食べた内容" oninput="syncToPrintLayout()" style="width:100%;">
+          </div>
+        </details>
       </div>
     </div>
-    <button class="submit-btn" onclick="switchTab('sec3')">次へ (PAT・バイタル) ➔</button>
+    
+    <button class="btn" onclick="switchTab('sec3')">次へ (PAT・バイタル) ➔</button>
   </div>
 
   <div id="tab-sec3" class="tab-content">
     <div class="card">
-      <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">⚠️ ① 小児初期評価 PAT</div>
+      <div class="card-header">
+        <span>⚠️ 小児初期評価 PAT</span>
         <button class="clear-btn" onclick="clearSection('sec3-pat')">クリア</button>
       </div>
-      <div class="card-section" style="padding:10px 16px;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:4px;">全般的印象 (Appearance)</div>
+      <div class="card-section">
+        <div class="section-label">全般的印象 (Appearance)</div>
         <div class="chip-grid" id="pat-g-a"><div class="chip on" onclick="selectPat(this,'a','不明')">不明</div><div class="chip" onclick="selectPat(this,'a','正常')">正常</div><div class="chip" onclick="selectPat(this,'a','異常(筋緊張低下)')">異常(筋緊張低下)</div><div class="chip" onclick="selectPat(this,'a','異常(傾眠)')">異常(傾眠)</div><div class="chip" onclick="selectPat(this,'a','異常(嗜眠)')">異常(嗜眠)</div><div class="chip" onclick="selectPat(this,'a','異常(不機嫌)')">異常(不機嫌・あやせない)</div></div>
       </div>
-      <div class="card-section" style="padding:10px 16px;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:4px;">呼吸の仕事量 (Breathing)</div>
+      <div class="card-section">
+        <div class="section-label">呼吸の仕事量 (Breathing)</div>
         <div class="chip-grid" id="pat-g-b"><div class="chip on" onclick="selectPat(this,'b','不明')">不明</div><div class="chip" onclick="selectPat(this,'b','正常')">正常</div><div class="chip" onclick="selectPat(this,'b','異常(陥没呼吸)')">異常(陥没呼吸)</div><div class="chip" onclick="selectPat(this,'b','異常(鼻翼呼吸)')">異常(鼻翼呼吸)</div><div class="chip" onclick="selectPat(this,'b','異常(呻吟)')">異常(呻吟)</div><div class="chip" onclick="selectPat(this,'b','異常(喘鳴)')">異常(喘鳴)</div></div>
       </div>
-      <div class="card-section" style="padding:10px 16px;">
-        <div style="font-size:12px; font-weight:bold; margin-bottom:4px;">皮膚循環 (Circulation)</div>
+      <div class="card-section">
+        <div class="section-label">皮膚循環 (Circulation)</div>
         <div class="chip-grid" id="pat-g-c"><div class="chip on" onclick="selectPat(this,'c','不明')">不明</div><div class="chip" onclick="selectPat(this,'c','正常')">正常</div><div class="chip" onclick="selectPat(this,'c','異常(蒼白)')">異常(蒼白)</div><div class="chip" onclick="selectPat(this,'c','異常(冷汗)')">異常(冷汗)</div><div class="chip" onclick="selectPat(this,'c','異常(大理石様斑)')">異常(大理石/網状斑)</div><div class="chip" onclick="selectPat(this,'c','異常(チアノーゼ)')">異常(チアノーゼ)</div></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-section card-title-flex"><div class="section-label" style="margin:0;">② バイタルサイン ➔ 異常値アラート連動</div></div>
+      <div class="card-header"><span>② バイタルサイン ➔ 異常値アラート連動</span></div>
       
       <div class="inline-field"><span class="field-label">心拍数 (HR) <span class="normal-range-hint" id="hint-hr"></span></span><input type="text" id="v-vit-hr" class="num-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="forceHalf(this); triggerPEWS();"></div>
       <div class="inline-field"><span class="field-label">SpO2 (%) <span class="normal-range-hint" id="hint-spo2">目安: 95-100%</span></span><input type="text" id="v-vit-spo2" class="num-input" autocomplete="off" inputmode="numeric" pattern="[0-9]*" oninput="forceHalf(this); triggerPEWS();"></div>
@@ -355,16 +394,16 @@
         <div style="display:flex; gap:8px; margin-bottom:8px;">
           <div class="btn-group" id="g-ox-device" style="flex:1;"><button class="group-btn active" data-val="なし" onclick="tBtn('g-ox-device','なし'); toggleVent(false);">なし(RA)</button><button class="group-btn" data-val="経鼻" onclick="tBtn('g-ox-device','経鼻'); toggleVent(false);">経鼻</button><button class="group-btn" data-val="マスク" onclick="tBtn('g-ox-device','マスク'); toggleVent(false);">マスク</button><button class="group-btn" data-val="リザーバ" onclick="tBtn('g-ox-device','リザーバ'); toggleVent(false);">リザーバ</button><button class="group-btn" data-val="人工呼吸器" onclick="tBtn('g-ox-device','人工呼吸器'); toggleVent(true);">人工呼吸器</button></div>
         </div>
-        <div class="btn-group" id="g-ox-flow" style="margin:0;"><button class="group-btn active" data-val="-" onclick="tBtn('g-ox-flow','-')">流量...</button><button class="group-btn" data-val="1L/min" onclick="tBtn('g-ox-flow','1L/min')">1L/min</button><button class="group-btn" data-val="2L/min" onclick="tBtn('g-ox-flow','2L/min')">2L</button><button class="group-btn" data-val="4L/min" onclick="tBtn('g-ox-flow','4L/min')">4L</button><button class="group-btn" data-val="6L/min" onclick="tBtn('g-ox-flow','6L/min')">6L</button><button class="group-btn" data-val="10L/min" onclick="tBtn('g-ox-flow','10L/min')">10L</button><button class="group-btn" data-val="15L/min" onclick="tBtn('g-ox-flow','15L/min')">15L/min</button></div>
-        <div id="panel-vent" class="hidden-panel" style="margin:8px 0 0 0; padding:8px;"><input type="text" id="v-ox-vent-memo" autocomplete="off" placeholder="呼吸器設定詳細 (SIMV, PEEP, 濃度等)" style="width:100%; border:none; border-radius:4px; padding:6px; font-size:13px; text-align:left;" oninput="syncToPrintLayout()"></div>
+        <div class="btn-group" id="g-ox-flow" style="margin:0;"><button class="group-btn active" data-val="-" onclick="tBtn('g-ox-flow','-')">流量...</button><button class="group-btn" data-val="1L/min" onclick="tBtn('g-ox-flow','1L/min')">1L/min</button><button class="group-btn" data-val="2L/min" onclick="tBtn('g-ox-flow','2L/min')">2L</button><button class="group-btn" data-val="4L/min" onclick="tBtn('g-ox-flow','4L/min')">4L</button><button class="group-btn" data-val="6L/min" onclick="tBtn('g-ox-flow','6L/min')">6L</button><button class="group-btn" data-val="10L/min" onclick="tBtn('g-ox-flow','10L/min')">10L</button><button class="group-btn" data-val="15L/min" onclick="tBtn('g-ox-flow','15L/min')">15L</button></div>
+        <div id="panel-vent" class="hidden-panel"><input type="text" id="v-ox-vent-memo" autocomplete="off" placeholder="呼吸器設定詳細 (SIMV, PEEP, 濃度等)" oninput="syncToPrintLayout()"></div>
       </div>
 
       <div class="card-section">
-        <div class="section-label">意識レベル評価</div>
+        <div class="section-label">意識レベル評価 <input type="text" id="v-vit-jcs" style="display:none;" value="不明"></div>
         <div class="btn-group" id="g-con-mode" style="margin:0 0 12px 0; width:100%;">
-          <button class="group-btn active" data-val="不明" onclick="setConsciousnessTab('不明')" style="flex:1;">不明</button>
-          <button class="group-btn" data-val="JCS" onclick="setConsciousnessTab('JCS')" style="flex:1;">JCS</button>
-          <button class="group-btn" data-val="GCS" onclick="setConsciousnessTab('GCS')" style="flex:1;">GCS</button>
+          <button class="group-btn active" data-val="不明" onclick="setConsciousnessTab('不明')">不明</button>
+          <button class="group-btn" data-val="JCS" onclick="setConsciousnessTab('JCS')">JCS</button>
+          <button class="group-btn" data-val="GCS" onclick="setConsciousnessTab('GCS')">GCS</button>
         </div>
 
         <div id="panel-jcs-layer" style="display:none; background:rgba(242,242,247,0.5); padding:10px; border-radius:8px; margin-bottom:10px;">
@@ -378,10 +417,10 @@
         <div id="panel-gcs-layer" style="display:none; background:rgba(242,242,247,0.5); padding:10px; border-radius:8px;">
           <div class="section-label" style="margin-bottom:4px;">GCS自動合計: <span id="gcs-total" style="color:var(--brand); font-weight:800;">E-- V-- M-- = --点</span></div>
           <div style="display:flex; gap:8px; margin-bottom:10px;">
-            <button class="clear-btn" style="background:var(--blue); flex:1; font-size:12px; padding:10px;" onclick="quickSetGCS(15)">🟢 15点一括点灯(E4V5M6)</button>
-            <button class="clear-btn" style="background:var(--brand); flex:1; font-size:12px; padding:10px;" onclick="quickSetGCS(3)">🔴 3点一括点灯(E1V1M1)</button>
+            <button class="btn small" style="flex:1; background:var(--blue);" onclick="quickSetGCS(15)">🟢 15点一括点灯</button>
+            <button class="btn small danger" style="flex:1;" onclick="quickSetGCS(3)">🔴 3点一括点灯</button>
           </div>
-          <div id="gcs-development-hint" style="font-size:11px; font-weight:bold; color:var(--med-blue-text); background:var(--med-blue); padding:6px; border-radius:6px; margin-bottom:8px; text-align:center;">【発達目安】乳児:あやすと笑う(V5) / 幼児学童:見当識(V5)</div>
+          <div style="font-size:11px; font-weight:bold; color:var(--med-blue-text); background:var(--med-blue); padding:6px; border-radius:6px; margin-bottom:8px; text-align:center;">【発達目安】乳児:あやすと笑う(V5) / 幼児学童:見当識(V5)</div>
           <div class="gcs-row"><div class="gcs-title">E</div><div class="gcs-seg" id="gcs-e-group"><button class="gcs-btn" data-val="1" onclick="setGCS('e','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('e','2')">2<div class="gcs-scale">疼痛</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('e','3')">3<div class="gcs-scale">音声</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('e','4')">4<div class="gcs-scale">自発</div></button></div></div>
           <div class="gcs-row"><div class="gcs-title">V</div><div class="gcs-seg" id="gcs-v-group"><button class="gcs-btn" data-val="T" onclick="setGCS('v','T')">T<div class="gcs-scale">挿管</div></button><button class="gcs-btn" data-val="1" onclick="setGCS('v','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('v','2')">2<div class="gcs-scale">理解不能</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('v','3')">3<div class="gcs-scale">不適当</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('v','4')">4<div class="gcs-scale">混乱</div></button><button class="gcs-btn" data-val="5" onclick="setGCS('v','5')">5<div class="gcs-scale" id="gcs-v5-label">見当識</div></button></div></div>
           <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" data-val="1" onclick="setGCS('m','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('m','2')">2<div class="gcs-scale">異常伸展</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('m','3')">3<div class="gcs-scale">異常屈曲</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('m','4')">4<div class="gcs-scale">逃避</div></button><button class="gcs-btn" data-val="5" onclick="setGCS('m','5')">5<div class="gcs-scale">疼痛部</div></button><button class="gcs-btn" data-val="6" onclick="setGCS('m','6')">6<div class="gcs-scale">従命</div></button></div></div>
@@ -392,50 +431,63 @@
         PEWSスコア: <span id="lbl-pews-total" style="font-size:24px; font-weight:900;">0</span> 点
       </div>
     </div>
-    <button class="submit-btn" onclick="switchTab('sec4')">次へ (役割分担) ➔</button>
+    <button class="btn" onclick="switchTab('sec4')">次へ (役割分担) ➔</button>
   </div>
 
   <div id="tab-sec4" class="tab-content">
     <div class="card">
-      <div class="card-section card-title-flex">
-        <div class="section-label" style="margin:0;">④ 役割分担・コンタクトリスト</div>
+      <div class="card-header">
+        <span>👥 役割分担・コンタクトリスト</span>
         <button class="clear-btn" onclick="clearMatrix()">クリア</button>
       </div>
-      <div class="card-section" style="padding:0; overflow-x:auto;">
+      <div class="card-body" style="padding:0; overflow-x:auto;">
         <table class="staff-table" id="staff-table">
           <thead><tr><th>所属・氏名</th><th>統括</th><th>気道</th><th>圧迫</th><th>薬剤</th><th>記録</th></tr></thead>
           <tbody id="staff-tbody"><tr><td colspan="6" style="padding:20px; color:var(--sub);">名簿取得中...</td></tr></tbody>
-          
-          <tbody id="free-staff-tbody">
-            </tbody>
+          <tbody id="free-staff-tbody"></tbody>
         </table>
       </div>
-      <div class="card-section" style="text-align:center; padding:8px;">
+      <div class="card-body" style="text-align:center; padding:12px;">
         <div style="display:flex; justify-content:center; align-items:center;">
-          <input type="text" id="v-new-staff" placeholder="職種 氏名(例: Dr 田中)" style="width:140px; padding:4px; font-size:11px; margin:0;">
+          <input type="text" id="v-new-staff" placeholder="職種 氏名(例: Dr 田中)" style="width:140px; padding:8px; font-size:12px; margin:0;">
           <button class="add-master-btn" onclick="addMaster('staff', 'v-new-staff', this)">＋マスタ登録</button>
-          <button class="clear-btn" style="background:var(--blue); padding:6px 16px; font-size:11px; margin-left:16px;" onclick="addFreeStaffRow()">一時追加</button>
+          <button class="btn small" style="margin-left:16px;" onclick="addFreeStaffRow()">一時追加</button>
         </div>
       </div>
-      <div class="card-section" style="background:rgba(242,242,247,0.5);">
+      <div class="card-body" style="background:rgba(242,242,247,0.5); border-top:1px solid var(--line);">
         <div class="section-label">特殊・その他役割</div>
-        <input type="text" id="v-role-other" placeholder="例: ECMO担当(田中)、家族対応(佐藤)..." style="width:100%; font-size:13px; padding:10px; text-align:left; background:#fff; border:1px solid var(--line); border-radius:6px;" oninput="syncToPrintLayout()">
+        <input type="text" id="v-role-other" placeholder="例: ECMO担当(田中)、家族対応(佐藤)..." oninput="syncToPrintLayout()">
       </div>
     </div>
-    <button class="submit-btn" onclick="switchTab('sec5')">次へ (プロトコル) ➔</button>
+    <button class="btn" onclick="switchTab('sec5')">次へ (プロトコル) ➔</button>
   </div>
 
   <div id="tab-sec5" class="tab-content">
     <div class="card">
-      <div class="card-section"><div class="section-label">① シナリオ選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div><div class="chip-grid" id="box-scenarios"></div></div>
-      <div class="card-section"><div class="section-label">② セット選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div><div class="chip-grid" id="box-sets"></div></div>
+      <div class="card-body">
+        <div class="section-label">① シナリオ選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div>
+        <div class="chip-grid" id="box-scenarios"></div>
+      </div>
+      <div class="card-body" style="border-top:1px solid var(--line);">
+        <div class="section-label">② セット選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div>
+        <div class="chip-grid" id="box-sets"></div>
+      </div>
       
-      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">③ 薬剤準備指示 (単発ショット) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-drugs-single"></div></div>
-      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">④ 薬剤準備指示 (持続・ポンプ) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-drugs-cont"></div></div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">③ 薬剤準備指示 (単発) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-drugs-single"></div>
+      </div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">④ 薬剤準備指示 (持続) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-drugs-cont"></div>
+      </div>
       
-      <div class="card-section" style="background:rgba(242,242,247,0.3);"><div class="section-label">⑤ 物品準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div><div class="chip-grid" id="box-equip"></div></div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">⑤ 物品準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-equip"></div>
+      </div>
     </div>
-    <button class="submit-btn" onclick="switchTab('sec6')">次へ (一括プレビュー) ➔</button>
+    <button class="btn" onclick="switchTab('sec6')">次へ (一括プレビュー) ➔</button>
   </div>
 
   <div id="tab-sec6" class="tab-content">
@@ -444,23 +496,25 @@
   </div>
 
   <div id="tab-sec7" class="tab-content">
-    <div class="card" style="padding: 16px;">
-      <div class="section-label">📊 小児基準成長曲線 (日本小児内分泌学会公式)</div>
-      <div class="chart-container">
-        <div class="chart-box">
-          <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
-        </div>
-        <div class="chart-box">
-          <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜6歳 幼児成長曲線】</p>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
-        </div>
-        <div class="chart-box">
-          <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜18歳 児童・学童成長曲線】</p>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
-          <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
+    <div class="card">
+      <div class="card-header">📊 小児基準成長曲線 (日本小児内分泌学会公式)</div>
+      <div class="card-body">
+        <div class="chart-container">
+          <div class="chart-box">
+            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜2歳 乳幼児成長曲線】</p>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-2_jpn_2.pdf" target="_blank">🚹 男児0-2才曲線(PDF) ➔</a>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-2_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-2才曲線(PDF) ➔</a>
+          </div>
+          <div class="chart-box">
+            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜6歳 幼児成長曲線】</p>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-6_jpn_2.pdf" target="_blank">🚹 男児0-6才曲線(PDF) ➔</a>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-6_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-6才曲線(PDF) ➔</a>
+          </div>
+          <div class="chart-box">
+            <p style="font-size:12px; font-weight:bold; color:var(--ink);">【0〜18歳 児童・学童成長曲線】</p>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_boy0-18_jpn_2.pdf" target="_blank">🚹 男児0-18才曲線(PDF) ➔</a>
+            <a class="chart-link-btn" href="https://jspe.umin.jp/medical/files_chart/CGC_girl0-18_jpn_2.pdf" target="_blank" style="background:#e06666;">🚺 女児0-18才曲線(PDF) ➔</a>
+          </div>
         </div>
       </div>
     </div>
@@ -468,6 +522,9 @@
 </main>
 
 <script>
+  // -----------------------------------------------------
+  // V5.1 バックエンド連携 & ロジック
+  // -----------------------------------------------------
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
 
   let HOSPITAL_DB = { "小児科": ["データ取得中..."] };
@@ -520,7 +577,33 @@
     } catch(e) {}
   }
 
-  // ★ UIを絶対にフリーズさせない安全版のマスタ登録関数
+  // ★ ETAスマート計算関数
+  function setETA(minutesToAdd) {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + minutesToAdd);
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const etaInput = document.getElementById('v-eta');
+    etaInput.value = `${hh}:${mm}`;
+    
+    const chips = event.target.parentElement.querySelectorAll('.chip');
+    chips.forEach(c => c.classList.remove('active-blue'));
+    event.target.classList.add('active-blue');
+    
+    syncToPrintLayout();
+  }
+
+  // ★ 入電元のUI切り替え
+  function setOriginMode(m) {
+    document.querySelectorAll('#g-case-origin .group-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById("panel-referral").style.display = (m === '紹介受入') ? 'block' : 'none';
+    document.getElementById("panel-ems").style.display = (m === '救急搬送') ? 'block' : 'none';
+    syncToPrintLayout();
+  }
+
+  // ★ マスタ直接追加通信機能
   function addMaster(target, inputId, btnEl) {
     try {
       const inputEl = document.getElementById(inputId);
@@ -666,7 +749,7 @@
 
     const hospCatBox = document.getElementById("g-hosp-cat");
     if (Object.keys(HOSPITAL_DB).length > 0) {
-      hospCatBox.innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<button class="group-btn" data-val="${cat}" onclick="expandHosp('${cat}', this)">${cat}</button>`).join("");
+      hospCatBox.innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<div class="chip" data-val="${cat}" onclick="expandHosp('${cat}', this)">${cat}</div>`).join("");
     }
 
     const kwBox = document.getElementById("box-keywords");
@@ -761,21 +844,13 @@
 
   function moveFocusToDec(el) { if(el.value.length >= 2) document.getElementById("v-vit-bt-dec").focus(); }
 
-  function setOriginMode(m) {
-    document.querySelectorAll('#g-case-origin .group-btn').forEach(b => b.classList.toggle('active', b.dataset.val === m));
-    document.getElementById("card-referral-selector").style.display = (m === '紹介受入') ? 'block' : 'none';
-    syncToPrintLayout();
-  }
-
   function expandHosp(cat, btn) {
     try {
-      document.querySelectorAll("#g-hosp-cat .group-btn").forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const hc = document.getElementById("panel-hospital-chips");
+      document.querySelectorAll("#g-hosp-cat .chip").forEach(b => b.classList.remove('active-blue'));
+      btn.classList.add('active-blue');
       const hb = document.getElementById("box-hospital-chips");
-      if(!cat || !HOSPITAL_DB[cat]) { hc.style.display = "none"; return; }
-      hc.style.display = "block";
-      hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.querySelectorAll('#box-hospital-chips .chip').forEach(c=>c.classList.remove('on')); this.classList.add('on'); document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
+      if(!cat || !HOSPITAL_DB[cat]) { hb.innerHTML = ''; return; }
+      hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
     } catch(e) {}
   }
 
@@ -788,8 +863,8 @@
   }
 
   function setTxMain(mode) { 
-    document.querySelectorAll('#g-tx-main .group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===mode)); 
-    document.getElementById("panel-tx-details").style.display = mode==='あり'?'block':'none'; 
+    tBtn('g-tx-main', mode);
+    document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none'; 
     syncToPrintLayout();
   }
 
@@ -802,13 +877,37 @@
   }
   
   function setAmpleAllNone() { 
-    ['a','m','p','l'].forEach(k=>{ 
-      appState.ampStatus[k] = (k==='l')?'絶食':'なし'; 
-      const g = document.getElementById(`g-amp-${k}`); 
-      if(g) g.querySelectorAll('.group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===(k==='l'?'絶食':'なし'))); 
-      const p = document.getElementById(`panel-amp-${k}`); if(p) p.style.display='none'; 
-    }); 
+    ['a','m','p'].forEach(k => { toggleAmpInputState(k, 'なし'); });
+    toggleAmpInputState('l', '絶食');
     syncToPrintLayout();
+  }
+
+  function toggleAmpInput(key, mode) {
+    appState.ampStatus[key] = mode;
+    const group = document.getElementById(`g-amp-${key}`);
+    group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    const panel = document.getElementById(`panel-amp-${key}`);
+    const isShow = (mode === 'あり' || mode === '摂取あり');
+    panel.style.display = isShow ? 'block' : 'none';
+    if(isShow && key === 'l') {
+        panel.style.display = 'flex';
+        panel.style.flexDirection = 'column';
+    }
+    syncToPrintLayout();
+  }
+
+  function toggleAmpInputState(key, mode) {
+    appState.ampStatus[key] = mode;
+    const group = document.getElementById(`g-amp-${key}`);
+    if(group) {
+        group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+        const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode);
+        if(btn) btn.classList.add('active');
+    }
+    const panel = document.getElementById(`panel-amp-${key}`);
+    if(panel) panel.style.display = 'none';
   }
 
   function syncCalToEra(val) {
@@ -827,8 +926,6 @@
     if(sec==='sec1'){
       document.getElementById("v-eta").value=""; document.getElementById("v-era-y").value=""; document.getElementById("v-era-m").value=""; document.getElementById("v-era-d").value=""; document.getElementById("v-dob-cal").value=""; document.getElementById("v-manual-age-y").value=""; document.getElementById("v-manual-age-m").value=""; document.getElementById("v-bw").value=""; document.getElementById("v-bh").value="";
       tBtn('g-era', '西暦'); tBtn('g-sex', '不明'); setOriginMode('紹介受入');
-    }else if(sec==='sec2-tx'){
-      setTxMain('不明'); document.getElementById("v-preinfo").value="";
     }else if(sec==='sec3-pat'){
       appState.pat={a:'不明', b:'不明', c:'不明'}; document.querySelectorAll(".chip-grid .chip").forEach(c=>c.classList.remove('on')); document.querySelectorAll(".chip-grid div:first-child").forEach(c=>c.classList.add('on'));
     }else if(sec==='sec4'){
@@ -839,9 +936,22 @@
 
   function clearAllData(ask) { if(ask && confirm("全データをリセットしますか？")) location.reload(); }
   
-  function tBtn(gId, val) { const g=document.getElementById(gId); if(!g)return; g.querySelectorAll('.group-btn').forEach(b=>b.classList.toggle('active', b.dataset.val===val)); syncToPrintLayout(); }
-  function tPanel(pId, show) { if(pId) document.getElementById(pId).style.display = show?'block':'none'; }
-  function toggleAmpInput(key, mode) { appState.ampStatus[key] = mode; tBtn(`g-amp-${key}`, mode); tPanel(`panel-amp-${key}`, mode==='あり'||mode==='摂取あり'); syncToPrintLayout(); }
+  function tBtn(gId, val) { 
+    const g=document.getElementById(gId); if(!g)return; 
+    g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active')); 
+    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === val);
+    if(btn) btn.classList.add('active');
+    syncToPrintLayout(); 
+  }
+  
+  function tChipSingle(gId, el) {
+    const g = document.getElementById(gId);
+    if(!g) return;
+    g.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    syncToPrintLayout();
+  }
+
   function selectPat(el, dim, status) { const parent = el.parentElement; parent.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
   function selectLChip(el) { document.querySelectorAll('#box-ample-l-chips .chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); syncToPrintLayout(); }
   
@@ -901,7 +1011,6 @@
         let birth = new Date(fullYear, em - 1, ed), now = new Date(); mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth(); if(now.getDate() < birth.getDate()) mTotal--; if(mTotal < 0) mTotal = 0;
         let y = Math.floor(mTotal / 12), m = mTotal % 12; ageText = y > 0 ? `${y}歳${m}ヶ月` : `${m}ヶ月`;
         resolvedAgeY = y;
-        document.getElementById("v-manual-age-y").value = y; document.getElementById("v-manual-age-m").value = m;
       } else if(!isNaN(manualAgeY) || !isNaN(manualAgeM)) {
         let y = isNaN(manualAgeY) ? 0 : manualAgeY; let m = isNaN(manualAgeM) ? 0 : manualAgeM; mTotal = y * 12 + m; ageText = `${y}才${m}ヶ月`;
         resolvedAgeY = y;
@@ -945,37 +1054,51 @@
 
       const dateEta = `${document.getElementById("v-date").value} / ETA: ${document.getElementById("v-eta").value || "--:--"}`;
       
-      const originEl = document.querySelector('#g-case-origin .active'); const isShokai = originEl && originEl.dataset.val === "紹介受入";
-      const facility = isShokai ? document.getElementById("v-referral-facility").value : "救急現場（救急車）";
+      const originEl = document.querySelector('#g-case-origin .active'); 
+      const originStr = originEl ? originEl.dataset.val : "紹介受入";
+      let facility = "救急現場";
+      if (originStr === "紹介受入") {
+         facility = document.getElementById("v-referral-facility").value || "未入力";
+      } else if (originStr === "救急搬送") {
+         facility = document.getElementById("v-ems-name").value || "未入力";
+      } else {
+         facility = "その他";
+      }
 
       let preTxParts = [];
       const mainEl = document.querySelector('#g-tx-main .active'); const tMain = mainEl ? mainEl.dataset.val : "不明";
       if(tMain === "あり") {
         const tIntubEl = document.querySelector('#g-tx-intub .active'); const tIntub = tIntubEl ? tIntubEl.dataset.val : "不明";
         if(tIntub === "あり") {
-            const szEl = document.querySelector('#g-intub-size .active'); const sz = szEl ? szEl.dataset.val : "";
-            const cuffEl = document.querySelector('#g-tx-cuff .active'); const cuff = cuffEl ? cuffEl.dataset.val : "";
-            preTxParts.push(`挿管済[サイズ:${sz}mm/深さ:${document.getElementById("v-intub-depth").value}cm/カフ:${cuff}(${document.getElementById("v-intub-cuffvol").value}mL)]`);
+            const szEl = document.getElementById('v-intub-size'); const sz = szEl ? szEl.value : "";
+            const depthEl = document.getElementById('v-intub-depth'); const depth = depthEl ? depthEl.value : "";
+            preTxParts.push(`挿管済[サイズ:${sz}mm/深さ:${depth}cm]`);
         } else preTxParts.push(`挿管:${tIntub}`);
         
         const tIvEl = document.querySelector('#g-tx-iv .active'); const tIv = tIvEl ? tIvEl.dataset.val : "不明";
         if(tIv === "あり") {
-            const siteEl = document.querySelector('#g-iv-site .active'); const site = siteEl ? siteEl.dataset.val : "";
-            const gEl = document.querySelector('#g-iv-g .active'); const gSize = gEl ? gEl.dataset.val : "";
-            const numEl = document.querySelector('#g-iv-num .active'); const num = numEl ? numEl.dataset.val : "";
-            preTxParts.push(`静脈路[${site}/${gSize}/${num}]`);
+            const siteEl = document.querySelector('#g-iv-site .on'); const site = siteEl ? siteEl.dataset.val : "";
+            preTxParts.push(`静脈路[${site}]`);
         } else preTxParts.push(`静脈路:${tIv}`);
         
         const tCprEl = document.querySelector('#g-tx-cpr .active'); const tCpr = tCprEl ? tCprEl.dataset.val : "不明";
         if(tCpr === "あり") {
-            const rhyEl = document.querySelector('#g-cpr-rhythm .active'); const rhy = rhyEl ? rhyEl.dataset.val : "";
-            preTxParts.push(`蘇生[波形:${rhy}/DC:${document.getElementById("v-cpr-dc-count").value}回/${document.getElementById("v-cpr-dc-j").value}J]`);
+            const dcCountEl = document.getElementById("v-cpr-dc-count"); const count = dcCountEl ? dcCountEl.value : "";
+            const dcJEl = document.getElementById("v-cpr-dc-j"); const j = dcJEl ? dcJEl.value : "";
+            preTxParts.push(`蘇生[DC:${count}回/${j}J]`);
         } else preTxParts.push(`蘇生:${tCpr}`);
       } else { preTxParts.push(`実施処置: ${tMain}`); }
 
+      const vPreinfo = document.getElementById("v-preinfo");
+      if (vPreinfo && vPreinfo.value.trim()) {
+        preTxParts.push(vPreinfo.value.trim());
+      }
       appState.preTxText = preTxParts.join(' / '); 
 
-      const preinfoText = `【照会元・発生場所】: ${facility}\n【要請・紹介目的】: ${document.getElementById("v-case-title").value || "未入力"}\n【キーワード】: ${appState.keywords.join(", ")}\n【前医・現場処置】: ${appState.preTxText}\n【経過・概要・特記】: ${document.getElementById("v-case-summary").value || ''}\n${document.getElementById("v-preinfo").value || ''}`;
+      const vSummary = document.getElementById("v-case-summary");
+      const summaryText = vSummary ? vSummary.value : "";
+      
+      const preinfoText = `【照会元・発生場所】: ${facility}\n【要請・紹介目的】: ${appState.keywords.join(", ")}\n【前医・現場処置】: ${appState.preTxText}\n【経過・概要・特記】: ${summaryText}`;
       
       let lText = "不明"; 
       if(appState.ampStatus.l === '絶食') lText = "絶食"; 
@@ -1097,11 +1220,6 @@
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       appState.page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
-      appState.ampleHTML = ampleHTML;
-      appState.vitalsHTML = vitalsHTML;
-      appState.patHTML = `A:${appState.pat.a}/B:${appState.pat.b}/C:${appState.pat.c}`;
-      appState.pewsHTML = appState.pews + "点";
-      
     } catch(e) {}
   }
 
@@ -1130,13 +1248,20 @@
     let id = document.getElementById("v-id").value.trim(); if(!id) { const n = new Date(); id = `P${String(n.getMonth()+1).padStart(2,'0')}${String(n.getDate()).padStart(2,'0')}${String(n.getHours()).padStart(2,'0')}${String(n.getMinutes()).padStart(2,'0')}(仮)`; }
     let activeScenarios = []; document.querySelectorAll("#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on").forEach(el => activeScenarios.push(el.textContent));
     
-    let summaryText = appState.page1HTML ? appState.page1HTML.replace(/<[^>]+>/g, ' ').substring(0, 150) + '...' : "";
     let dt = `【薬剤準備】\n`; master.drugs.forEach(d => { if(appState.checkedItems[d.btnName]) { let v = (appState.calcWeight>0) ? (d.stdDose * appState.calcWeight) / (d.concMg / d.concVol) : 0; dt += ` ・ ${d.name}: ${d.type==="単発薬"?v.toFixed(2)+"mL":'持続'} \n`; } }); dt += `【物品】\n`; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && appState.calcWeight >= e.minW && appState.calcWeight <= e.maxW) { dt += ` ・ ${e.name}: ${e.size}\n`; } });
     
     let sexEl = document.querySelector('#g-sex .active'); const sexStr = sexEl ? sexEl.textContent : "不明";
-    let originEl = document.querySelector('#g-case-origin .active'); const originStr = originEl ? originEl.textContent : "";
-    let hospStr = document.getElementById("v-referral-facility").value || "";
-    let sumStr = document.getElementById("v-case-summary").value || "";
+    
+    const originEl = document.querySelector('#g-case-origin .active'); 
+    const originStr = originEl ? originEl.dataset.val : "紹介受入";
+    let hospStr = "";
+    if (originStr === "紹介受入") {
+       hospStr = document.getElementById("v-referral-facility").value || "";
+    } else if (originStr === "救急搬送") {
+       hospStr = document.getElementById("v-ems-name").value || "";
+    }
+    
+    let sumStr = document.getElementById("v-case-summary") ? document.getElementById("v-case-summary").value : "";
 
     const payload = { 
       action: "peds_submit",
