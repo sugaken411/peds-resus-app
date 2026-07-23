@@ -836,6 +836,18 @@
     syncToPrintLayout();
   }
 
+ // ★新設: アコーディオンの見出しに現在の状態を色付きで表示する関数
+  function updateAmpSummary(key, mode) {
+    const group = document.getElementById(`g-amp-${key}`);
+    if (group && group.previousElementSibling && group.previousElementSibling.tagName === 'SUMMARY') {
+      const summary = group.previousElementSibling;
+      const titles = { 'a': '(A) アレルギー', 'm': '(M) 内服薬/定期薬', 'p': '(P) 既往歴/合併症', 'l': '(L) 最終食事' };
+      // 状態に応じて色を変える（不明:グレー、なし/絶食:緑、あり:赤）
+      let color = mode === '不明' ? 'var(--sub)' : (mode === 'なし' || mode === '絶食' ? 'var(--success)' : 'var(--brand)');
+      summary.innerHTML = `${titles[key]} <span style="font-size:12px; color:${color}; font-weight:bold; margin-left:auto; margin-right:12px;">[${mode}]</span>`;
+    }
+  }
+
   function toggleAmpInput(key, mode) {
     appState.ampStatus[key] = mode; 
     const group = document.getElementById(`g-amp-${key}`);
@@ -844,7 +856,11 @@
       const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode);
       if(btn) btn.classList.add('active');
     }
-    const panel = document.getElementById(`panel-amp-${key}`); 
+    
+    // ★修正: パネルのIDを探す時、panel-amp-がない場合は v-amp- を探すように改善
+    let panel = document.getElementById(`panel-amp-${key}`); 
+    if(!panel) panel = document.getElementById(`v-amp-${key}`);
+    
     const isShow = (mode === 'あり' || mode === '摂取あり');
     if(panel) {
       panel.style.display = isShow ? 'block' : 'none'; 
@@ -854,6 +870,7 @@
         if(!document.getElementById('v-amp-l-date').value) document.getElementById('v-amp-l-date').valueAsDate = new Date(); 
       }
     }
+    updateAmpSummary(key, mode); // 見出しを更新
     syncToPrintLayout();
   }
 
@@ -870,11 +887,16 @@
       const btn = Array.from(group.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); 
       if(btn) btn.classList.add('active'); 
     }
-    const panel = document.getElementById(`panel-amp-${key}`); 
+    
+    // ★修正: こちらもパネルのID修正を適用
+    let panel = document.getElementById(`panel-amp-${key}`); 
+    if(!panel) panel = document.getElementById(`v-amp-${key}`);
     if(panel) panel.style.display = 'none'; 
+    
+    updateAmpSummary(key, mode); // 見出しを更新
     syncToPrintLayout();
   }
-
+  
   function tBtn(gId, val) {
     const g = document.getElementById(gId); if(!g) return;
     g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
