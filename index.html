@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f2f2f7">
-  <title>小児疾患・蘇生作戦盤 V5</title>
+  <title>小児疾患・蘇生作戦盤 V5.5</title>
   <style>
     :root { 
       --bg: #f2f2f7; --card: #ffffff; --ink: #111827; --sub: #6b7280; 
@@ -51,13 +51,11 @@
     
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .time-row { display: flex; gap: 8px; align-items: center; }
     
     input[type="text"], input[type="number"], input[type="date"], input[type="time"], select { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; transition: 0.2s; }
     input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 2px var(--med-blue); }
     textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 14px; color: var(--ink); line-height: 1.5; outline: none; resize: none; min-height: 80px; }
     input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 6px; border-radius: 6px; width: 60px; border: none; color: var(--blue); outline: none; font-weight: 600; }
-    
     select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236b7280' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
 
     .btn-group { display: flex; flex-wrap: wrap; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; }
@@ -150,7 +148,7 @@
     <button class="hdr-btn" onclick="location.href='portal.html'" style="background:var(--ink); color:#fff;">🏠 ポータル</button>
     <button class="hdr-btn" style="background:var(--line); color:var(--ink);" onclick="clearAllData(true)">🔄 消去</button>
   </div>
-  <div class="title-box">小児作戦盤<span class="version-tag">V5.4</span></div>
+  <div class="title-box">小児作戦盤<span class="version-tag">V5.5</span></div>
   <div class="hdr-group">
     <button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button>
   </div>
@@ -303,8 +301,8 @@
             <summary>気管挿管</summary>
             <div class="btn-group" id="g-tx-intub"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-intub','不明');">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-intub','なし');">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-intub','あり');">あり</button></div>
             <div class="grid2" style="margin-top:8px;">
-              <input type="number" id="v-intub-size" placeholder="サイズ mm" oninput="syncToPrintLayout();">
-              <input type="number" id="v-intub-depth" placeholder="深さ cm" oninput="syncToPrintLayout();">
+              <input type="text" class="num-input" inputmode="decimal" id="v-intub-size" placeholder="サイズ mm" oninput="forceHalf(this); syncToPrintLayout();" style="width:100%;">
+              <input type="text" class="num-input" inputmode="decimal" id="v-intub-depth" placeholder="深さ cm" oninput="forceHalf(this); syncToPrintLayout();" style="width:100%;">
             </div>
           </details>
 
@@ -318,8 +316,8 @@
             <summary>蘇生・除細動 (CPA)</summary>
             <div class="btn-group" id="g-tx-cpr"><button class="group-btn active" data-val="不明" onclick="tBtn('g-tx-cpr','不明');">不明</button><button class="group-btn" data-val="なし" onclick="tBtn('g-tx-cpr','なし');">なし</button><button class="group-btn" data-val="あり" onclick="tBtn('g-tx-cpr','あり');">あり</button></div>
             <div class="grid2" style="margin-top:8px;">
-              <input type="number" id="v-cpr-dc-count" placeholder="DC回数" oninput="syncToPrintLayout();">
-              <input type="number" id="v-cpr-dc-j" placeholder="J数" oninput="syncToPrintLayout();">
+              <input type="text" class="num-input" inputmode="numeric" id="v-cpr-dc-count" placeholder="DC回数" oninput="forceHalf(this); syncToPrintLayout();" style="width:100%;">
+              <input type="text" class="num-input" inputmode="numeric" id="v-cpr-dc-j" placeholder="J数" oninput="forceHalf(this); syncToPrintLayout();" style="width:100%;">
             </div>
           </details>
           
@@ -357,6 +355,13 @@
           <summary>(L) 最終食事</summary>
           <div class="btn-group" id="g-amp-l"><button class="group-btn active" data-val="不明" onclick="toggleAmpInput('l','不明')">不明</button><button class="group-btn" data-val="絶食" onclick="toggleAmpInput('l','絶食')">絶食</button><button class="group-btn" data-val="摂取あり" onclick="toggleAmpInput('l','摂取あり')">摂取あり</button></div>
           <div id="panel-amp-l" class="hidden-panel" style="display:none; margin-top:8px; padding:0; background:none; border:none;">
+            <div class="chips" style="margin-bottom:8px;">
+              <div class="chip" onclick="setMealTime('昨日')">昨日</div>
+              <div class="chip" onclick="setMealTime('今日')">今日</div>
+              <div class="chip" onclick="setMealTime('朝食')">朝食</div>
+              <div class="chip" onclick="setMealTime('昼食')">昼食</div>
+              <div class="chip" onclick="setMealTime('夕食')">夕食</div>
+            </div>
             <div class="grid2" style="margin-bottom:8px;">
               <input type="date" id="v-amp-l-date" onchange="syncToPrintLayout()">
               <input type="time" id="v-amp-l-time" onchange="syncToPrintLayout()">
@@ -414,7 +419,13 @@
       <div class="card-section">
         <div class="section-label">酸素投与設定</div>
         <div style="display:flex; gap:8px; margin-bottom:8px;">
-          <div class="btn-group" id="g-ox-device" style="flex:1;"><button class="group-btn active" data-val="なし" onclick="tBtn('g-ox-device','なし'); toggleVent(false);">なし(RA)</button><button class="group-btn" data-val="経鼻" onclick="tBtn('g-ox-device','経鼻'); toggleVent(false);">経鼻</button><button class="group-btn" data-val="マスク" onclick="tBtn('g-ox-device','マスク'); toggleVent(false);">マスク</button><button class="group-btn" data-val="リザーバ" onclick="tBtn('g-ox-device','リザーバ'); toggleVent(false);">リザーバ</button><button class="group-btn" data-val="人工呼吸器" onclick="tBtn('g-ox-device','人工呼吸器'); toggleVent(true);">人工呼吸器</button></div>
+          <div class="btn-group" id="g-ox-device" style="flex:1;">
+            <button class="group-btn active" data-val="なし" onclick="setOxDevice('なし')">なし(RA)</button>
+            <button class="group-btn" data-val="経鼻" onclick="setOxDevice('経鼻')">経鼻</button>
+            <button class="group-btn" data-val="マスク" onclick="setOxDevice('マスク')">マスク</button>
+            <button class="group-btn" data-val="リザーバ" onclick="setOxDevice('リザーバ')">リザーバ</button>
+            <button class="group-btn" data-val="人工呼吸器" onclick="setOxDevice('人工呼吸器')" style="color:var(--brand);">人工呼吸器</button>
+          </div>
         </div>
         <div class="btn-group" id="g-ox-flow" style="margin:0;">
           <button class="group-btn" data-val="1L/min" onclick="setO2Flow('1L/min', this)">1L</button>
@@ -425,7 +436,27 @@
           <button class="group-btn" data-val="15L/min" onclick="setO2Flow('15L/min', this)">15L</button>
         </div>
         <input type="text" id="v-ox-flow-free" placeholder="流量フリー入力 (例: 3L)" oninput="document.querySelectorAll('#g-ox-flow .group-btn').forEach(b=>b.classList.remove('active')); syncToPrintLayout();" style="margin-top:8px; border:1px solid var(--line);">
-        <div id="panel-vent" class="hidden-panel"><input type="text" id="v-ox-vent-memo" autocomplete="off" placeholder="呼吸器設定詳細 (SIMV, PEEP, 濃度等)" oninput="syncToPrintLayout()"></div>
+        
+        <div id="panel-vent" class="hidden-panel" style="background:#e8f5e9; border:2px solid var(--success); padding:12px; border-radius:8px;">
+          <div class="section-label" style="color:var(--success);">📟 人工呼吸器の準備 (ME依頼)</div>
+          <div class="btn-group" id="g-me-req">
+            <button class="group-btn active" data-val="不要" onclick="setMeReq('不要')">不要 (持参等)</button>
+            <button class="group-btn" data-val="必要" onclick="setMeReq('必要')" style="background:var(--success); color:#fff;">必要 (依頼書作成)</button>
+          </div>
+          
+          <div id="panel-me-details" style="display:none; margin-top:12px;">
+            <div class="section-label">機種の選択 <span style="font-size:10px; font-weight:normal;">※体重で適応フィルタ済み</span></div>
+            <div id="box-vent-models" style="margin-bottom:8px;"></div>
+            <input type="text" id="v-vent-custom" placeholder="その他機種フリー入力" oninput="document.querySelectorAll('#box-vent-models input').forEach(r=>r.checked=false); syncToPrintLayout();">
+            
+            <div class="section-label" style="margin-top:12px;">加湿システムの選択</div>
+            <div class="btn-group" id="g-vent-humid">
+              <button class="group-btn active" data-val="能動加湿器" onclick="tBtn('g-vent-humid','能動加湿器')">能動加湿器</button>
+              <button class="group-btn" data-val="人工鼻(HME)" onclick="tBtn('g-vent-humid','人工鼻(HME)')">人工鼻</button>
+            </div>
+            <input type="text" id="v-ox-vent-memo" autocomplete="off" placeholder="その他 呼吸器設定指示 (SIMV, PEEP等)" oninput="syncToPrintLayout()" style="margin-top:8px;">
+          </div>
+        </div>
       </div>
 
       <div class="card-section">
@@ -557,7 +588,7 @@
   let HOSPITAL_DB = { "小児科": ["データ取得中..."] };
   let EMS_DB = { "地域": ["データ取得中..."] };
 
-  let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [], keywords: [], hospitals: {}, emsList: {} };
+  let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [], keywords: [], hospitals: {}, emsList: {}, ventilators: [], settings: {} };
   let appState = { 
     origin: "", etaText: "", calcWeight: 0, calcHeight: 0, ageY: 0, isBwManual: false, isBhManual: false, checkedItems: {}, isCustomized: false, keywords: [],
     gcs: { e: '不明', v: '不明', m: '不明' }, pews: 0, pat: {a:'不明', b:'不明', c:'不明'}, 
@@ -565,6 +596,19 @@
     staffRoles: {leader:[], airway:[], cpr:[], route:[], record:[], other:[]},
     preTxText: "", ampleHTML: "", vitalsHTML: ""
   };
+
+  function setupEnterKeyNavigation() {
+    document.addEventListener('keydown', function(e) {
+      if(e.key === 'Enter') {
+        if(e.target.tagName === 'INPUT' && e.target.type !== 'submit' && e.target.type !== 'button') {
+          e.preventDefault();
+          const inputs = Array.from(document.querySelectorAll('input:not([type="hidden"]), textarea'));
+          const index = inputs.indexOf(e.target);
+          if(index > -1 && index < inputs.length - 1) inputs[index + 1].focus();
+        }
+      }
+    });
+  }
 
   function setOriginMode(m) {
     const btn = Array.from(document.querySelectorAll('#g-case-origin .group-btn')).find(b => b.dataset.val === m);
@@ -610,6 +654,67 @@
     syncToPrintLayout();
   }
 
+  function setOxDevice(val) {
+    const g = document.getElementById('g-ox-device');
+    g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === val);
+    if(btn) btn.classList.add('active');
+
+    const panelVent = document.getElementById("panel-vent");
+    if (val === '人工呼吸器') {
+      panelVent.style.display = 'block';
+      renderVentilatorOptions();
+    } else {
+      panelVent.style.display = 'none';
+      setMeReq('不要'); // 自動で不要に戻す
+    }
+    syncToPrintLayout();
+  }
+
+  function setMeReq(val) {
+    const g = document.getElementById('g-me-req');
+    g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === val);
+    if(btn) btn.classList.add('active');
+
+    const panelDetails = document.getElementById("panel-me-details");
+    if (val === '必要') {
+      if (appState.calcWeight === 0) {
+        alert("⚠️ 体重が入力されていません！\n人工呼吸器の回路サイズ選定のために、体重の入力が必要です。");
+      }
+      panelDetails.style.display = 'block';
+    } else {
+      panelDetails.style.display = 'none';
+    }
+    syncToPrintLayout();
+  }
+
+  function renderVentilatorOptions() {
+    const box = document.getElementById('box-vent-models');
+    if (!box) return;
+    const w = appState.calcWeight || 0;
+    
+    // MEおまかせ（デフォルト）
+    let html = `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;">
+                  <input type="radio" name="vent_model" value="ME一任・最適な機種" checked onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> ME一任・最適な機種を依頼
+                </label>`;
+                
+    if (master.ventilators && master.ventilators.length > 0) {
+      master.ventilators.forEach(v => {
+        // 体重フィルタ（0の時はすべて表示）
+        if (w === 0 || (w >= v.minW && w <= v.maxW)) {
+          let reqText = "";
+          if (v.minW > 0) reqText = `(${v.minW}kg〜)`;
+          html += `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;">
+                    <input type="radio" name="vent_model" value="${v.maker} ${v.model}" onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> <b>${v.model}</b> <span style="font-size:10px;color:var(--sub);">${v.maker} ${reqText}</span>
+                    <div style="font-size:10px; color:var(--sub); margin-top:2px;">${v.desc}</div>
+                   </label>`;
+        }
+      });
+    }
+    box.innerHTML = html;
+  }
+
   function setO2Flow(val, btn) {
     document.querySelectorAll('#g-ox-flow .group-btn').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
@@ -617,11 +722,26 @@
     syncToPrintLayout();
   }
 
+  function setMealTime(val) {
+    if(val === '昨日') {
+      const d = new Date(); d.setDate(d.getDate() - 1);
+      document.getElementById('v-amp-l-date').valueAsDate = d;
+    } else if(val === '今日') {
+      document.getElementById('v-amp-l-date').valueAsDate = new Date();
+    } else {
+      let txt = document.getElementById('v-amp-l-detail').value;
+      if (!txt.includes(val)) {
+        document.getElementById('v-amp-l-detail').value = (txt ? txt + ' ' : '') + val;
+      }
+    }
+    syncToPrintLayout();
+  }
+
   function toggleAmpInput(key, mode) {
     appState.ampStatus[key] = mode; const group = document.getElementById(`g-amp-${key}`);
     group.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active');
     const panel = document.getElementById(`panel-amp-${key}`); const isShow = (mode === 'あり' || mode === '摂取あり');
-    panel.style.display = isShow ? 'block' : 'none'; if(isShow && key === 'l') { panel.style.display = 'flex'; panel.style.flexDirection = 'column'; }
+    panel.style.display = isShow ? 'block' : 'none'; if(isShow && key === 'l') { panel.style.display = 'flex'; panel.style.flexDirection = 'column'; document.getElementById('v-amp-l-date').valueAsDate = new Date(); }
     syncToPrintLayout();
   }
 
@@ -640,7 +760,22 @@
   }
 
   function tChipSingle(gId, el) { const g = document.getElementById(gId); if(!g) return; g.querySelectorAll('.chip').forEach(c => c.classList.remove('on')); el.classList.add('on'); syncToPrintLayout(); }
-  function setTxMain(mode) { tBtn('g-tx-main', mode); document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none'; syncToPrintLayout(); }
+  function setTxMain(mode) { 
+    const g = document.getElementById('g-tx-main'); if(!g) return;
+    g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
+    const btn = Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); if(btn) btn.classList.add('active');
+    
+    document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none';
+    if(mode === 'なし' || mode === '不明') {
+      ['g-tx-intub','g-tx-iv','g-tx-cpr'].forEach(id => tBtn(id, '不明'));
+      document.getElementById("v-intub-size").value = ""; document.getElementById("v-intub-depth").value = "";
+      document.getElementById("v-cpr-dc-count").value = ""; document.getElementById("v-cpr-dc-j").value = "";
+      document.getElementById("v-preinfo").value = "";
+      document.querySelectorAll('#g-iv-site .chip').forEach(c => c.classList.remove('on'));
+    }
+    syncToPrintLayout(); 
+  }
+  
   function switchTab(tabId) { document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tabId)); document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === 'tab-' + tabId)); window.scrollTo(0,0); }
 
   function reportErrorToAdmin(errorInfo, sourceContext) { try { fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "report_client_error", errorInfo: String(errorInfo), source: "作戦盤: " + sourceContext }) }).catch(e=>e); } catch(e) {} }
@@ -675,6 +810,7 @@
   }
 
   window.onload = function() {
+    setupEnterKeyNavigation();
     const d = new Date(); document.getElementById("v-date").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     let script = document.createElement('script'); script.src = GAS_API_URL + "?callback=jsonpCallback&t=" + new Date().getTime(); 
     script.onerror = function() { document.getElementById("loader-msg").innerHTML = "通信エラー<br><button onclick='location.reload()'>再試行</button>"; };
@@ -684,6 +820,7 @@
   function jsonpCallback(res) {
     if (res && res.status === "success") {
       master.drugs = res.drugs || []; master.equipment = res.equipment || []; master.scenarios = res.scenarios || []; master.weightMaster = res.weightMaster || []; master.pewsMaster = res.pewsMaster || [];
+      master.settings = res.settings || {}; master.ventilators = res.ventilators || [];
       if(res.masters && res.masters.staffList) master.staff = res.masters.staffList;
       if(res.masters && res.masters.keywordList) master.keywords = res.masters.keywordList;
       if(res.masters && res.masters.hospitalList) HOSPITAL_DB = res.masters.hospitalList;
@@ -777,11 +914,6 @@
     eb.innerHTML = EMS_DB[reg].map(e => `<div class="chip" onclick="document.getElementById('v-ems-name').value=this.textContent; syncToPrintLayout();">${e}</div>`).join("");
   }
 
-  function tChipKw(chip) { 
-    chip.classList.toggle('on'); const kw = chip.textContent; 
-    if(chip.classList.contains('on')){ if(!appState.keywords.includes(kw)) appState.keywords.push(kw); } else { appState.keywords = appState.keywords.filter(k=>k!==kw); } syncToPrintLayout();
-  }
-
   function addFreeStaffRow() {
     try {
       const tbody = document.getElementById("free-staff-tbody"); const tr = document.createElement("tr"); tr.className = "free-staff-row"; tr.style.background = "rgba(242,242,247,0.5)";
@@ -810,8 +942,6 @@
     const total = (appState.gcs.e === 'T' || appState.gcs.v === 'T' || appState.gcs.m === 'T') ? 'T' : (parseInt(appState.gcs.e)||1) + (parseInt(appState.gcs.v)||1) + (parseInt(appState.gcs.m)||1);
     document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`; triggerPEWS();
   }
-  function moveFocusToDec(el) { if(el.value.length >= 2) document.getElementById("v-vit-bt-dec").focus(); }
-  function forceHalf(el) { try { el.value = el.value.replace(/[Ａ-Ｚａ-ｚ０-９：\/．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); }).replace(/[^0-9.]/g,''); } catch(e) {} }
 
   function triggerPEWS() {
     try {
@@ -831,6 +961,14 @@
       if(spo2 < 92) { pews += 3; elSp.classList.add('v-alert-3'); } else if(spo2 < 95) { pews += 1; elSp.classList.add('v-alert-1'); }
       if(dev && !dev.includes("なし")) pews += 1;
       if(["20","30","100","200","300"].includes(jcs)) pews += 3; else if(["1","2","3","10"].includes(jcs)) pews += 1;
+      
+      const hrHint = matchHr ? `${matchHr.normalMin}-${matchHr.normalMax}` : "";
+      const rrHint = matchRr ? `${matchRr.normalMin}-${matchRr.normalMax}` : "";
+      const bpHint = matchBp ? `${matchBp.normalMin}-${matchBp.normalMax}` : "";
+      document.getElementById("hint-hr").textContent = hrHint ? `目安: ${hrHint}` : "";
+      document.getElementById("hint-rr").textContent = rrHint ? `目安: ${rrHint}` : "";
+      document.getElementById("hint-bp").textContent = bpHint ? `収縮期目安: ${bpHint}` : "";
+
       appState.pews = pews; document.getElementById("lbl-pews-total").textContent = pews; 
       syncToPrintLayout();
     } catch(e) {}
@@ -889,13 +1027,26 @@
       document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` + (appState.isBwManual? ' (実測)' : ` (${wtRange})`) : "--"; 
       document.getElementById("lbl-weight").style.color = appState.calcWeight > 0 ? "var(--brand)" : "var(--ink)";
       document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` + (appState.isBhManual? ' (実測)' : ` (${htRange})`) : "--";
+      
+      if(document.getElementById('g-ox-device').querySelector('.active').dataset.val === '人工呼吸器') { renderVentilatorOptions(); }
       triggerPEWS();
     } catch(e) {}
   }
 
+  // ★ 安全な丸め関数（カンマ区切りのマスタ値から一番近い値を探す。オーバーした場合は最大値を返す）
+  function getNearestStep(val, stepString, maxLimit) {
+    if(!stepString || isNaN(val)) return val;
+    let steps = stepString.split(',').map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
+    if(steps.length === 0) return val;
+    let max = maxLimit || steps[steps.length-1];
+    if(val >= max) return max;
+    for(let i=0; i<steps.length; i++) { if(val <= steps[i]) return steps[i]; }
+    return max;
+  }
+
   function syncToPrintLayout() {
     try {
-      const wt = appState.calcWeight; const ht = appState.calcHeight;
+      const wt = appState.calcWeight || 0; const ht = appState.calcHeight || 0;
       const bwLabel = appState.isBwManual ? "実測体重" : "基準計算体重";
       const bhLabel = appState.isBhManual ? "実測身長" : "目安身長";
 
@@ -948,7 +1099,13 @@
       const devEl = document.querySelector('#g-ox-device .active'); const devStr = devEl ? devEl.textContent : "なし";
       const flowStr = document.getElementById('v-ox-flow-free').value || "-";
       let o2Text = `デバイス: ${devStr} ｜ 流量: ${flowStr}`;
-      if(devStr.includes("人工呼吸器")) o2Text += ` ｜ 詳細: ${document.getElementById("v-ox-vent-memo").value || ""}`;
+      
+      let reqMe = false;
+      if(devStr.includes("人工呼吸器")) {
+        const reqEl = document.querySelector('#g-me-req .active');
+        if(reqEl && reqEl.dataset.val === '必要') reqMe = true;
+        o2Text += ` ｜ 詳細: ${document.getElementById("v-ox-vent-memo").value || ""} (ME準備依頼: ${reqEl ? reqEl.dataset.val : "不要"})`;
+      }
 
       const sexEl = document.querySelector('#g-sex .active'); const sexStr = sexEl ? sexEl.textContent : "不明";
 
@@ -958,10 +1115,34 @@
       let otherVal = document.getElementById("v-role-other") ? document.getElementById("v-role-other").value.trim() : ""; if(otherVal) roles.other.push(otherVal);
       appState.staffRoles = roles;
 
-      let safeTube = "換算不能"; let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); if(tubeItem) safeTube = tubeItem.size;
-      let tubeDepth = appState.ageY >= 1 ? (appState.ageY/2 + 12) : (wt/2 + 8); let safeAdre = Math.min(wt * 0.1, 10).toFixed(2); 
+      // ★ マスタから計算式を読み込んでセーフティネットを算出
+      const setts = master.settings || {};
+      const defib1_coef = parseFloat(setts.Defib_First_J_per_kg) || 2;
+      const defib2_coef = parseFloat(setts.Defib_Second_J_per_kg) || 4;
+      const defibMax = parseFloat(setts.Defib_Max_J) || 200;
+      const defibSteps = setts.Defib_Steps || "10,15,20,30,50,70,100,150,200";
       
-      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f; margin-bottom:0;"><tr><th style="background:#fffde6;">除細動 (J)</th><td>初回: <b>${wt>0 ? (wt * 2).toFixed(0) : '--'} J</b> ➔ 2回目以降: <b>${wt>0 ? (wt * 4).toFixed(0) : '--'} J</b></td><th style="background:#fffde6;">アドレナリン(0.1%)<br><span style="font-size:9px;">※1万倍希釈(0.01mg/mL)</span></th><td>1回: <b style="font-size:16px; color:#d32f2f;">${wt>0 ? safeAdre : '--'} mL</b> (上限10mL) <br><span style="font-size:10px;">(3〜5分おきに反復)</span></td></tr><tr><th style="background:#fffde6;">気管チューブサイズ</th><td><b>${wt>0 ? safeTube : '--'}</b></td><th style="background:#fffde6;">気管チューブ固定長</th><td>口角: <b>${wt>0 ? tubeDepth.toFixed(1) : '--'} cm</b></td></tr></table>`;
+      const j1 = wt > 0 ? getNearestStep(wt * defib1_coef, defibSteps, defibMax) : '--';
+      const j2 = wt > 0 ? getNearestStep(wt * defib2_coef, defibSteps, defibMax) : '--';
+      
+      const adre_coef = parseFloat(setts.Adrenaline_Dose_per_kg) || 0.01;
+      const adre_max = parseFloat(setts.Adrenaline_Max_Dose) || 10;
+      let adreVal = wt > 0 ? Math.min(wt * adre_coef * (parseFloat(setts.Adrenaline_Dilution_Ratio)||10000)/1000, adre_max).toFixed(2) : '--';
+
+      let safeTube = "換算不能"; 
+      let tubeItem = master.equipment.find(e => e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); 
+      if(tubeItem) safeTube = tubeItem.size;
+      
+      let tubeDepth = '--';
+      if (wt > 0) {
+        if (appState.ageY >= 1) {
+          tubeDepth = ((appState.ageY * (parseFloat(setts.Tube_Depth_Age_Coef)||0.5)) + (parseFloat(setts.Tube_Depth_Age_Base)||12)).toFixed(1);
+        } else {
+          tubeDepth = ((wt * (parseFloat(setts.Tube_Depth_Wt_Coef)||0.5)) + (parseFloat(setts.Tube_Depth_Wt_Base)||8)).toFixed(1);
+        }
+      }
+      
+      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left: 4px solid #d32f2f; margin-top:8px;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f; margin-bottom:0;"><tr><th style="background:#fffde6;">除細動 (J)</th><td>初回: <b>${j1} J</b> ➔ 2回目以降: <b>${j2} J</b></td><th style="background:#fffde6;">アドレナリン(0.1%)<br><span style="font-size:9px;">※1万倍希釈(0.01mg/mL)</span></th><td>1回: <b style="font-size:16px; color:#d32f2f;">${adreVal} mL</b> (上限${adre_max}mL) <br><span style="font-size:10px;">(3〜5分おきに反復)</span></td></tr><tr><th style="background:#fffde6;">気管チューブサイズ</th><td><b>${safeTube}</b></td><th style="background:#fffde6;">気管チューブ固定長</th><td>口角: <b>${tubeDepth} cm</b></td></tr></table>`;
 
       appState.page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><div class="p-section"><table class="p-table"><tr><th>事案フラグ</th><td class="p-large-text" style="color:var(--brand);">小児初療</td><th>日付/ETA</th><td>${dateEta} / ${etaStr}</td></tr><tr><th>判定年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${sexStr}</td></tr><tr><th>搬入前バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・搬入前経緯</th><td colspan="3" style="white-space:pre-wrap;">${preinfoText}</td></tr><tr><th>AMPLEプロファイル</th><td colspan="3">${ampleHTML}</td></tr></table></div><div class="p-section"><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>リーダー(統括)</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道管理</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>胸骨圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>ルート・調製</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録・家族対応</th><td>${roles.record.join(', ')||"未指定"}</td><th>特殊役割</th><td>${appState.staffRoles.other.join(', ')||"未指定"}</td></tr></table></div>${safetyNetHTML}`;
 
@@ -990,6 +1171,42 @@
       let eRows = ""; master.equipment.forEach(e => { if(appState.checkedItems[e.name] && wt >= e.minW && wt <= e.maxW) { eRows += `<tr><td><span style="color:var(--sub);">${e.category}</span></td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`; } });
       appState.page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><div class="p-section"><div style="font-size:11px; margin-bottom:6px;">換算体重: <b style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</b></div><table class="p-table"><thead><tr><th style="width:15%;">区分</th><th>物品・資機材名</th><th style="width:30%;">適合推奨サイズ規格</th><th>配置展開備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">適合物品なし</td></tr>'}</tbody></table></div>`;
       
+      // ★ ME依頼書（人工呼吸器ワークシート）の動的生成
+      appState.meReqHTML = "";
+      if (reqMe) {
+        let ventChecked = document.querySelector('input[name="vent_model"]:checked');
+        let ventName = ventChecked ? ventChecked.value : "";
+        let ventCustom = document.getElementById('v-vent-custom').value.trim();
+        if (ventCustom) ventName = ventCustom;
+        
+        let humidEl = document.querySelector('#g-vent-humid .active');
+        let humidMode = humidEl ? humidEl.dataset.val : "未指定";
+        
+        let circuit = "【小児用】 (10kg〜40kg未満)";
+        if (wt < 10) circuit = "【新生児・乳児用】 (〜10kg未満)";
+        if (wt >= 40) circuit = "【成人用】 (40kg〜)";
+        
+        let memo = document.getElementById("v-ox-vent-memo").value || "特記事項なし";
+
+        appState.meReqHTML = `
+        <div class="preview-page status-custom" style="border:4px solid var(--success);">
+          <div class="p-title" style="border-bottom-color:var(--success); color:var(--success);">📄 人工呼吸器・ME準備依頼ワークシート</div>
+          <div class="p-section">
+            <div style="font-size:14px; font-weight:bold; margin-bottom:12px; text-align:center;">臨床工学技士（ME）への機器準備依頼書</div>
+            <table class="p-table" style="font-size:14px;">
+              <tr><th style="width:30%; background:#e8f5e9;">対象患者情報</th><td>年齢：<b>${document.getElementById("lbl-age").textContent}</b>  体重：<b style="color:var(--brand); font-size:18px;">${wt>0?wt.toFixed(1):'--'} kg</b></td></tr>
+              <tr><th style="background:#e8f5e9;">依頼する人工呼吸器</th><td style="font-size:16px; font-weight:bold; color:var(--blue);">${ventName}</td></tr>
+              <tr><th style="background:#e8f5e9;">推奨される回路サイズ</th><td style="font-size:16px; font-weight:bold;">${circuit}</td></tr>
+              <tr><th style="background:#e8f5e9;">指定の加湿システム</th><td><b>${humidMode}</b></td></tr>
+              <tr><th style="background:#e8f5e9;">設定・特記事項</th><td>${memo}</td></tr>
+            </table>
+            <div style="margin-top:20px; font-size:11px; color:var(--sub); border-top:1px dashed var(--line); padding-top:8px;">
+              ※上記体重に基づいて自動的に推奨回路を判定しています。患者入室前に機器のセットアップと回路チェックをお願いいたします。
+            </div>
+          </div>
+        </div>`;
+      }
+      
       if(document.getElementById("mirror-preview-area")) {
         document.getElementById("mirror-preview-area").innerHTML = `
           <div class="preview-page ${appState.isCustomized?'status-custom':''}">${appState.page1HTML}</div>
@@ -997,6 +1214,7 @@
           <div class="preview-page ${appState.isCustomized?'status-custom':''}">${appState.page3HTML}</div>
           <div class="preview-page ${appState.isCustomized?'status-custom':''}">${appState.page4HTML}</div>
           <div class="preview-page ${appState.isCustomized?'status-custom':''}">${appState.page5HTML}</div>
+          ${appState.meReqHTML}
         `;
       }
     } catch(e) {}
