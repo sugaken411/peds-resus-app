@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#f2f2f7">
-  <title>小児作戦盤 V6.1</title>
+  <title>小児作戦盤 V6.2</title>
   <style>
     :root { 
       --bg: #f2f2f7; --card: #ffffff; --ink: #111827; --sub: #6b7280; 
@@ -18,17 +18,20 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
     body { background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; padding-bottom: calc(80px + var(--safe-bot)); }
     
-    header { position: fixed; top: 0; left: 0; right: 0; height: 60px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
+    header { position: fixed; top: 0; left: 0; right: 0; height: 60px; padding-top: var(--safe-top); padding-left: 12px; padding-right: 12px; background: rgba(242,242,247,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom: 0.5px solid var(--line); display: flex; align-items: center; justify-content: space-between; z-index: 100; }
     .hdr-group { display: flex; gap: 8px; align-items: center; }
     .hdr-btn { color: var(--blue); background: #e5e5ea; border: none; font-size: 13px; font-weight: 700; cursor: pointer; padding: 6px 10px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
     .hdr-btn:active { opacity: 0.7; }
     .title-box { text-align: center; font-weight: 800; font-size: 15px; display: flex; flex-direction: column; align-items: center; } 
-    .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; }
+    .version-tag { font-size: 9px; color: #fff; background: var(--brand); padding: 2px 4px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
     .master-time { font-size: 10px; color: var(--sub); margin-top: 2px; font-weight: bold; }
     .master-time.ready { color: var(--success); }
     
     .status-bar { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; background: #fff; border-bottom: 1px solid var(--line); display: flex; justify-content: space-around; align-items: center; padding: 8px 12px; z-index: 99; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
-    .status-item { text-align: center; } .status-label { font-size: 10px; color: var(--sub); font-weight: 700; } .status-val { font-size: 15px; font-weight: 800; color: var(--blue); } .status-val.highlight { color: var(--brand); }
+    .status-item { text-align: center; }
+    .status-label { font-size: 10px; color: var(--sub); font-weight: 700; margin-bottom: 2px; }
+    .status-val { font-size: 15px; font-weight: 800; color: var(--blue); }
+    .status-val.highlight { color: var(--brand); }
 
     .tab-container { position: fixed; top: calc(112px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--bg); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 98; scrollbar-width: none; } 
     .tab-container::-webkit-scrollbar { display: none; }
@@ -37,48 +40,57 @@
     
     main { margin-top: calc(166px + var(--safe-top)); padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
     
-    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--line); padding: 16px; }
-    .card-header { font-size: 14px; font-weight: 700; margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-top: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+    .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid var(--line); overflow: hidden; }
+    .card-header { padding: 12px 16px; font-size: 14px; font-weight: 700; border-bottom: 1px solid var(--line); background: #fafafa; display: flex; justify-content: space-between; align-items: center; }
+    .card-body { padding: 16px; }
+    .card-section { padding: 14px; border-bottom: 1px solid var(--line); } .card-section:last-child { border-bottom: none; }
+    
+    .section-label { font-size: 12px; font-weight: 700; color: var(--sub); margin-top: 12px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; } .section-label:first-child { margin-top: 0; }
     .inline-field { display: flex; align-items: center; padding: 12px 0; border-bottom: 0.5px solid var(--line); } .inline-field:last-child { border-bottom: none; }
     .field-label { font-size: 14px; font-weight: 600; flex: 1; } .normal-range-hint { font-size: 11px; color: var(--blue); font-weight: bold; margin-left: 8px; }
-
+    
     .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
     input[type="text"], input[type="date"], input[type="time"], select, textarea { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 15px; font-weight: 600; color: var(--ink); outline: none; -webkit-appearance: none; appearance: none; }
     input:focus, select:focus, textarea:focus { border-color: var(--blue); }
     input.num-input { text-align: center; font-size: 15px; background: var(--bg); padding: 8px; border-radius: 6px; width: 60px; border: none; color: var(--blue); font-weight: 600; }
 
     .btn-group { display: flex; flex-wrap: wrap; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; }
-    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); text-align: center; }
+    .group-btn { flex: 1; border: none; background: transparent; padding: 10px 6px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); text-align: center; transition:0.2s; min-width: 60px; }
     .group-btn.active { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2); } .group-btn.alert-mode.active { background: var(--brand); color: #fff; }
     
     .chips, .chip-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; } 
-    .chip { border: 1.5px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--sub); background: var(--bg); user-select: none; } 
-    .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); } .chip.active-blue { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
-    .chip-scenario.on, .chip-item.on { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
-    .chip-scenario.on.modified, .chip-item.on.chip-manual { background: var(--warn-light); border-color: #d48806; color: #d48806; }
+    .chip { border: 1.5px solid var(--line); border-radius: 20px; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--sub); background: var(--bg); user-select: none; display: inline-flex; align-items: center; justify-content: center; } 
+    .chip:active { transform: scale(0.95); } .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); } .chip.active-blue { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
+    .chip-scenario { background: var(--card); } .chip-scenario.on { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
+    .chip-scenario.on.modified { background: var(--warn-light); border-color: #d48806; color: #d48806; }
+    .chip-item { background: var(--card); } .chip-item.on { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
+    .chip-item.on.chip-manual { background: var(--warn-light); border-color: #d48806; color: #d48806; } 
     
-    .gcs-row { display: flex; align-items: center; padding: 4px 0; border-bottom: 1px solid var(--line); } .gcs-title { font-size: 14px; font-weight: bold; width: 20px; color: var(--brand); }
+    .gcs-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); } .gcs-title { font-size: 14px; font-weight: bold; width: 20px; color: var(--brand); }
     .gcs-seg { flex: 1; display: flex; background: #e5e5ea; border-radius: 8px; padding: 2px; }
     .gcs-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; border: none; background: transparent; color: var(--sub); border-radius: 6px; }
-    .gcs-btn.active { background: var(--blue); color: #fff; }
+    .gcs-btn.active { background: var(--blue); color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); } .gcs-scale { font-size: 9px; color: var(--sub); text-align: center; margin-top: 2px; } .gcs-btn.active .gcs-scale { color: #fff; }
     
     .btn { background: var(--blue); color: #fff; border: none; border-radius: 10px; padding: 14px; font-size: 15px; font-weight: 700; width: 100%; cursor: pointer; text-align: center; }
     .btn.small { padding: 8px 12px; font-size: 12px; width: auto; } .btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
     .clear-btn { background: var(--sub); color: #fff; padding: 4px 8px; border-radius: 6px; font-size: 11px; border: none; font-weight: bold; cursor: pointer; }
     .add-master-btn { background: var(--med-blue); color: var(--med-blue-text); border: none; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; cursor: pointer; margin-left: 6px; }
-    
+    .submit-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 16px; font-size: 15px; font-weight: 800; cursor: pointer; margin-top: 16px; }
+
     details { background: #f8fafc; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin-bottom: 8px; }
     summary { font-size: 14px; font-weight: 700; cursor: pointer; list-style: none; display: flex; align-items: center; justify-content: space-between; outline: none; }
 
     .tab-content { display: none; } .tab-content.active { display: block; }
     .staff-table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 12px; background: #fff; }
-    .staff-table th, .staff-table td { padding: 8px 4px; border: 1px solid var(--line); text-align: center; }
+    .staff-table th, .staff-table td { padding: 8px 4px; border: 1px solid var(--line); text-align: center; vertical-align: middle; }
+    .staff-table td.name-cell { text-align: left; padding-left: 8px; line-height: 1.4; font-weight: 600; }
+    .staff-check { width: 22px; height: 22px; cursor: pointer; }
     
+    .v-alert-1 { background-color: #fff9db !important; color: #856404 !important; font-weight: bold; } .v-alert-2 { background-color: #f8d7da !important; color: #721c24 !important; font-weight: bold; } .v-alert-3 { background-color: #dc3545 !important; color: #ffffff !important; font-weight: bold; }
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--blue); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    /* プレビュー計算表示用スタイル */
+    /* プレビュー計算表示用スタイル (全ページ印刷対応) */
     .preview-page { background: #fff; border: 1px solid #000; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.4; color: #000; page-break-after: always; }
     .preview-page.status-custom { border-color: #d48806; }
     .p-title { font-size: 15px; text-align: center; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
@@ -103,7 +115,7 @@
     <button class="hdr-btn" onclick="clearAllData(true)">🔄 消去</button>
   </div>
   <div class="title-box">
-    小児作戦盤<span class="version-tag">V6.1</span>
+    小児作戦盤<span class="version-tag">V6.2</span>
     <div class="master-time" id="disp-master-time">📡 マスタ未同期</div>
   </div>
   <div class="hdr-group"><button class="hdr-btn" onclick="window.print()">🖨️ 印刷</button></div>
@@ -211,7 +223,7 @@
     <div class="card">
       <div class="card-header"><span>📝 MIST 経過・概要</span><button class="clear-btn" onclick="clearSection('mist')">クリア</button></div>
       <div class="section-label">キーワード <button class="add-master-btn" onclick="addMaster('keyword', 'v-new-kw', this)">＋マスタ登録</button></div>
-      <div style="display:flex; gap:8px; margin-bottom:8px;"><input type="text" id="v-new-kw" placeholder="新規キーワード入力" style="flex:1;"></div>
+      <div style="display:flex; gap:8px; margin-bottom:8px;"><input type="text" id="v-new-kw" placeholder="新規キーワード" style="flex:1;"></div>
       <div class="chips" id="box-keywords"></div>
       <div class="section-label" style="margin-top:12px;">受傷機転・概要・経過</div>
       <textarea id="v-case-summary" rows="4" placeholder="経過や概要を入力..." oninput="syncToPrintLayout()"></textarea>
@@ -359,15 +371,21 @@
 
       <div id="panel-jcs-layer" style="display:none; margin-top:8px;">
         <div class="chips" id="cg-jcs">
-          <div class="chip" onclick="sChip(this,'0')">0(清明)</div><div class="chip" onclick="sChip(this,'1')">1(すっきりしない)</div><div class="chip" onclick="sChip(this,'10')">10(呼かけ開眼)</div><div class="chip" onclick="sChip(this,'100')">100(払いのける)</div><div class="chip" onclick="sChip(this,'300')">300(無反応)</div>
+          <div class="chip" onclick="sChip(this,'0')">0(清明)</div><div class="chip" onclick="sChip(this,'1')">1(すっきりしない)</div><div class="chip" onclick="sChip(this,'2')">2(見当識障害)</div><div class="chip" onclick="sChip(this,'3')">3(名前言えない)</div>
+          <div class="chip" onclick="sChip(this,'10')">10(呼かけ開眼)</div><div class="chip" onclick="sChip(this,'20')">20(大声刺激開眼)</div><div class="chip" onclick="sChip(this,'30')">30(痛み開眼)</div>
+          <div class="chip" onclick="sChip(this,'100')">100(払いのける)</div><div class="chip" onclick="sChip(this,'200')">200(顔しかめる)</div><div class="chip" onclick="sChip(this,'300')">300(無反応)</div>
         </div>
       </div>
 
-      <div id="panel-gcs-layer" style="display:none; margin-top:8px;">
-        <div style="font-size:12px; font-weight:bold; color:var(--brand);" id="gcs-total">E-- V-- M-- = --点</div>
-        <div class="gcs-row"><div class="gcs-title">E</div><div class="gcs-seg" id="gcs-e-group"><button class="gcs-btn" onclick="setGCS('e','1')">1</button><button class="gcs-btn" onclick="setGCS('e','2')">2</button><button class="gcs-btn" onclick="setGCS('e','3')">3</button><button class="gcs-btn" onclick="setGCS('e','4')">4</button></div></div>
-        <div class="gcs-row"><div class="gcs-title">V</div><div class="gcs-seg" id="gcs-v-group"><button class="gcs-btn" onclick="setGCS('v','1')">1</button><button class="gcs-btn" onclick="setGCS('v','2')">2</button><button class="gcs-btn" onclick="setGCS('v','3')">3</button><button class="gcs-btn" onclick="setGCS('v','4')">4</button><button class="gcs-btn" onclick="setGCS('v','5')">5</button></div></div>
-        <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" onclick="setGCS('m','1')">1</button><button class="gcs-btn" onclick="setGCS('m','2')">2</button><button class="gcs-btn" onclick="setGCS('m','3')">3</button><button class="gcs-btn" onclick="setGCS('m','4')">4</button><button class="gcs-btn" onclick="setGCS('m','5')">5</button><button class="gcs-btn" onclick="setGCS('m','6')">6</button></div></div>
+      <div id="panel-gcs-layer" style="display:none; margin-top:8px; background:rgba(242,242,247,0.5); padding:10px; border-radius:8px;">
+        <div style="font-size:13px; font-weight:bold; color:var(--brand); margin-bottom:6px;" id="gcs-total">E-- V-- M-- = --点</div>
+        <div style="display:flex; gap:8px; margin-bottom:10px;">
+          <button class="btn small" style="flex:1; background:var(--blue);" onclick="quickSetGCS(15)">🟢 15点一括点灯</button>
+          <button class="btn small danger" style="flex:1;" onclick="quickSetGCS(3)">🔴 3点一括点灯</button>
+        </div>
+        <div class="gcs-row"><div class="gcs-title">E</div><div class="gcs-seg" id="gcs-e-group"><button class="gcs-btn" data-val="1" onclick="setGCS('e','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('e','2')">2<div class="gcs-scale">疼痛</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('e','3')">3<div class="gcs-scale">音声</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('e','4')">4<div class="gcs-scale">自発</div></button></div></div>
+        <div class="gcs-row"><div class="gcs-title">V</div><div class="gcs-seg" id="gcs-v-group"><button class="gcs-btn" data-val="T" onclick="setGCS('v','T')">T<div class="gcs-scale">挿管</div></button><button class="gcs-btn" data-val="1" onclick="setGCS('v','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('v','2')">2<div class="gcs-scale">理解不能</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('v','3')">3<div class="gcs-scale">不適当</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('v','4')">4<div class="gcs-scale">混乱</div></button><button class="gcs-btn" data-val="5" onclick="setGCS('v','5')">5<div class="gcs-scale">見当識</div></button></div></div>
+        <div class="gcs-row" style="border:none;"><div class="gcs-title">M</div><div class="gcs-seg" id="gcs-m-group"><button class="gcs-btn" data-val="1" onclick="setGCS('m','1')">1<div class="gcs-scale">なし</div></button><button class="gcs-btn" data-val="2" onclick="setGCS('m','2')">2<div class="gcs-scale">異常伸展</div></button><button class="gcs-btn" data-val="3" onclick="setGCS('m','3')">3<div class="gcs-scale">異常屈曲</div></button><button class="gcs-btn" data-val="4" onclick="setGCS('m','4')">4<div class="gcs-scale">逃避</div></button><button class="gcs-btn" data-val="5" onclick="setGCS('m','5')">5<div class="gcs-scale">疼痛部</div></button><button class="gcs-btn" data-val="6" onclick="setGCS('m','6')">6<div class="gcs-scale">従命</div></button></div></div>
       </div>
 
       <div style="margin-top:12px; text-align:center; font-weight:bold; color:var(--brand);">PEWSスコア: <span id="lbl-pews-total" style="font-size:20px;">0</span> 点</div>
@@ -377,9 +395,9 @@
 
   <div id="tab-sec4" class="tab-content">
     <div class="card">
-      <div class="card-header"><span>👥 役割分担</span><button class="clear-btn" onclick="clearMatrix()">クリア</button></div>
+      <div class="card-header"><span>👥 役割分担・コンタクトリスト</span><button class="clear-btn" onclick="clearMatrix()">クリア</button></div>
       <table class="staff-table">
-        <thead><tr><th>スタッフ名</th><th>統括</th><th>気道</th><th>圧迫</th><th>薬剤</th><th>記録</th></tr></thead>
+        <thead><tr><th>所属・氏名</th><th>統括</th><th>気道</th><th>圧迫</th><th>薬剤</th><th>記録</th></tr></thead>
         <tbody id="staff-tbody"><tr><td colspan="6">名簿取得中...</td></tr></tbody>
         <tbody id="free-staff-tbody"></tbody>
       </table>
@@ -392,36 +410,49 @@
 
   <div id="tab-sec5" class="tab-content">
     <div class="card">
-      <div class="section-label">① シナリオ・セット選択</div>
-      <div class="chip-grid" id="box-scenarios"></div>
-      <div class="chip-grid" id="box-sets" style="margin-top:8px;"></div>
-      <div class="section-label" style="margin-top:16px;">② 準備指示 (単発薬・持続薬・物品)</div>
-      <div class="chip-grid" id="box-drugs-single"></div>
-      <div class="chip-grid" id="box-drugs-cont"></div>
-      <div class="chip-grid" id="box-equip"></div>
+      <div class="card-body">
+        <div class="section-label">① シナリオ選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div>
+        <div class="chip-grid" id="box-scenarios"></div>
+      </div>
+      <div class="card-body" style="border-top:1px solid var(--line);">
+        <div class="section-label">② セット選択 <span style="font-weight:normal; font-size:10px; color:var(--blue);">(選択で青)</span></div>
+        <div class="chip-grid" id="box-sets"></div>
+      </div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">③ 薬剤準備指示 (単発) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-drugs-single"></div>
+      </div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">④ 薬剤準備指示 (持続) <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-drugs-cont"></div>
+      </div>
+      <div class="card-body" style="background:rgba(242,242,247,0.3); border-top:1px solid var(--line);">
+        <div class="section-label">⑤ 物品準備指示 <span style="font-weight:normal; font-size:10px; color:#d48806;">(手動変更で黄へ反転)</span></div>
+        <div class="chip-grid" id="box-equip"></div>
+      </div>
     </div>
     <button class="btn" onclick="switchTab('sec6')">次へ (一括プレビュー) ➔</button>
   </div>
 
   <div id="tab-sec6" class="tab-content">
     <div id="mirror-preview-area"></div>
-    <button class="btn" id="btnSubmit" onclick="submitPedsCase()" style="margin-top:16px; background:var(--ink);">事案アーカイブへ一括保存 💾</button>
+    <button class="submit-btn" id="btnSubmit" onclick="submitPedsCase()">事案アーカイブへ一括保存 💾</button>
   </div>
 </main>
 
 <script>
   // -----------------------------------------------------
-  // システムロジック V6.1 (全計算・全プレビュー復元版)
+  // V6.2 完全統合復元ロジック
   // -----------------------------------------------------
   const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
   
-  let HOSPITAL_DB = {};
-  let EMS_DB = {};
+  let HOSPITAL_DB = {}; let EMS_DB = {};
   let master = { drugs: [], equipment: [], scenarios: [], staff: [], weightMaster: [], pewsMaster: [], keywords: [], ventilators: [], settings: {} };
   let appState = { 
-    origin: "", etaText: "", calcWeight: 0, calcHeight: 0, ageY: 0, checkedItems: {}, keywords: [],
-    gcs: {e:'不明',v:'不明',m:'不明'}, pat: {a:'不明',b:'不明',c:'不明'}, ampStatus: {a:'不明',m:'不明',p:'不明',l:'不明'}, 
-    staffRoles: {leader:[],airway:[],cpr:[],route:[],record:[],other:[]} 
+    origin: "", etaText: "", calcWeight: 0, calcHeight: 0, ageY: 0, isBwManual: false, isBhManual: false, checkedItems: {}, isCustomized: false, keywords: [],
+    gcs: { e: '不明', v: '不明', m: '不明' }, pews: 0, pat: {a:'不明', b:'不明', c:'不明'}, 
+    txStatus: {intub:'不明', iv:'不明', cpr:'不明'}, ampStatus: {a:'不明', m:'不明', p:'不明', l:'不明'}, 
+    staffRoles: {leader:[], airway:[], cpr:[], route:[], record:[], other:[]}
   };
 
   function forceNum(el) {
@@ -454,58 +485,86 @@
         let dEl = document.getElementById('disp-master-time');
         if(dEl) { dEl.innerText = `📡 同期完了: ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; dEl.classList.add('ready'); }
         
-        buildAppUI(); 
-        checkUrlParams(); // 自動復元実行
+        buildAppUI(); checkUrlParams();
       }
     } catch(e) { console.error(e); } 
     finally { document.getElementById("global-loader").style.display = "none"; }
   }
 
   function buildAppUI() {
+    // 役割マスタ (所属・職種・表示名・コンタクト情報組み込み)
     if(master.staff && master.staff.length > 0) {
-      document.getElementById("staff-tbody").innerHTML = master.staff.map(st => `
-        <tr>
-          <td style="text-align:left; font-weight:bold;">${st.displayName}</td>
-          <td><input type="checkbox" class="staff-check" data-role="leader" data-print="${st.displayName}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="airway" data-print="${st.displayName}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="cpr" data-print="${st.displayName}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="route" data-print="${st.displayName}" onchange="syncToPrintLayout()"></td>
-          <td><input type="checkbox" class="staff-check" data-role="record" data-print="${st.displayName}" onchange="syncToPrintLayout()"></td>
-        </tr>`).join("");
+      document.getElementById("staff-tbody").innerHTML = master.staff.map(st => {
+        let printLabel = `${st.dept\vert{}\vert{}''}${st.lastName||''}` + (st.phone ? `(${st.phone})` : '');
+        return `<tr>
+          <td class="name-cell"><span style="font-size:10px;color:var(--sub);">${st.roleType||''} ${st.dept\vert{}\vert{}''}</span><br><b>${st.displayName}</b></td>
+          <td><input type="checkbox" class="staff-check" data-role="leader" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
+          <td><input type="checkbox" class="staff-check" data-role="airway" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
+          <td><input type="checkbox" class="staff-check" data-role="cpr" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
+          <td><input type="checkbox" class="staff-check" data-role="route" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
+          <td><input type="checkbox" class="staff-check" data-role="record" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
+        </tr>`;
+      }).join("");
     }
     if(master.keywords) document.getElementById("box-keywords").innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
-    
-    // 紹介元病院・救急隊のチップ生成
     if(Object.keys(HOSPITAL_DB).length > 0) document.getElementById("g-hosp-cat").innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<div class="chip" onclick="expandHosp('${cat}', this)">${cat}</div>`).join("");
     if(Object.keys(EMS_DB).length > 0) document.getElementById("g-ems-region").innerHTML = Object.keys(EMS_DB).map(reg => `<div class="chip" onclick="expandEms('${reg}', this)">${reg}</div>`).join("");
     
-    if(master.scenarios) {
-      document.getElementById("box-scenarios").innerHTML = master.scenarios.filter(s=>s.type==='シナリオ').map(s=>`<div class="chip chip-scenario" onclick="toggleScenario('${s.name}', this)">${s.name}</div>`).join("");
-      document.getElementById("box-sets").innerHTML = master.scenarios.filter(s=>s.type!=='シナリオ').map(s=>`<div class="chip chip-scenario" onclick="toggleScenario('${s.name}', this)">${s.name}</div>`).join("");
+    // シナリオ・セット・薬品・物品
+    const setBox = document.getElementById("box-sets"); setBox.innerHTML = ""; const sBox = document.getElementById("box-scenarios"); sBox.innerHTML = "";
+    if (master.scenarios) {
+      master.scenarios.forEach(s => {
+        let chip = document.createElement('div'); chip.className = "chip chip-scenario"; chip.textContent = s.name;
+        chip.onclick = function() {
+          let isOn = !chip.classList.contains('on'); chip.classList.toggle('on', isOn);
+          if(s.items) { s.items.forEach(itemName => { appState.checkedItems[itemName] = isOn; document.querySelectorAll('.chip-item').forEach(c => { if(c.dataset.name === itemName) c.classList.toggle('on', isOn); }); }); }
+          updateCustomStatus(); calcPeds();
+        };
+        if(s.type === 'シナリオ') sBox.appendChild(chip); else setBox.appendChild(chip);
+      });
     }
-    if(master.drugs) {
-      document.getElementById("box-drugs-single").innerHTML = master.drugs.filter(d=>d.type==='単発薬').map(d=>`<div class="chip chip-item" onclick="this.classList.toggle('on'); appState.checkedItems['${d.btnName}']=this.classList.contains('on'); syncToPrintLayout();">${d.btnName}</div>`).join("");
-      document.getElementById("box-drugs-cont").innerHTML = master.drugs.filter(d=>d.type==='持続薬').map(d=>`<div class="chip chip-item" onclick="this.classList.toggle('on'); appState.checkedItems['${d.btnName}']=this.classList.contains('on'); syncToPrintLayout();">${d.btnName}</div>`).join("");
+
+    const dBoxSingle = document.getElementById("box-drugs-single"); dBoxSingle.innerHTML = "";
+    const dBoxCont = document.getElementById("box-drugs-cont"); dBoxCont.innerHTML = "";
+    if (master.drugs) {
+      master.drugs.forEach(d => {
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = d.btnName; chip.textContent = d.btnName;
+        chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[d.btnName] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); };
+        if (d.type === "単発薬") dBoxSingle.appendChild(chip); else dBoxCont.appendChild(chip);
+      });
     }
-    if(master.equipment) {
-      let uniq = [...new Set(master.equipment.map(e=>e.name))];
-      document.getElementById("box-equip").innerHTML = uniq.map(n=>`<div class="chip chip-item" onclick="this.classList.toggle('on'); appState.checkedItems['${n}']=this.classList.contains('on'); syncToPrintLayout();">${n}</div>`).join("");
+    const eBox = document.getElementById("box-equip"); eBox.innerHTML = "";
+    if (master.equipment) {
+      [...new Set(master.equipment.map(e => e.name))].filter(Boolean).forEach(name => {
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name; chip.textContent = name;
+        chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); }; eBox.appendChild(chip);
+      });
     }
     calcPeds();
   }
 
-  // ■ 病院・救急隊の動的チップ展開
+  function updateCustomStatus() {
+    let activeScenarios = []; document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => { activeScenarios.push(sChip.textContent); });
+    let expectedItems = new Set(); activeScenarios.forEach(sName => { let sc = master.scenarios.find(s => s.name === sName); if(sc && sc.items) sc.items.forEach(i => expectedItems.add(i)); });
+    document.querySelectorAll('.chip-item').forEach(c => c.classList.remove('chip-manual'));
+    let isCustomized = false;
+    document.querySelectorAll('#box-scenarios .chip-scenario.on, #box-sets .chip-scenario.on').forEach(sChip => {
+      let sc = master.scenarios.find(s => s.name === sChip.textContent); if (!sc || !sc.items) return; let isModified = false;
+      sc.items.forEach(itemName => { if (!appState.checkedItems[itemName]) isModified = true; }); sChip.classList.toggle('modified', isModified); if(isModified) isCustomized = true;
+    });
+    document.querySelectorAll('.chip-item.on').forEach(c => { if (!expectedItems.has(c.dataset.name)) { c.classList.add('chip-manual'); isCustomized = true; } });
+    appState.isCustomized = isCustomized;
+  }
+
   function expandHosp(cat, btn) {
-    document.querySelectorAll("#g-hosp-cat .chip").forEach(b => b.classList.remove('active-blue')); 
-    if(btn) btn.classList.add('active-blue');
+    document.querySelectorAll("#g-hosp-cat .chip").forEach(b => b.classList.remove('active-blue')); if(btn) btn.classList.add('active-blue');
     const hb = document.getElementById("box-hospital-chips");
     if(!cat || !HOSPITAL_DB[cat]) { hb.innerHTML = ''; return; }
     hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
   }
 
   function expandEms(reg, btn) {
-    document.querySelectorAll("#g-ems-region .chip").forEach(b => b.classList.remove('active-blue')); 
-    if(btn) btn.classList.add('active-blue');
+    document.querySelectorAll("#g-ems-region .chip").forEach(b => b.classList.remove('active-blue')); if(btn) btn.classList.add('active-blue');
     const eb = document.getElementById("box-ems-chips");
     document.getElementById('v-ems-region').value = reg; 
     if(!reg || !EMS_DB[reg]) { eb.innerHTML = ''; return; }
@@ -517,7 +576,6 @@
     let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === m);
     g.querySelectorAll('.group-btn').forEach(b => b.classList.remove('active'));
     if(target) target.classList.add('active'); appState.origin = m;
-    
     document.getElementById("panel-referral").style.display = (m === '紹介') ? 'block' : 'none';
     document.getElementById("panel-ems").style.display = (m === '救急') ? 'block' : 'none';
     document.getElementById("panel-other").style.display = (m === 'その他') ? 'block' : 'none';
@@ -531,6 +589,28 @@
     if(target) target.classList.add('active'); syncToPrintLayout();
   }
 
+  function formatTimeAdd(minutes) {
+    const d = new Date(); d.setMinutes(d.getMinutes() + minutes);
+    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  }
+
+  function setETA(label, minAdd, maxAdd, btn) {
+    document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue'));
+    if(btn) btn.classList.add('active-blue');
+    if (label === '不明') appState.etaText = "不明";
+    else if (label === 'それ以上') appState.etaText = `${formatTimeAdd(minAdd)} 以降`;
+    else if (minAdd === 0) appState.etaText = `${formatTimeAdd(maxAdd)} 頃`;
+    else appState.etaText = `${formatTimeAdd(minAdd)} 〜${formatTimeAdd(maxAdd)} 頃`;
+    document.getElementById('v-eta-display').textContent = appState.etaText; document.getElementById('v-eta-time').value = ""; 
+    syncToPrintLayout();
+  }
+
+  function setETAManual(val) {
+    document.querySelectorAll('#g-eta-chips .chip').forEach(c => c.classList.remove('active-blue'));
+    appState.etaText = val ? `${val} 頃` : ""; document.getElementById('v-eta-display').textContent = appState.etaText || "--";
+    syncToPrintLayout();
+  }
+
   function tChipKw(chip) {
     chip.classList.toggle('on'); const kw = chip.textContent;
     if(chip.classList.contains('on')) { if(!appState.keywords.includes(kw)) appState.keywords.push(kw); }
@@ -538,23 +618,10 @@
     syncToPrintLayout();
   }
 
-  function toggleScenario(name, el) {
-    let isOn = !el.classList.contains('on'); el.classList.toggle('on', isOn);
-    let sc = master.scenarios.find(s=>s.name === name);
-    if(sc && sc.items) {
-      sc.items.forEach(itemName => {
-        appState.checkedItems[itemName] = isOn;
-        document.querySelectorAll('.chip-item').forEach(c => { if(c.textContent === itemName) c.classList.toggle('on', isOn); });
-      });
-    }
-    syncToPrintLayout();
-  }
-
   function setTxMain(mode, btnEl) {
     const g = document.getElementById('g-tx-main'); if(!g) return;
     let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode);
-    g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active'));
-    if(target) target.classList.add('active');
+    g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active')); if(target) target.classList.add('active');
     document.getElementById("panel-tx-details").style.display = (mode === 'あり') ? 'block' : 'none';
     syncToPrintLayout();
   }
@@ -562,16 +629,10 @@
   function setConsciousnessTab(m, btnEl) {
     const g = document.getElementById('g-con-mode'); if(!g) return;
     g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active'));
-    let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === m);
-    if(target) target.classList.add('active');
-    
+    let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === m); if(target) target.classList.add('active');
     document.getElementById('panel-jcs-layer').style.display = (m === 'JCS') ? 'block' : 'none';
     document.getElementById('panel-gcs-layer').style.display = (m === 'GCS') ? 'block' : 'none';
-    if(m === '不明') {
-      appState.gcs = { e: '不明', v: '不明', m: '不明' };
-      document.getElementById('gcs-total').innerText = "E-- V-- M-- = --点";
-      document.getElementById('v-vit-jcs').value = "不明";
-    }
+    if(m === '不明') { appState.gcs = { e: '不明', v: '不明', m: '不明' }; document.getElementById('gcs-total').innerText = "E-- V-- M-- = --点"; document.getElementById('v-vit-jcs').value = "不明"; }
     triggerPEWS();
   }
 
@@ -580,11 +641,13 @@
     if(el) el.classList.add('on'); document.getElementById("v-vit-jcs").value = val; triggerPEWS();
   }
 
+  function quickSetGCS(val) { if(val===15) { setGCS('e','4'); setGCS('v','5'); setGCS('m','6'); } if(val===3) { setGCS('e','1'); setGCS('v','1'); setGCS('m','1'); } }
+
   function setGCS(type, val) {
     appState.gcs[type] = String(val);
-    document.querySelectorAll(`#gcs-${type}-group .gcs-btn`).forEach(b => b.classList.toggle('active', b.textContent === String(val)));
-    const total = (parseInt(appState.gcs.e)||1) + (parseInt(appState.gcs.v)||1) + (parseInt(appState.gcs.m)||1);
-    document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`;
+    document.querySelectorAll(`#gcs-${type}-group .gcs-btn`).forEach(b => b.classList.toggle('active', b.getAttribute('data-val') === String(val)));
+    const total = (appState.gcs.e === 'T' || appState.gcs.v === 'T' || appState.gcs.m === 'T') ? 'T' : (parseInt(appState.gcs.e)||1) + (parseInt(appState.gcs.v)||1) + (parseInt(appState.gcs.m)||1);
+    document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} =${total}点`;
     triggerPEWS();
   }
 
@@ -599,15 +662,9 @@
 
   function toggleAmpInput(key, mode, btnEl) {
     const g = document.getElementById(`g-amp-${key}`);
-    if(g) {
-      g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active'));
-      let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode);
-      if(target) target.classList.add('active');
-    }
-    let inputEl = document.getElementById(`v-amp-${key}`);
-    if(inputEl) inputEl.style.display = (mode === 'あり') ? 'block' : 'none';
+    if(g) { g.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active')); let target = btnEl || Array.from(g.querySelectorAll('.group-btn')).find(b => b.getAttribute('data-val') === mode); if(target) target.classList.add('active'); }
+    let inputEl = document.getElementById(`v-amp-${key}`); if(inputEl) inputEl.style.display = (mode === 'あり') ? 'block' : 'none';
     if(key === 'l') document.getElementById("panel-amp-l").style.display = (mode === '摂取あり') ? 'block' : 'none';
-    
     updateAmpSummary(key, mode); syncToPrintLayout();
   }
 
@@ -620,51 +677,83 @@
     });
     let gl = document.getElementById(`g-amp-l`);
     if(gl) { gl.querySelectorAll('.group-btn').forEach(b=>b.classList.remove('active')); Array.from(gl.querySelectorAll('.group-btn')).find(b=>b.getAttribute('data-val')==='絶食')?.classList.add('active'); }
-    document.getElementById("panel-amp-l").style.display = 'none';
-    updateAmpSummary('l', '絶食');
+    document.getElementById("panel-amp-l").style.display = 'none'; updateAmpSummary('l', '絶食');
     syncToPrintLayout();
   }
 
-  function selectPat(el, dim, status) {
-    el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-    el.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout();
-  }
+  function selectPat(el, dim, status) { el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
 
   function calcPeds() {
     try {
-      const ey = parseInt(document.getElementById("v-era-y").value)||0; const em = parseInt(document.getElementById("v-era-m").value)||0;
+      const ey = parseInt(document.getElementById("v-era-y").value)||0; const em = parseInt(document.getElementById("v-era-m").value)||0; const ed = parseInt(document.getElementById("v-era-d").value)||1;
       const manualY = parseInt(document.getElementById("v-manual-age-y").value); const manualM = parseInt(document.getElementById("v-manual-age-m").value);
-      let mTotal = -1, ageText = "--"; let wtMid = 0;
+      let mTotal = -1, ageText = "--"; let wtMid = 0, htMid = 0; let resolvedAgeY = 0;
       if(ey > 0 && em > 0) {
-        let birth = new Date(ey, em - 1, 1), now = new Date(); mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth();
-        if(mTotal < 0) mTotal = 0; let y = Math.floor(mTotal / 12), m = mTotal % 12; ageText = y > 0 ? `${y}歳${m}ヶ月` : `${m}ヶ月`; appState.ageY = y;
+        let birth = new Date(ey, em - 1, ed), now = new Date(); mTotal = (now.getFullYear() - birth.getFullYear()) * 12 + now.getMonth() - birth.getMonth();
+        if(now.getDate() < birth.getDate()) mTotal--; if(mTotal < 0) mTotal = 0;
+        let y = Math.floor(mTotal / 12), m = mTotal % 12; ageText = y > 0 ? `${y}歳${m}ヶ月` : `${m}ヶ月`; resolvedAgeY = y;
       } else if(!isNaN(manualY) || !isNaN(manualM)) {
-        let y = isNaN(manualY)?0:manualY; let m = isNaN(manualM)?0:manualM; ageText = `${y}歳${m}ヶ月`; appState.ageY = y; mTotal = y*12+m;
+        let y = isNaN(manualY)?0:manualY; let m = isNaN(manualM)?0:manualM; ageText = `${y}歳${m}ヶ月`; resolvedAgeY = y; mTotal = y*12+m;
       }
+      appState.ageY = resolvedAgeY;
       if(mTotal >= 0 && master.weightMaster) {
+        let sexEl = document.querySelector('#g-sex .active'); let sex = sexEl ? sexEl.dataset.val : "不明";
         let match = master.weightMaster.find(w => w.months == Math.min(mTotal, 216));
-        if(match) wtMid = match.m_mid || match.f_mid || 0;
+        if(match) { if(sex === "男児") { wtMid = match.m_mid; htMid = match.m_h_mid; } else { wtMid = match.f_mid; htMid = match.f_h_mid; } }
       }
-      const inputBw = parseFloat(document.getElementById("v-bw").value);
-      appState.calcWeight = !isNaN(inputBw) ? inputBw : wtMid;
+      const inputBw = parseFloat(document.getElementById("v-bw").value); const inputBh = parseFloat(document.getElementById("v-bh").value);
+      appState.isBwManual = !isNaN(inputBw); appState.isBhManual = !isNaN(inputBh);
+      appState.calcWeight = appState.isBwManual ? inputBw : wtMid; appState.calcHeight = appState.isBhManual ? inputBh : htMid;
       document.getElementById("lbl-age").textContent = ageText;
       document.getElementById("lbl-weight").textContent = appState.calcWeight > 0 ? `${appState.calcWeight.toFixed(1)} kg` : "--";
+      document.getElementById("lbl-height").textContent = appState.calcHeight > 0 ? `${appState.calcHeight.toFixed(1)} cm` : "--";
+      if(document.getElementById('g-ox-device')?.querySelector('.active')?.dataset.val === '人工呼吸器') renderVentilatorOptions();
       triggerPEWS();
     } catch(e) {}
   }
 
   function triggerPEWS() {
-    let pews = 0; const spo2 = parseInt(document.getElementById("v-vit-spo2").value)||100;
-    if(spo2 < 92) pews += 3; else if(spo2 < 95) pews += 1;
-    appState.pews = pews; document.getElementById("lbl-pews-total").textContent = pews;
-    syncToPrintLayout();
+    try {
+      const hr = parseInt(document.getElementById("v-vit-hr").value) || 0; const rr = parseInt(document.getElementById("v-vit-rr").value) || 0; const spo2 = parseInt(document.getElementById("v-vit-spo2").value) || 100; const sys = parseInt(document.getElementById("v-vit-bpsys").value) || 0; const jcs = document.getElementById("v-vit-jcs").value; const devEl = document.querySelector('#g-ox-device .active'); const dev = devEl ? devEl.dataset.val : "なし";
+      let pews = 0; const ageY = appState.ageY || 0;
+      let elHr = document.getElementById("v-vit-hr"), elRr = document.getElementById("v-vit-rr"), elSp = document.getElementById("v-vit-spo2"), elBp = document.getElementById("v-vit-bpsys");
+      
+      elHr.classList.remove('v-alert-1','v-alert-2','v-alert-3'); elRr.classList.remove('v-alert-1','v-alert-2','v-alert-3'); elSp.classList.remove('v-alert-1','v-alert-2','v-alert-3'); elBp.classList.remove('v-alert-1','v-alert-2','v-alert-3');
+      document.getElementById("hint-hr").textContent = ""; document.getElementById("hint-rr").textContent = ""; document.getElementById("hint-bp").textContent = "";
+
+      if(master.pewsMaster && master.pewsMaster.length > 0) {
+        let matchHr = master.pewsMaster.find(p => p.item.indexOf("HR") !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+        if(matchHr) { if(hr > 0 && (hr > matchHr.th2 || hr < matchHr.normalMin)) { pews += 2; elHr.classList.add('v-alert-2'); } else if(hr > 0 && hr > matchHr.th1) { pews += 1; elHr.classList.add('v-alert-1'); } document.getElementById("hint-hr").textContent = `目安: ${matchHr.normalMin}-${matchHr.normalMax}`; }
+        let matchRr = master.pewsMaster.find(p => p.item.indexOf("RR") !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+        if(matchRr) { if(rr > 0 && (rr > matchRr.th2 || rr < matchRr.normalMin)) { pews += 2; elRr.classList.add('v-alert-2'); } else if(rr > 0 && rr > matchRr.th1) { pews += 1; elRr.classList.add('v-alert-1'); } document.getElementById("hint-rr").textContent = `目安: ${matchRr.normalMin}-${matchRr.normalMax}`; }
+        let matchBp = master.pewsMaster.find(p => p.item.indexOf("sys") !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+        if(matchBp) { if(sys > 0 && sys < matchBp.normalMin) { pews += 2; elBp.classList.add('v-alert-2'); } document.getElementById("hint-bp").textContent = `収縮期目安: ${matchBp.normalMin}-${matchBp.normalMax}`; }
+      }
+      if(spo2 < 92) { pews += 3; elSp.classList.add('v-alert-3'); } else if(spo2 < 95) { pews += 1; elSp.classList.add('v-alert-1'); }
+      if(dev && !dev.includes("なし")) pews += 1;
+      if(["20","30","100","200","300"].includes(jcs)) pews += 3; else if(["1","2","3","10"].includes(jcs)) pews += 1;
+      appState.pews = pews; document.getElementById("lbl-pews-total").textContent = pews;
+      syncToPrintLayout();
+    } catch(e) {}
   }
 
   function setOxDevice(val, btnEl) { tBtn('g-ox-device', val, btnEl); document.getElementById("panel-vent").style.display = (val === '人工呼吸器') ? 'block' : 'none'; syncToPrintLayout(); }
   function setMeReq(val, btnEl) { tBtn('g-me-req', val, btnEl); document.getElementById("panel-me-details").style.display = (val === '必要') ? 'block' : 'none'; syncToPrintLayout(); }
   function setO2Flow(val, btnEl) { document.getElementById('v-ox-flow-free').value = val; syncToPrintLayout(); }
 
-  // 丸め処理
+  function renderVentilatorOptions() {
+    const box = document.getElementById('box-vent-models'); if (!box) return; const w = appState.calcWeight || 0;
+    let html = `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;"><input type="radio" name="vent_model" value="ME一任・最適な機種" checked onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> ME一任・最適な機種を依頼</label>`;
+    if (master.ventilators && master.ventilators.length > 0) {
+      master.ventilators.forEach(v => {
+        if (w === 0 || (w >= v.minW && w <= v.maxW)) {
+          html += `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;"><input type="radio" name="vent_model" value="${v.maker}${v.model}" onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> <b>${v.model}</b> <span style="font-size:10px;color:var(--sub);">${v.maker} (${v.minW}kg〜)</span><div style="font-size:10px; color:var(--sub);">${v.desc}</div></label>`;
+        }
+      });
+    }
+    box.innerHTML = html;
+  }
+
   function getNearestStep(val, stepString, maxLimit) {
     if(!stepString || isNaN(val)) return val;
     let steps = stepString.split(',').map(Number).filter(n => !isNaN(n)).sort((a,b) => a-b);
@@ -672,12 +761,44 @@
     if(val >= max) return max; for(let i=0; i<steps.length; i++) { if(val <= steps[i]) return steps[i]; } return max;
   }
 
-  // ★ 全5ページ＆ME依頼書のプレビュー完全計算ロジック（修復完了）
+  // ■ 全5ページ＋ME依頼書のプレビュー完全同期計算ロジック（完全復元）
   function syncToPrintLayout() {
     try {
       const wt = appState.calcWeight || 0; const ht = appState.calcHeight || 0;
       const setts = master.settings || {};
-      
+      const bwLabel = appState.isBwManual ? "実測体重" : "基準計算体重"; const bhLabel = appState.isBhManual ? "実測身長" : "目安身長";
+      const originStr = appState.origin || "未選択";
+      let facility = "未入力";
+      if (originStr === "紹介") { facility = document.getElementById("v-referral-facility").value || "未入力"; } 
+      else if (originStr === "救急") { facility = document.getElementById("v-ems-name").value || "未入力"; } 
+      else if (originStr === "その他") { facility = document.getElementById("v-other-origin").value || "未入力"; }
+
+      let preTxParts = [];
+      const mainEl = document.querySelector('#g-tx-main .active'); const tMain = mainEl ? mainEl.dataset.val : "不明";
+      if(tMain === "あり") {
+        if(document.getElementById('v-intub-size')?.value) preTxParts.push(`挿管済[サイズ:${document.getElementById('v-intub-size').value}mm]`);
+        if(document.querySelector('#g-iv-site .on')) preTxParts.push(`静脈路[${document.querySelector('#g-iv-site .on').dataset.val}]`);
+      } else { preTxParts.push(`実施処置: ${tMain}`); }
+      if (document.getElementById("v-preinfo")?.value.trim()) preTxParts.push(document.getElementById("v-preinfo").value.trim());
+      appState.preTxText = preTxParts.join(' / '); 
+
+      let lText = "不明"; if(appState.ampStatus.l === '絶食') lText = "絶食"; else if(appState.ampStatus.l === '摂取あり') lText = `摂取あり (内容: ${document.getElementById("v-amp-l-detail").value || '不明'})`;
+      const ampleHTML = `<b>A:</b> ${appState.ampStatus.a==='あり'?document.getElementById("v-amp-a").value:appState.ampStatus.a} ｜ <b>M:</b> ${appState.ampStatus.m==='あり'?document.getElementById("v-amp-m").value:appState.ampStatus.m} ｜ <b>P:</b> ${appState.ampStatus.p==='あり'?document.getElementById("v-amp-p").value:appState.ampStatus.p} ｜ <b>L:</b> ${lText}`;
+      const vitalsHTML = `HR: ${document.getElementById("v-vit-hr").value \vert{}\vert{} "未"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "未"}% ｜ RR: ${document.getElementById("v-vit-rr").value \vert{}\vert{} "未"} ｜ BP: ${document.getElementById("v-vit-bpsys").value || "-"}/${document.getElementById("v-vit-bpdia").value \vert{}\vert{} "-"} mmHg ｜ PEWS: ${appState.pews}点`;
+
+      const devEl = document.querySelector('#g-ox-device .active'); const devStr = devEl ? devEl.textContent : "なし";
+      let o2Text = `デバイス: ${devStr} ｜ 流量: ${document.getElementById('v-ox-flow-free').value || "-"}`;
+      let reqMe = false;
+      if(devStr.includes("人工呼吸器")) {
+        const reqEl = document.querySelector('#g-me-req .active'); if(reqEl && reqEl.dataset.val === '必要') reqMe = true;
+        o2Text += ` (ME依頼: ${reqEl ? reqEl.dataset.val : "不要"})`;
+      }
+
+      let roles = {leader:[], airway:[], cpr:[], route:[], record:[], other:[]};
+      document.querySelectorAll('#staff-tbody .staff-check:checked').forEach(cb => { roles[cb.dataset.role].push(cb.dataset.print); });
+      appState.staffRoles = roles;
+
+      // CPAセーフティネット計算
       const j1 = wt > 0 ? getNearestStep(wt * (parseFloat(setts.Defib_First_J_per_kg)||2), setts.Defib_Steps||"10,15,20,30,50,70,100,150,200", parseFloat(setts.Defib_Max_J)||200) : '--';
       const j2 = wt > 0 ? getNearestStep(wt * (parseFloat(setts.Defib_Second_J_per_kg)||4), setts.Defib_Steps||"10,15,20,30,50,70,100,150,200", parseFloat(setts.Defib_Max_J)||200) : '--';
       let adreVal = wt > 0 ? Math.min(wt * (parseFloat(setts.Adrenaline_Dose_per_kg)||0.01) * (parseFloat(setts.Adrenaline_Dilution_Ratio)||10000)/1000, parseFloat(setts.Adrenaline_Max_Dose)||10).toFixed(2) : '--';
@@ -685,112 +806,4 @@
       let safeTube = "換算不能"; let tubeItem = master.equipment.find(e => e.name && e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); if(tubeItem) safeTube = tubeItem.size;
       let tubeDepth = (wt > 0) ? (appState.ageY >= 1 ? ((appState.ageY * 0.5) + 12).toFixed(1) : ((wt * 0.5) + 8).toFixed(1)) : '--';
 
-      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left:4px solid #d32f2f;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f;"><tr><th>除細動 (J)</th><td>初回: <b>${j1} J</b> ➔ 2回目: <b>${j2} J</b></td><th>アドレナリン(1万倍希釈)</th><td>1回: <b style="font-size:16px; color:#d32f2f;">${adreVal} mL</b></td></tr><tr><th>気管チューブ</th><td><b>${safeTube}</b></td><th>固定長 (口角)</th><td><b>${tubeDepth} cm</b></td></tr></table>`;
-
-      let page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><table class="p-table"><tr><th>年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>換算体重</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>入電種別</th><td>${appState.origin||'未指定'}</td><th>要請目的</th><td>${appState.keywords.join(', ')}</td></tr><tr><th>要請概要</th><td colspan="3">${document.getElementById("v-case-summary").value}</td></tr><tr><th>搬入前処置</th><td colspan="3">${document.getElementById("v-preinfo") ? document.getElementById("v-preinfo").value : 'なし'}</td></tr></table>${safetyNetHTML}`;
-
-      let dRowsSingle = ""; master.drugs.filter(d=>appState.checkedItems[d.btnName] && d.type==="単発薬").forEach(d => {
-        let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0;
-        dRowsSingle += `<tr><td><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><td>${dose.toFixed(2)} ${d.unit}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit}</td></tr>`;
-      });
-      let page3HTML = `<div class="p-title">【3. ベッドサイド静注用量表 (ショット)】</div><table class="p-table"><thead><tr><th>薬剤名</th><th>実投与用量</th><th>静注液量(mL)</th><th>上限</th></tr></thead><tbody>${dRowsSingle || '<tr><td colspan="4" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
-
-      let dRowsCont = ""; master.drugs.filter(d=>appState.checkedItems[d.btnName] && d.type==="持続薬").forEach(d => {
-        let trs = `<tr><td rowspan="2"><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><th>${d.unit}</th>`;
-        for(let i=0; i<5; i++){ trs += `<td>${d.steps[i]||'-'}</td>`; } trs += `</tr><tr><th>mL/h</th>`;
-        for(let i=0; i<5; i++){ let val = "-"; if(d.steps[i] && wt>0 && d.concMg && d.concVol) { val = ((d.steps[i] * wt * 60) / ((d.concMg / d.concVol) * 1000)).toFixed(2); } trs += `<td>${val}</td>`; } trs += `</tr>`;
-        dRowsCont += trs;
-      });
-      let page4HTML = `<div class="p-title">【4. ベッドサイド静注用量表 (持続)】</div><table class="p-table"><thead><tr><th>薬剤名</th><th colspan="6">流量換算</th></tr></thead><tbody>${dRowsCont || '<tr><td colspan="7" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
-
-      let eRows = ""; master.equipment.filter(e=>appState.checkedItems[e.name] && wt>=e.minW && wt<=e.maxW).forEach(e => {
-        eRows += `<tr><td>${e.category}</td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td></tr>`;
-      });
-      let page5HTML = `<div class="p-title">【5. 物品適合サイズ指示書】</div><table class="p-table"><thead><tr><th>区分</th><th>物品名</th><th>適合サイズ</th></tr></thead><tbody>${eRows || '<tr><td colspan="3" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
-
-      document.getElementById("mirror-preview-area").innerHTML = `<div class="preview-page">${page1HTML}</div><div class="preview-page">${page3HTML}</div><div class="preview-page">${page4HTML}</div><div class="preview-page">${page5HTML}</div>`;
-    } catch(e) {}
-  }
-
-  function switchTab(id) {
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
-    document.querySelector(`.nav-tab[data-tab="${id}"]`).classList.add('active');
-    document.getElementById('tab-' + id).classList.add('active'); window.scrollTo(0,0);
-  }
-
-  function clearSection(sec) {
-    if(sec === 'origin') setOriginMode('不明', null);
-    if(sec === 'patient') { document.getElementById('v-bw').value=""; document.getElementById('v-manual-age-y').value=""; calcPeds(); }
-    if(sec === 'vitals') { document.getElementById('v-vit-hr').value=""; document.getElementById('v-vit-spo2').value=""; triggerPEWS(); }
-    if(sec === 'mist') { document.getElementById('v-case-summary').value=""; document.querySelectorAll('#box-keywords .chip').forEach(c=>c.classList.remove('on')); appState.keywords=[]; syncToPrintLayout(); }
-  }
-
-  function clearAllData(ask) { if(ask && confirm("全リセットしますか？")) location.href = location.pathname; }
-  function clearMatrix() { document.querySelectorAll('.staff-check').forEach(c=>c.checked=false); }
-  function setMealTime(val) { document.getElementById('v-amp-l-detail').value += " " + val; syncToPrintLayout(); }
-  function setETAManual(v) { document.getElementById('v-eta-display').textContent = v; syncToPrintLayout(); }
-  function setETA(l, min, max, el) { document.getElementById('v-eta-display').textContent = l; syncToPrintLayout(); }
-  function addFreeStaffRow() {}
-  function addMaster() {} function addMasterEms() {}
-
-  // ■ 事案データの完全復元（デブリーフィング連動用）
-  function checkUrlParams() {
-    const caseId = new URLSearchParams(window.location.search).get('caseId');
-    if(caseId) {
-      document.getElementById("loader-msg").innerHTML = "過去事案復元中..."; 
-      document.getElementById("global-loader").style.display = "flex";
-      
-      fetch(GAS_API_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", keyword: caseId }) })
-      .then(res => res.json()).then(data => {
-        if(data.status === 'success' && data.results.length > 0) {
-          let item = data.results[0];
-          document.getElementById('v-id').value = item.id || '';
-          if(item.date) document.getElementById('v-date').value = item.date.split('T')[0];
-          if(item.caseType) setOriginMode(item.caseType, null);
-          if(item.facility) {
-            if(item.caseType === '紹介') document.getElementById('v-referral-facility').value = item.facility;
-            else if(item.caseType === '救急') document.getElementById('v-ems-name').value = item.facility;
-            else document.getElementById('v-other-origin').value = item.facility;
-          }
-          if(item.weight) document.getElementById('v-bw').value = item.weight;
-          if(item.sex) tBtn('g-sex', item.sex, null);
-          if(item.summary) document.getElementById('v-case-summary').value = item.summary;
-          if(item.preTx) document.getElementById('v-preinfo').value = item.preTx;
-          
-          if(item.age) {
-            let yMatch = item.age.match(/(\d+)歳/); let mMatch = item.age.match(/(\d+)ヶ月/);
-            if(yMatch) document.getElementById('v-manual-age-y').value = yMatch[1];
-            if(mMatch) document.getElementById('v-manual-age-m').value = mMatch[1];
-          }
-          if(item.keywords) {
-            let kws = item.keywords.split(',').map(s=>s.trim());
-            appState.keywords = kws;
-            document.querySelectorAll('#box-keywords .chip').forEach(c => {
-              if(kws.includes(c.textContent)) c.classList.add('on');
-            });
-          }
-          calcPeds();
-          alert(`【要請番号: ${caseId}】\n当時の事前指示・患者情報を画面に全復元しました！`);
-        }
-      }).finally(() => { document.getElementById("global-loader").style.display = "none"; });
-    }
-  }
-
-  function submitPedsCase() {
-    let id = document.getElementById("v-id").value || "P" + Date.now();
-    const payload = { 
-      action: "peds_submit", 
-      payload: { 
-        ageText: document.getElementById("lbl-age").textContent, 
-        weight: appState.calcWeight.toFixed(1), 
-        data: { "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": appState.origin, "概要": document.getElementById("v-case-summary").value, "搬入前処置": document.getElementById("v-preinfo")?.value||"" } 
-      } 
-    };
-    document.getElementById("btnSubmit").textContent = "送信中...";
-    fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-    .then(res => res.json()).then(data => { if(data.status === "success") alert("保存しました！"); });
-  }
-</script>
-</body>
-</html>
+      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d
