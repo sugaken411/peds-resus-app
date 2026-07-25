@@ -495,9 +495,9 @@
     // 役割マスタ (所属・職種・表示名・コンタクト情報組み込み)
     if(master.staff && master.staff.length > 0) {
       document.getElementById("staff-tbody").innerHTML = master.staff.map(st => {
-        let printLabel = `${st.dept\vert{}\vert{}''}${st.lastName||''}` + (st.phone ? `(${st.phone})` : '');
+        let printLabel = `${st.dept||''}${st.lastName||''}` + (st.phone ? `(${st.phone})` : '');
         return `<tr>
-          <td class="name-cell"><span style="font-size:10px;color:var(--sub);">${st.roleType||''} ${st.dept\vert{}\vert{}''}</span><br><b>${st.displayName}</b></td>
+          <td class="name-cell"><span style="font-size:10px;color:var(--sub);">${st.roleType||''} ${st.dept||''}</span><br><b>${st.displayName}</b></td>
           <td><input type="checkbox" class="staff-check" data-role="leader" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
           <td><input type="checkbox" class="staff-check" data-role="airway" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
           <td><input type="checkbox" class="staff-check" data-role="cpr" data-print="${printLabel}" onchange="syncToPrintLayout()"></td>
@@ -600,7 +600,7 @@
     if (label === '不明') appState.etaText = "不明";
     else if (label === 'それ以上') appState.etaText = `${formatTimeAdd(minAdd)} 以降`;
     else if (minAdd === 0) appState.etaText = `${formatTimeAdd(maxAdd)} 頃`;
-    else appState.etaText = `${formatTimeAdd(minAdd)} 〜${formatTimeAdd(maxAdd)} 頃`;
+    else appState.etaText = `${formatTimeAdd(minAdd)} 〜 ${formatTimeAdd(maxAdd)} 頃`;
     document.getElementById('v-eta-display').textContent = appState.etaText; document.getElementById('v-eta-time').value = ""; 
     syncToPrintLayout();
   }
@@ -647,7 +647,7 @@
     appState.gcs[type] = String(val);
     document.querySelectorAll(`#gcs-${type}-group .gcs-btn`).forEach(b => b.classList.toggle('active', b.getAttribute('data-val') === String(val)));
     const total = (appState.gcs.e === 'T' || appState.gcs.v === 'T' || appState.gcs.m === 'T') ? 'T' : (parseInt(appState.gcs.e)||1) + (parseInt(appState.gcs.v)||1) + (parseInt(appState.gcs.m)||1);
-    document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} =${total}点`;
+    document.getElementById("gcs-total").textContent = `E${appState.gcs.e} V${appState.gcs.v} M${appState.gcs.m} = ${total}点`;
     triggerPEWS();
   }
 
@@ -747,7 +747,7 @@
     if (master.ventilators && master.ventilators.length > 0) {
       master.ventilators.forEach(v => {
         if (w === 0 || (w >= v.minW && w <= v.maxW)) {
-          html += `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;"><input type="radio" name="vent_model" value="${v.maker}${v.model}" onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> <b>${v.model}</b> <span style="font-size:10px;color:var(--sub);">${v.maker} (${v.minW}kg〜)</span><div style="font-size:10px; color:var(--sub);">${v.desc}</div></label>`;
+          html += `<label style="display:block; padding:8px; border:1px solid var(--line); border-radius:8px; margin-bottom:4px; background:#fff; cursor:pointer;"><input type="radio" name="vent_model" value="${v.maker} ${v.model}" onclick="document.getElementById('v-vent-custom').value=''; syncToPrintLayout();"> <b>${v.model}</b> <span style="font-size:10px;color:var(--sub);">${v.maker} (${v.minW}kg〜)</span><div style="font-size:10px; color:var(--sub);">${v.desc}</div></label>`;
         }
       });
     }
@@ -784,7 +784,7 @@
 
       let lText = "不明"; if(appState.ampStatus.l === '絶食') lText = "絶食"; else if(appState.ampStatus.l === '摂取あり') lText = `摂取あり (内容: ${document.getElementById("v-amp-l-detail").value || '不明'})`;
       const ampleHTML = `<b>A:</b> ${appState.ampStatus.a==='あり'?document.getElementById("v-amp-a").value:appState.ampStatus.a} ｜ <b>M:</b> ${appState.ampStatus.m==='あり'?document.getElementById("v-amp-m").value:appState.ampStatus.m} ｜ <b>P:</b> ${appState.ampStatus.p==='あり'?document.getElementById("v-amp-p").value:appState.ampStatus.p} ｜ <b>L:</b> ${lText}`;
-      const vitalsHTML = `HR: ${document.getElementById("v-vit-hr").value \vert{}\vert{} "未"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "未"}% ｜ RR: ${document.getElementById("v-vit-rr").value \vert{}\vert{} "未"} ｜ BP: ${document.getElementById("v-vit-bpsys").value || "-"}/${document.getElementById("v-vit-bpdia").value \vert{}\vert{} "-"} mmHg ｜ PEWS: ${appState.pews}点`;
+      const vitalsHTML = `HR: ${document.getElementById("v-vit-hr").value || "未"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "未"}% ｜ RR: ${document.getElementById("v-vit-rr").value || "未"} ｜ BP: ${document.getElementById("v-vit-bpsys").value || "-"}/${document.getElementById("v-vit-bpdia").value || "-"} mmHg ｜ PEWS: ${appState.pews}点`;
 
       const devEl = document.querySelector('#g-ox-device .active'); const devStr = devEl ? devEl.textContent : "なし";
       let o2Text = `デバイス: ${devStr} ｜ 流量: ${document.getElementById('v-ox-flow-free').value || "-"}`;
@@ -806,4 +806,123 @@
       let safeTube = "換算不能"; let tubeItem = master.equipment.find(e => e.name && e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); if(tubeItem) safeTube = tubeItem.size;
       let tubeDepth = (wt > 0) ? (appState.ageY >= 1 ? ((appState.ageY * 0.5) + 12).toFixed(1) : ((wt * 0.5) + 8).toFixed(1)) : '--';
 
-      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d
+      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left:4px solid #d32f2f;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f;"><tr><th>除細動 (J)</th><td>初回: <b>${j1} J</b> ➔ 2回目: <b>${j2} J</b></td><th>アドレナリン(1万倍希釈)</th><td>1回: <b style="font-size:16px; color:#d32f2f;">${adreVal} mL</b></td></tr><tr><th>気管チューブ</th><td><b>${safeTube}</b></td><th>固定長 (口角)</th><td><b>${tubeDepth} cm</b></td></tr></table>`;
+
+      let page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><table class="p-table"><tr><th>年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${document.querySelector('#g-sex .active')?.textContent||'不明'}</td></tr><tr><th>入電種別</th><td>${originStr} (${facility})</td><th>ETA</th><td>${appState.etaText||'--'}</td></tr><tr><th>バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・経過</th><td colspan="3" style="white-space:pre-wrap;">${document.getElementById("v-case-summary").value}</td></tr><tr><th>AMPLE</th><td colspan="3">${ampleHTML}</td></tr></table><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>統括</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>薬剤</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録</th><td>${roles.record.join(', ')||"未指定"}</td></tr></table>${safetyNetHTML}`;
+
+      let dRowsSingle = ""; master.drugs.filter(d=>appState.checkedItems[d.btnName] && d.type==="単発薬").forEach(d => {
+        let dose = Math.min(d.stdDose * wt, d.maxDose); let v = (wt>0 && d.concMg>0) ? dose / (d.concMg / d.concVol) : 0;
+        dRowsSingle += `<tr><td><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><td>${dose.toFixed(2)} ${d.unit}</td><td class="p-large-text" style="color:var(--brand);">${v.toFixed(2)} mL</td><td>上限: ${d.maxDose<9999?d.maxDose:'-'} ${d.unit}</td></tr>`;
+      });
+      let page3HTML = `<div class="p-title">小児救急事前準備作戦盤 【3. ベッドサイド静注用量表 (ショット)】</div><table class="p-table"><thead><tr><th>薬剤名</th><th>実投与用量</th><th>静注液量(mL)</th><th>上限</th></tr></thead><tbody>${dRowsSingle || '<tr><td colspan="4" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
+
+      let dRowsCont = ""; master.drugs.filter(d=>appState.checkedItems[d.btnName] && d.type==="持続薬").forEach(d => {
+        let trs = `<tr><td rowspan="2"><b>${d.name}</b><br><span style="font-size:10px;">${d.comp||''}</span></td><th>${d.unit}</th>`;
+        for(let i=0; i<5; i++){ trs += `<td>${d.steps[i]||'-'}</td>`; } trs += `</tr><tr><th>mL/h</th>`;
+        for(let i=0; i<5; i++){ let val = "-"; if(d.steps[i] && wt>0 && d.concMg && d.concVol) { val = ((d.steps[i] * wt * 60) / ((d.concMg / d.concVol) * 1000)).toFixed(2); } trs += `<td>${val}</td>`; } trs += `</tr>`;
+        dRowsCont += trs;
+      });
+      let page4HTML = `<div class="p-title">小児救急事前準備作戦盤 【4. ベッドサイド静注用量表 (持続)】</div><table class="p-table"><thead><tr><th>薬剤名</th><th colspan="6">流量換算マトリックス</th></tr></thead><tbody>${dRowsCont || '<tr><td colspan="7" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
+
+      let eRows = ""; master.equipment.filter(e=>appState.checkedItems[e.name] && wt>=e.minW && wt<=e.maxW).forEach(e => {
+        eRows += `<tr><td>${e.category}</td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`;
+      });
+      let page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><table class="p-table"><thead><tr><th>区分</th><th>物品名</th><th>適合サイズ規格</th><th>備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
+
+      // ★ 人工呼吸器 ME依頼ワークシート復元
+      let meReqHTML = "";
+      if (reqMe) {
+        let ventChecked = document.querySelector('input[name="vent_model"]:checked')?.value || document.getElementById('v-vent-custom').value || "ME一任";
+        let humidMode = document.querySelector('#g-vent-humid .active')?.dataset.val || "未指定";
+        let circuit = wt < 10 ? "【新生児・乳児用】" : (wt >= 40 ? "【成人用】" : "【小児用】");
+        meReqHTML = `<div class="preview-page" style="border:4px solid var(--success);"><div class="p-title" style="color:var(--success);">📄 人工呼吸器・ME準備依頼ワークシート</div><table class="p-table"><tr><th>患者年齢/体重</th><td>${document.getElementById("lbl-age").textContent} / <b>${wt.toFixed(1)} kg</b></td></tr><tr><th>依頼機種</th><td style="font-size:16px; font-weight:bold; color:var(--blue);">${ventChecked}</td></tr><tr><th>推奨回路</th><td style="font-size:15px; font-weight:bold;">${circuit}</td></tr><tr><th>加湿方式</th><td><b>${humidMode}</b></td></tr><tr><th>特記事項</th><td>${document.getElementById("v-ox-vent-memo").value || "なし"}</td></tr></table></div>`;
+      }
+
+      document.getElementById("mirror-preview-area").innerHTML = `
+        <div class="preview-page ${appState.isCustomized?'status-custom':''}">${page1HTML}</div>
+        <div class="preview-page ${appState.isCustomized?'status-custom':''}">${page3HTML}</div>
+        <div class="preview-page ${appState.isCustomized?'status-custom':''}">${page4HTML}</div>
+        <div class="preview-page ${appState.isCustomized?'status-custom':''}">${page5HTML}</div>
+        ${meReqHTML}
+      `;
+    } catch(e) {}
+  }
+
+  function switchTab(id) {
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    document.querySelector(`.nav-tab[data-tab="${id}"]`).classList.add('active');
+    document.getElementById('tab-' + id).classList.add('active'); window.scrollTo(0,0);
+  }
+
+  function clearSection(sec) {
+    if(sec === 'origin') setOriginMode('不明', null);
+    if(sec === 'patient') { document.getElementById('v-bw').value=""; document.getElementById('v-manual-age-y').value=""; calcPeds(); }
+    if(sec === 'vitals') { document.getElementById('v-vit-hr').value=""; document.getElementById('v-vit-spo2').value=""; triggerPEWS(); }
+    if(sec === 'mist') { document.getElementById('v-case-summary').value=""; document.querySelectorAll('#box-keywords .chip').forEach(c=>c.classList.remove('on')); appState.keywords=[]; syncToPrintLayout(); }
+  }
+
+  function clearAllData(ask) { if(ask && confirm("全リセットしますか？")) location.href = location.pathname; }
+  function clearMatrix() { document.querySelectorAll('.staff-check').forEach(c=>c.checked=false); }
+  function setMealTime(val) { document.getElementById('v-amp-l-detail').value += " " + val; syncToPrintLayout(); }
+  function addFreeStaffRow() {
+    let tbody = document.getElementById("free-staff-tbody");
+    let tr = document.createElement("tr");
+    tr.innerHTML = `<td><input type="text" class="free-name" placeholder="氏名" oninput="syncToPrintLayout()" style="padding:4px; font-size:11px;"></td><td><input type="checkbox" class="staff-check free-check" data-role="leader" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check free-check" data-role="airway" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check free-check" data-role="cpr" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check free-check" data-role="route" onchange="syncToPrintLayout()"></td><td><input type="checkbox" class="staff-check free-check" data-role="record" onchange="syncToPrintLayout()"></td>`;
+    tbody.appendChild(tr);
+  }
+
+  // デブリーフィング等からの復元処理（全項目完全復元）
+  function checkUrlParams() {
+    const caseId = new URLSearchParams(window.location.search).get('caseId');
+    if(caseId) {
+      document.getElementById("loader-msg").innerHTML = "過去事案復元中..."; document.getElementById("global-loader").style.display = "flex";
+      fetch(GAS_API_URL, { method: 'POST', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", keyword: caseId }) })
+      .then(res => res.json()).then(data => {
+        if(data.status === 'success' && data.results.length > 0) {
+          let item = data.results[0];
+          document.getElementById('v-id').value = item.id || '';
+          if(item.date) document.getElementById('v-date').value = item.date.split('T')[0];
+          if(item.caseType) setOriginMode(item.caseType, null);
+          if(item.facility) {
+            if(item.caseType === '紹介') document.getElementById('v-referral-facility').value = item.facility;
+            else if(item.caseType === '救急') document.getElementById('v-ems-name').value = item.facility;
+            else document.getElementById('v-other-origin').value = item.facility;
+          }
+          if(item.weight) document.getElementById('v-bw').value = item.weight;
+          if(item.sex) tBtn('g-sex', item.sex, null);
+          if(item.summary) document.getElementById('v-case-summary').value = item.summary;
+          if(item.preTx) document.getElementById('v-preinfo').value = item.preTx;
+          if(item.age) {
+            let yMatch = item.age.match(/(\d+)歳/); let mMatch = item.age.match(/(\d+)ヶ月/);
+            if(yMatch) document.getElementById('v-manual-age-y').value = yMatch[1];
+            if(mMatch) document.getElementById('v-manual-age-m').value = mMatch[1];
+          }
+          if(item.keywords) {
+            let kws = item.keywords.split(',').map(s=>s.trim()); appState.keywords = kws;
+            document.querySelectorAll('#box-keywords .chip').forEach(c => { if(kws.includes(c.textContent)) c.classList.add('on'); });
+          }
+          calcPeds();
+          alert(`【要請番号: ${caseId}】\n当時の事前指示・患者情報を画面に全復元しました！`);
+        }
+      }).finally(() => { document.getElementById("global-loader").style.display = "none"; });
+    }
+  }
+
+  function submitPedsCase() {
+    let id = document.getElementById("v-id").value || "P" + Date.now();
+    const payload = { 
+      action: "peds_submit", 
+      payload: { 
+        ageText: document.getElementById("lbl-age").textContent, 
+        weight: appState.calcWeight.toFixed(1), 
+        data: { "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": appState.origin, "概要": document.getElementById("v-case-summary").value, "搬入前処置": document.getElementById("v-preinfo")?.value||"" } 
+      } 
+    };
+    document.getElementById("btnSubmit").textContent = "送信中...";
+    fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
+    .then(res => res.json()).then(data => { if(data.status === "success") alert("保存しました！"); });
+  }
+</script>
+</body>
+</html>
