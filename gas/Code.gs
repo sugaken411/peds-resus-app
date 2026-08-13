@@ -1,4 +1,4 @@
-// バージョン: V6.23 (ポータル連携: お知らせ・マニュアル・未完了アラート追加)
+// バージョン: V6.24 (ポータル連携: お知らせ・マニュアル・未完了アラート追加 / お知らせ日付の表示正規化)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -31,6 +31,12 @@ function safeGet(row, hm, key) {
     return (val === null || val === undefined) ? '' : val;
   }
   return '';
+}
+
+// スプレッドシートが日付入力を自動でDate型に変換した場合、表示用にYYYY/MM/DD文字列へ正規化する
+function formatDateVal(val) {
+  if (val instanceof Date) return Utilities.formatDate(val, "Asia/Tokyo", "yyyy/MM/dd");
+  return val;
 }
 
 function doGet(e) {
@@ -237,7 +243,7 @@ function getPortalData(ss) {
     var status = String(safeGet(r, hmNews, 'ステータス')).trim();
     if (status && status !== '公開') continue;
     result.news.push({
-      date: safeGet(r, hmNews, '日付'),
+      date: formatDateVal(safeGet(r, hmNews, '日付')),
       category: safeGet(r, hmNews, '区分'),
       title: title,
       content: safeGet(r, hmNews, '本文')
