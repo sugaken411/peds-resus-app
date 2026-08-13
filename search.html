@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#f2f2f7">
+  <title>事案検索コンソール</title>
+  <style>
+    :root {
+      --bg: #f2f2f7; --card: #ffffff; --ink: #1c1c1e; --sub: #8e8e93;
+      --brand: #d32f2f; --blue: #007aff; --line: #c7c7cc;
+      --good: #22c55e; --good-bg: #f0fdf4; --warn: #f59e0b; --warn-bg: #fffbeb;
+      --safe-top: env(safe-area-inset-top); --safe-bot: env(safe-area-inset-bottom);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", sans-serif; -webkit-tap-highlight-color: transparent; }
+    html, body { max-width: 100%; overflow-x: hidden; }
+    body { background: var(--bg); color: var(--ink); padding-bottom: calc(40px + var(--safe-bot)); -webkit-font-smoothing: antialiased; }
+
+    header { position: sticky; top: 0; background: rgba(242,242,247,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: calc(12px + var(--safe-top)) 16px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--line); z-index: 100; gap: 8px; }
+    .hdr-title { font-weight: 900; font-size: 15px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .hdr-btn { color: var(--blue); background: #e5e5ea; border: none; font-size: 13px; font-weight: 700; cursor: pointer; padding: 8px 10px; border-radius: 8px; white-space: nowrap; flex-shrink: 0; }
+    .hdr-btn:active { opacity: 0.7; }
+    .version-tag { font-size: 9px; color: #fff; font-weight: bold; background: var(--blue); padding: 2px 5px; border-radius: 4px; margin-left: 4px; vertical-align: middle; }
+
+    main { padding: 16px; max-width: 900px; margin: 0 auto; width: 100%; }
+
+    .sync-status { font-size: 10px; color: var(--sub); text-align: right; margin-bottom: 8px; font-weight: bold; }
+
+    .filter-card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border: 1px solid #d1d1d6; }
+    .search-input { width: 100%; padding: 12px; border: 1px solid var(--line); border-radius: 8px; font-size: 15px; background: #fff; outline: none; margin-bottom: 12px; color: var(--ink); font-weight: 600; appearance: none; }
+    .search-input:focus { border-color: var(--blue); background: #f0f8ff; }
+
+    .filter-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .filter-item label { font-size: 11px; font-weight: bold; color: var(--sub); display: block; margin-bottom: 4px; }
+    .filter-item input, .filter-item select { width: 100%; padding: 10px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; background: #fff; color: var(--ink); font-weight: 600; outline: none; appearance: none; min-width: 0; }
+
+    .status-toggle { display: flex; gap: 6px; background: #e5e5ea; padding: 4px; border-radius: 10px; }
+    .status-toggle button { flex: 1; border: none; background: transparent; padding: 10px 4px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--sub); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .status-toggle button.active { background: var(--blue); color: #fff; }
+    .status-toggle button.active.warn-mode { background: var(--warn); }
+
+    .btn-search { width: 100%; padding: 14px; background: var(--ink); color: #fff; font-weight: bold; border-radius: 8px; border: none; font-size: 15px; cursor: pointer; margin-top: 4px; }
+    .btn-search:active { transform: scale(0.98); }
+
+    #result-count { font-weight: bold; font-size: 14px; margin-bottom: 12px; color: var(--sub); }
+
+    .result-card { background: var(--card); border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); border: 1px solid #d1d1d6; border-left: 5px solid var(--blue); overflow-wrap: break-word; word-break: break-word; }
+    .result-card.status-done { border-left-color: var(--good); }
+    .rc-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 8px; align-items: center; }
+    .rc-id { font-weight: 800; color: var(--ink); font-size: 15px; }
+    .rc-date { color: var(--sub); font-size: 12px; font-weight: normal; margin-left: 4px; }
+    .badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: bold; white-space: nowrap; }
+    .badge.done { background: var(--good-bg); color: #15803d; }
+    .badge.pending { background: var(--warn-bg); color: #b45309; }
+
+    .rc-meta { font-size: 12px; color: var(--sub); margin-bottom: 10px; display: flex; flex-wrap: wrap; gap: 4px 12px; }
+    .rc-meta b { color: var(--ink); font-weight: 700; }
+
+    .rc-context { font-size: 13px; margin-bottom: 10px; line-height: 1.6; background: #f9f9f9; padding: 10px; border-radius: 6px; color: var(--ink); border: 1px solid #e5e5ea; white-space: pre-wrap; }
+
+    .rc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .t-chip { font-size: 10px; padding: 4px 8px; border-radius: 4px; font-weight: bold; background: #e3f2fd; color: #0d47a1; border: 1px solid #bbdefb; }
+
+    .rc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .rc-actions a, .rc-actions button { flex: 1; min-width: 140px; text-align: center; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; border: none; }
+    .btn-detail { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe !important; }
+    .btn-edit { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2 !important; }
+
+    .rc-debrief-detail { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display: none; }
+    .rc-debrief-detail.open { display: block; }
+    .fb-box { padding: 10px; border-radius: 8px; font-size: 12px; line-height: 1.6; border: 1px solid var(--line); background: #fafafa; margin-bottom: 8px; white-space: pre-wrap; }
+    .fb-title { font-weight: 800; margin-bottom: 4px; color: var(--ink); }
+
+    #global-loader { position: fixed; inset: 0; background: rgba(255,255,255,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+    .spinner { width: 40px; height: 40px; border: 4px solid rgba(0,122,255,0.2); border-top: 4px solid var(--blue); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 16px; }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    @media (min-width: 700px) {
+      .rc-actions a, .rc-actions button { flex: 0 1 auto; min-width: 180px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="global-loader">
+  <div class="spinner"></div>
+  <div style="font-size: 15px; font-weight: 800; color: var(--ink);">事案アーカイブを読み込み中...</div>
+</div>
+
+<header>
+  <button type="button" class="hdr-btn" onclick="location.href='portal.html'">◀ ポータル</button>
+  <div class="hdr-title">🔍 事案検索<span class="version-tag">v1.0</span></div>
+  <button type="button" class="hdr-btn" onclick="fetchData(true)">🔄 更新</button>
+</header>
+
+<main>
+  <div class="sync-status" id="sync-status">データ状態: 読込中...</div>
+
+  <div class="filter-card">
+    <input type="text" id="q-free" class="search-input" placeholder="🔍 フリーワード（概要・キーワードから検索）" oninput="executeSearch()">
+
+    <div class="filter-grid">
+      <div class="filter-item">
+        <label>要請番号</label>
+        <input type="text" id="q-id" placeholder="ID検索" oninput="executeSearch()">
+      </div>
+      <div class="filter-item">
+        <label>月で探す</label>
+        <input type="month" id="q-month" onchange="executeSearch()">
+      </div>
+    </div>
+
+    <div class="filter-item" style="margin-bottom: 4px;">
+      <label>振り返り状況</label>
+      <div class="status-toggle" id="status-toggle">
+        <button type="button" data-val="" class="active" onclick="setStatusFilter('')">全て</button>
+        <button type="button" data-val="未完了" onclick="setStatusFilter('未完了')">未完了</button>
+        <button type="button" data-val="完了" onclick="setStatusFilter('完了')">完了</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="result-count"></div>
+  <div id="results-area"></div>
+</main>
+
+<script>
+  const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxlI9ltio6I-drOn95L8qJ5zhNnVEWct96HA5GaBuknUqw2HSxgfGbOb51pfjch0fEbVQ/exec";
+
+  let allResults = [];
+  let statusFilter = "";
+  const debriefDetailCache = {};
+
+  function escapeHtml(str) {
+    return String(str == null ? "" : str)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+
+  function showLoader(show) {
+    document.getElementById("global-loader").style.display = show ? "flex" : "none";
+  }
+
+  window.onload = () => { fetchData(false); };
+
+  function fetchData(isManual) {
+    showLoader(true);
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history" }) })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "not_found") { allResults = []; }
+        else if (res.status === "success") { allResults = res.results || []; }
+        else { throw new Error(res.message || "取得に失敗しました"); }
+        const now = new Date();
+        document.getElementById("sync-status").innerText = `データ状態: 同期完了 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
+        executeSearch();
+        if (isManual) alert("最新のデータを取得しました。");
+      })
+      .catch(err => {
+        document.getElementById("sync-status").innerText = `データ状態: 通信エラー`;
+        document.getElementById("results-area").innerHTML = `<div style="text-align:center; padding:40px; color:var(--brand);">読込に失敗しました: ${escapeHtml(err.message)}</div>`;
+      })
+      .finally(() => showLoader(false));
+  }
+
+  function setStatusFilter(val) {
+    statusFilter = val;
+    document.querySelectorAll('#status-toggle button').forEach(b => {
+      const on = b.getAttribute('data-val') === val;
+      b.classList.toggle('active', on);
+      b.classList.toggle('warn-mode', on && val === '未完了');
+    });
+    executeSearch();
+  }
+
+  function executeSearch() {
+    const freeW = document.getElementById("q-free").value.trim().toLowerCase();
+    const qId = document.getElementById("q-id").value.trim();
+    const qMonth = document.getElementById("q-month").value; // YYYY-MM
+
+    const results = allResults.filter(r => {
+      if (qId && !String(r.id || "").includes(qId)) return false;
+      if (qMonth) {
+        const normalizedDate = String(r.date || "").replace(/\//g, "-");
+        if (!normalizedDate.startsWith(qMonth)) return false;
+      }
+      if (statusFilter) {
+        const isDone = r.debriefStatus === "完了";
+        if (statusFilter === "完了" && !isDone) return false;
+        if (statusFilter === "未完了" && isDone) return false;
+      }
+      if (freeW) {
+        const fullText = [r.summary, r.keywords, r.caseType, r.facility, r.id].filter(Boolean).join(" ").toLowerCase();
+        if (!fullText.includes(freeW)) return false;
+      }
+      return true;
+    });
+
+    document.getElementById("result-count").innerText = `検索結果: ${results.length}件`;
+    renderResults(results);
+  }
+
+  function renderResults(results) {
+    const area = document.getElementById("results-area");
+    if (results.length === 0) {
+      area.innerHTML = `<div style="text-align:center; padding:40px; color:var(--sub);">条件に一致する事案がありません</div>`;
+      return;
+    }
+    area.innerHTML = results.map((r, idx) => {
+      const isDone = r.debriefStatus === "完了";
+      const keywordChips = String(r.keywords || "").split(",").map(k => k.trim()).filter(Boolean)
+        .map(k => `<div class="t-chip">${escapeHtml(k)}</div>`).join("");
+      const cardId = "rc-" + idx;
+      return `
+      <div class="result-card ${isDone ? 'status-done' : ''}">
+        <div class="rc-header">
+          <div class="rc-id">${escapeHtml(r.id || "(要請番号なし)")}<span class="rc-date">(${escapeHtml(r.date)})</span></div>
+          <div class="badge ${isDone ? 'done' : 'pending'}">${isDone ? '✅ 振り返り完了' : '⚠️ 振り返り未完了'}</div>
+        </div>
+        <div class="rc-meta">
+          <span><b>年齢:</b> ${escapeHtml(r.age) || '-'}</span>
+          <span><b>体重:</b> ${escapeHtml(r.weight) || '-'}kg</span>
+          <span><b>性別:</b> ${escapeHtml(r.sex) || '-'}</span>
+          <span><b>事案種別:</b> ${escapeHtml(r.caseType) || '-'}</span>
+          <span><b>紹介元:</b> ${escapeHtml(r.facility) || '-'}</span>
+        </div>
+        <div class="rc-context">${escapeHtml(r.summary) || '概要の記載なし'}</div>
+        ${keywordChips ? `<div class="rc-tags">${keywordChips}</div>` : ''}
+        <div class="rc-actions">
+          <button type="button" class="btn-detail" onclick="toggleDetail('${cardId}', '${encodeURIComponent(r.id)}')">📖 振り返り詳細を見る</button>
+          <a class="btn-edit" href="debriefing.html?id=${encodeURIComponent(r.id)}">✏️ デブリーフィングを開く</a>
+        </div>
+        <div class="rc-debrief-detail" id="detail-${cardId}"></div>
+      </div>
+      `;
+    }).join("");
+  }
+
+  function toggleDetail(cardId, encodedId) {
+    const el = document.getElementById("detail-" + cardId);
+    const isOpen = el.classList.contains("open");
+    if (isOpen) { el.classList.remove("open"); return; }
+    el.classList.add("open");
+    if (debriefDetailCache[encodedId]) {
+      el.innerHTML = debriefDetailCache[encodedId];
+      return;
+    }
+    el.innerHTML = `<div style="font-size:12px; color:var(--sub);">読込中...</div>`;
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: decodeURIComponent(encodedId) }) })
+      .then(res => res.json())
+      .then(res => {
+        const d = res.debriefData || {};
+        const hasContent = d.actualDiff || d.gapBad || d.gapGood || d.team || d.action;
+        const html = hasContent ? `
+          ${d.actualDiff ? `<div class="fb-box"><div class="fb-title">🔀 想定との相違点</div>${escapeHtml(d.actualDiff)}</div>` : ''}
+          ${d.gapBad ? `<div class="fb-box"><div class="fb-title">⚠️ 事前準備の課題</div>${escapeHtml(d.gapBad)}</div>` : ''}
+          ${d.gapGood ? `<div class="fb-box"><div class="fb-title">🟢 良かった点</div>${escapeHtml(d.gapGood)}</div>` : ''}
+          ${d.team ? `<div class="fb-box"><div class="fb-title">🤝 チーム連携評価</div>${escapeHtml(d.team)}</div>` : ''}
+          ${d.action ? `<div class="fb-box"><div class="fb-title">➡️ 次回アクションプラン</div>${escapeHtml(d.action)}</div>` : ''}
+        ` : `<div class="fb-box" style="color:var(--sub); text-align:center;">振り返りの記載がまだありません</div>`;
+        el.innerHTML = html;
+        debriefDetailCache[encodedId] = html;
+      })
+      .catch(err => {
+        el.innerHTML = `<div class="fb-box" style="color:var(--brand);">読込に失敗しました: ${escapeHtml(err.message)}</div>`;
+      });
+  }
+</script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-// バージョン: V6.24 (ポータル連携: お知らせ・マニュアル・未完了アラート追加 / お知らせ日付の表示正規化)
+// バージョン: V6.26 (fetch_historyに振り返り完了状況(debriefStatus)を付与 / ステータス絞り込み対応 / 搬入日の表示正規化)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -147,13 +147,32 @@ function doPost(e) {
       if (!dbSheet) throw new Error("事案アーカイブが見つかりません");
       var hm = getHeaderMap(dbSheet); var data = dbSheet.getDataRange().getValues(); var results = [];
       var sMonth = parsedPayload.month || ""; var sStaff = parsedPayload.staff || ""; var sKw = parsedPayload.keyword || "";
+      var sStatus = parsedPayload.debriefStatus || ""; // "完了" | "未完了" | ""(全て)
+
+      // 振り返り状況を要請番号ごとに1回だけ集計（完了ステータスの事案IDセットを作成）
+      var debriefStatusMap = {};
+      try {
+        var debriefSheetForStatus = ss.getSheetByName('振り返りアーカイブ');
+        if (debriefSheetForStatus) {
+          var hmDebriefStatus = getHeaderMap(debriefSheetForStatus);
+          var debriefValsForStatus = debriefSheetForStatus.getDataRange().getValues();
+          for (var j = 1; j < debriefValsForStatus.length; j++) {
+            var dRowS = debriefValsForStatus[j];
+            var dIdS = safeGet(dRowS, hmDebriefStatus, '要請番号');
+            var dStatusS = String(safeGet(dRowS, hmDebriefStatus, 'ステータス')).trim();
+            if (dIdS) debriefStatusMap[dIdS] = dStatusS === '完了' ? '完了' : '未完了';
+          }
+        }
+      } catch (eStatus) { Logger.log("振り返り状況集計エラー: " + eStatus.toString()); }
 
       for (var i = 1; i < data.length; i++) {
-        var row = data[i]; var id = safeGet(row, hm, '要請番号'); var date = safeGet(row, hm, '搬入日'); var summary = safeGet(row, hm, '概要・経過'); var keywords = safeGet(row, hm, 'キーワード');
+        var row = data[i]; var id = safeGet(row, hm, '要請番号'); var rawDate = safeGet(row, hm, '搬入日'); var date = formatDateVal(rawDate); var summary = safeGet(row, hm, '概要・経過'); var keywords = safeGet(row, hm, 'キーワード');
         if (sKw && id.indexOf(sKw) === -1 && summary.indexOf(sKw) === -1 && keywords.indexOf(sKw) === -1) continue;
-        if (sMonth && String(date).indexOf(sMonth) === -1) continue;
+        if (sMonth && String(rawDate).replace(/\//g, '-').indexOf(sMonth) === -1) continue;
+        var debriefStatus = debriefStatusMap.hasOwnProperty(id) ? debriefStatusMap[id] : '未入力';
+        if (sStatus && sStatus !== debriefStatus) continue;
         results.push({
-          id: id, date: date, age: safeGet(row, hm, '年齢/月齢'), weight: safeGet(row, hm, '計算体重'), sex: safeGet(row, hm, '性別'), summary: summary, keywords: keywords, preTx: safeGet(row, hm, '搬入前処置'), protocol: safeGet(row, hm, '想定シナリオ・薬剤物品詳細'), vitals: safeGet(row, hm, 'バイタル'), pat: safeGet(row, hm, 'PAT'), caseType: safeGet(row, hm, '事案種別'), facility: safeGet(row, hm, '紹介元医療機関'),
+          id: id, date: date, age: safeGet(row, hm, '年齢/月齢'), weight: safeGet(row, hm, '計算体重'), sex: safeGet(row, hm, '性別'), summary: summary, keywords: keywords, preTx: safeGet(row, hm, '搬入前処置'), protocol: safeGet(row, hm, '想定シナリオ・薬剤物品詳細'), vitals: safeGet(row, hm, 'バイタル'), pat: safeGet(row, hm, 'PAT'), caseType: safeGet(row, hm, '事案種別'), facility: safeGet(row, hm, '紹介元医療機関'), debriefStatus: debriefStatus,
           roles: { leader: safeGet(row, hm, '統括'), airway: safeGet(row, hm, '気道管理'), cpr: safeGet(row, hm, '胸骨圧迫'), route: safeGet(row, hm, 'ルート・薬剤'), record: safeGet(row, hm, '記録') }
         });
       }
@@ -170,7 +189,7 @@ function doPost(e) {
       var debriefData = {};
       for (var i = data.length - 1; i >= 1; i--) {
         if (safeGet(data[i], hm, '要請番号') === parsedPayload.id) {
-          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: safeGet(data[i], hm, '開催日'), dTime: safeGet(data[i], hm, '開始時間'), dEndTime: safeGet(data[i], hm, '終了時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON') }; break;
+          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: safeGet(data[i], hm, '開催日'), dTime: safeGet(data[i], hm, '開始時間'), dEndTime: safeGet(data[i], hm, '終了時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON'), status: safeGet(data[i], hm, 'ステータス') }; break;
         }
       }
       return ContentService.createTextOutput(JSON.stringify({ status: "success", debriefData: debriefData })).setMimeType(ContentService.MimeType.JSON);
