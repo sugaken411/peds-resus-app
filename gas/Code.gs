@@ -1,4 +1,4 @@
-// バージョン: V6.26 (fetch_historyに振り返り完了状況(debriefStatus)を付与 / ステータス絞り込み対応 / 搬入日の表示正規化)
+// バージョン: V6.27 (analyze_karteのvital/bloodプロンプトを具体化しマスタ項目名と照合可能に)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -216,9 +216,19 @@ function doPost(e) {
       var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
       if (!apiKey) throw new Error("APIキーが設定されていません。");
       var target = parsedPayload.target;
-      var promptText = "あなたは医療記録アシスタントです。提供されたデータから指定JSONのみ出力。マークダウン不可。\n";
-      if (target === "timeline") promptText += "【抽出】時間(time)と内容(contentText)の配列。catは'処置','薬剤','記事'。例:[{\"time\":\"14:23\",\"cat\":\"記事\",\"contentText\":\"挿管\"}]";
-      else promptText += "【抽出】" + target + "に関する数値をJSON形式で出力。";
+      var promptText = "あなたは医療記録アシスタントです。提供されたデータから指定JSONのみ出力。マークダウン不可。読み取れない項目はキー自体を省略してください。数値以外の文字（単位・記号）は含めないでください。\n";
+      if (target === "timeline") {
+        promptText += "【抽出】時間(time)と内容(contentText)の配列。catは'処置','薬剤','記事'。例:[{\"time\":\"14:23\",\"cat\":\"記事\",\"contentText\":\"挿管\"}]";
+      } else if (target === "vital") {
+        promptText += "【抽出】バイタルサインを次のキーちょうどで出力してください: v_hr(心拍数/HR), v_spo2(SpO2%), v_rr(呼吸数/RR), v_bps(収縮期血圧), v_bpd(拡張期血圧), v_bt(体温)。例:{\"v_hr\":120,\"v_spo2\":98}";
+      } else if (target === "blood") {
+        var knownNames = getBloodTestNames(ss);
+        promptText += "【抽出】この検体検査結果の画像・テキストから、数値が読み取れた項目だけを"
+          + "次の候補リストの表記に厳密に一致させて出力してください（候補にない項目は無視）: "
+          + knownNames.join('、') + "。\n出力形式は {\"項目名\": 数値, ...} 。項目名は必ず候補リストの文字列をそのまま使うこと。";
+      } else {
+        promptText += "【抽出】" + target + "に関する数値をJSON形式で出力。";
+      }
 
       var parts = [{ text: promptText }];
       if (parsedPayload.imageText) parts.push({ text: "【テキスト】\n" + parsedPayload.imageText });
@@ -243,6 +253,29 @@ function doPost(e) {
     sendAdminEmail("doPost内処理エラー", err.toString() + "\n" + err.stack);
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
   }
+}
+
+// AI画像解析（血液検査OCR）が結果を照合できるよう、マスタ＿検査シートから
+// 血液カテゴリの項目名一覧だけを軽量に取得する
+function getBloodTestNames(ss) {
+  var names = [];
+  var sheetTest = ss.getSheetByName('マスタ＿検査');
+  if (!sheetTest) return names;
+  var tData = sheetTest.getDataRange().getValues();
+  var hMapTest = {}; var dataStartRow = 1;
+  for (var i = 0; i < tData.length; i++) {
+    if (tData[i].indexOf('大項目') !== -1 || tData[i].indexOf('検査項目名') !== -1) {
+      for (var c = 0; c < tData[i].length; c++) { if (tData[i][c]) hMapTest[String(tData[i][c]).trim()] = c; }
+      dataStartRow = i + 1; break;
+    }
+  }
+  for (var i = dataStartRow; i < tData.length; i++) {
+    var r = tData[i];
+    var name = safeGet(r, hMapTest, '検査項目名');
+    var category = safeGet(r, hMapTest, '大項目');
+    if (name && category === '血液') names.push(String(name).trim());
+  }
+  return names;
 }
 
 // ----------------------------------------------------

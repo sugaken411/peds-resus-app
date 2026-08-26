@@ -15,26 +15,31 @@
     .title-box { text-align: center; font-weight: 800; font-size: 15px; }
     .master-time { font-size: 10px; color: var(--sub); margin-top: 2px; }
     
-    .tab-container { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
-    .case-banner { position: fixed; top: calc(104px + var(--safe-top)); left: 0; right: 0; height: 34px; background: #fffbeb; border-bottom: 1px solid #fde68a; z-index: 98; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; font-weight: 700; color: #92400e; padding: 0 12px; }
+    .tab-container { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; overflow-y: hidden; z-index: 99; scrollbar-width: none; }
+    .case-banner { position: sticky; top: calc(104px + var(--safe-top)); margin-top: calc(104px + var(--safe-top)); z-index: 98; background: #fffbeb; border-bottom: 1px solid #fde68a; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700; color: #92400e; padding: 8px 12px; }
     .case-banner.linked { background: #eff6ff; border-bottom-color: #bfdbfe; color: var(--blue); }
-    .case-banner .cb-link { text-decoration: underline; cursor: pointer; }
+    .case-banner .cb-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .case-banner .cb-change { flex-shrink: 0; background: #fff; border: 1px solid currentColor; color: inherit; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 700; cursor: pointer; }
     .tab-container::-webkit-scrollbar { display: none; }
-    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; } 
+    .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; }
     .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
-    
-    main { margin-top: calc(148px + var(--safe-top)); padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
-    
+
+    main { padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
+
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--line); padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .section-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-    
+
     input[type="text"], input[type="date"], input[type="month"], input[type="time"], textarea, select { width: 100%; border: 1px solid var(--line); font-size: 15px; background: var(--bg); outline: none; padding: 12px; border-radius: 8px; margin-bottom: 8px; font-weight: 600; -webkit-appearance: none; appearance: none; }
     input:focus, textarea:focus, select:focus { border-color: var(--blue); background: #fff; }
-    
-    .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+
+    .input-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
     .input-row label { font-size: 11px; font-weight: 700; color: var(--sub); width: 85px; flex-shrink: 0; text-align: right; }
-    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; } 
-    .grid-3col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .grid-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .grid-3col { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+    @media (max-width: 480px) {
+      .input-row { flex-direction: column; align-items: stretch; gap: 2px; }
+      .input-row label { width: auto; text-align: left; }
+    }
     
     .btn { background: var(--brand); color: #fff; border: none; padding: 14px; border-radius: 10px; font-weight: 700; cursor: pointer; width: 100%; font-size: 15px; margin-top: 8px; text-align: center; text-decoration: none; }
     .btn.blue { background: var(--blue); } .btn.small { padding: 8px 14px; font-size: 13px; width: auto; } .btn.ghost { background: var(--bg); color: var(--ink); border: 1px solid var(--line); }
@@ -48,6 +53,25 @@
     .chip.on { background: var(--brand-light); border-color: var(--brand); color: var(--brand); }
     .chip.on-blue { background: #eff6ff; border-color: var(--blue); color: var(--blue); }
     .chip.on-dark { background: #e5e5ea; border-color: var(--ink); color: var(--ink); }
+    .loc-sub-label { font-size: 10px; font-weight: 700; color: var(--sub); display: block; margin-bottom: 2px; }
+    #loc-jcs-chips .chip.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+
+    .test-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 8px; }
+    .test-row { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+    .test-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+    .test-name { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .test-range { font-size: 10px; color: var(--sub); font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .test-row-body { display: flex; align-items: center; gap: 8px; }
+    .test-row-body input { margin-bottom: 0; flex: 1; min-width: 0; }
+    .test-unit { font-size: 12px; font-weight: 700; color: var(--sub); flex-shrink: 0; }
+    .test-note { font-size: 10px; color: var(--sub); margin-top: 4px; }
+
+    .flow-param-select { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .flow-chk { display: flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: var(--sub); background: var(--bg); padding: 6px 10px; border-radius: 20px; border: 1px solid var(--line); cursor: pointer; user-select: none; }
+    .flow-chk input { margin: 0; width: auto; }
+    .flow-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
+    .flow-table th, .flow-table td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; white-space: nowrap; }
+    .flow-table th { background: var(--bg); font-weight: 700; }
     
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); } .chip-tx.active { background: var(--blue); color: #fff; }
     .chip-tx-opt { background: #fff; border: 1px solid #d48806; color: #d48806; }
@@ -220,14 +244,39 @@
           <div class="input-row"><label>BP拡張期</label><input type="text" inputmode="decimal" id="v-bpd" oninput="forceNum(this)"></div>
           <div class="input-row"><label>BT (℃)</label><input type="text" inputmode="decimal" id="v-bt" oninput="forceNum(this)"></div>
         </div>
-        <input type="text" id="v-jcs" placeholder="意識レベル（JCS/GCS）" style="margin-top:4px;">
+        <div class="loc-picker" style="margin-top:8px; background:var(--bg); border-radius:8px; padding:10px;">
+          <div style="font-size:11px; font-weight:700; color:var(--sub); margin-bottom:6px;">🧠 意識レベル</div>
+          <div class="btn-group" id="loc-scale-toggle" style="margin-bottom:8px;">
+            <button type="button" class="group-btn active" data-scale="JCS" onclick="setLocScale('JCS', this)">JCS</button>
+            <button type="button" class="group-btn" data-scale="GCS" onclick="setLocScale('GCS', this)">GCS</button>
+            <button type="button" class="group-btn" data-scale="RASS" onclick="setLocScale('RASS', this)">RASS</button>
+          </div>
+
+          <div id="loc-jcs-panel" class="loc-panel">
+            <div class="chips" id="loc-jcs-chips"></div>
+          </div>
+
+          <div id="loc-gcs-panel" class="loc-panel" style="display:none;">
+            <div class="grid-3col">
+              <div><label class="loc-sub-label">E(開眼)</label><select id="loc-gcs-e" onchange="updateGcsTotal()"></select></div>
+              <div><label class="loc-sub-label">V(言語)</label><select id="loc-gcs-v" onchange="updateGcsTotal()"></select></div>
+              <div><label class="loc-sub-label">M(運動)</label><select id="loc-gcs-m" onchange="updateGcsTotal()"></select></div>
+            </div>
+            <div id="loc-gcs-total" style="text-align:center; font-weight:800; margin-top:6px; color:var(--blue);">合計: --点</div>
+          </div>
+
+          <div id="loc-rass-panel" class="loc-panel" style="display:none;">
+            <select id="loc-rass-select" onchange="updateLocFromRass()"></select>
+          </div>
+        </div>
+        <div class="input-row" style="margin-top:8px;"><label>意識レベル</label><input type="text" id="v-jcs" readonly placeholder="上のJCS/GCS/RASSから選択してください"></div>
         <div class="input-row" style="margin-top:4px;"><label>PEWS</label><input type="text" inputmode="decimal" id="v-pews" oninput="forceNum(this)"></div>
         <button class="btn blue" id="btn-add-vital" onclick="addTimeline('バイタル')">＋ バイタルを登録</button>
       </div>
 
       <div id="panel-data-blood" class="tl-panel" style="display:none;">
         <div class="btn-group" id="blood-sub-tabs" style="margin-bottom:8px;"></div>
-        <div id="blood-inputs-container" style="max-height: 300px; overflow-y: auto; overflow-x: hidden;"></div>
+        <div id="blood-inputs-container" style="max-height: 420px; overflow-y: auto; overflow-x: hidden;"></div>
         <button class="btn blue" id="btn-add-blood" onclick="addTimeline('血液検査')">＋ 血液検査を登録</button>
       </div>
 
@@ -257,7 +306,14 @@
 
   <div id="tab-sec5" class="tab-content">
     <div class="card">
-      <div class="section-label">📈 バイタルサイン動態</div>
+      <div class="section-label">📋 バイタル経過表<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllFlowParams()">表示項目を全選択/解除</button></div>
+      <div class="flow-param-select" id="flow-param-select"></div>
+      <div style="overflow-x:auto;">
+        <table class="flow-table" id="flow-table"></table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-label">📈 バイタルサイン動態（グラフ）</div>
       <div class="chart-box"><canvas id="chart-hr-spo2"></canvas></div>
       <div class="chart-box"><canvas id="chart-bp"></canvas></div>
     </div>
@@ -345,10 +401,72 @@
 
   window.onload = () => {
     document.getElementById("d-date").valueAsDate = new Date();
-    renderEvalBlocks(); loadMasterData(); updateCaseBanner();
+    renderEvalBlocks(); loadMasterData(); updateCaseBanner(); initLocPicker();
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId) autoLoadCaseFromUrl(urlId);
   };
+
+  // ----- 意識レベル（JCS/GCS/RASS）入力 -----
+  const JCS_VALUES = [0, 1, 2, 3, 10, 20, 30, 100, 200, 300];
+  const GCS_E = [{v:4,l:'4:自発開眼'},{v:3,l:'3:呼びかけ開眼'},{v:2,l:'2:痛み刺激開眼'},{v:1,l:'1:開眼なし'}];
+  const GCS_V = [{v:5,l:'5:見当識あり'},{v:4,l:'4:混乱した会話'},{v:3,l:'3:不適当な言葉'},{v:2,l:'2:理解不能な音声'},{v:1,l:'1:発語なし'}];
+  const GCS_M = [{v:6,l:'6:命令に従う'},{v:5,l:'5:痛み部位認識'},{v:4,l:'4:逃避屈曲'},{v:3,l:'3:異常屈曲'},{v:2,l:'2:伸展反応'},{v:1,l:'1:動きなし'}];
+  const RASS_OPTIONS = [
+    {v:4,l:'+4:好戦的'},{v:3,l:'+3:過度に興奮'},{v:2,l:'+2:興奮・不穏'},{v:1,l:'+1:落ち着きがない'},
+    {v:0,l:'0:意識清明で穏やか'},
+    {v:-1,l:'-1:傾眠傾向'},{v:-2,l:'-2:軽い鎮静'},{v:-3,l:'-3:中等度鎮静'},{v:-4,l:'-4:深い鎮静'},{v:-5,l:'-5:覚醒せず'}
+  ];
+
+  function initLocPicker() {
+    document.getElementById('loc-jcs-chips').innerHTML = JCS_VALUES.map(v =>
+      `<div class="chip" onclick="selectJcsChip(${v}, this)">${v}</div>`).join('');
+    const ph = `<option value="" selected>--</option>`;
+    document.getElementById('loc-gcs-e').innerHTML = ph + GCS_E.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+    document.getElementById('loc-gcs-v').innerHTML = ph + GCS_V.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+    document.getElementById('loc-gcs-m').innerHTML = ph + GCS_M.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+    document.getElementById('loc-rass-select').innerHTML = `<option value="">選択してください</option>` + RASS_OPTIONS.map(o => `<option value="${o.v}">${o.l}</option>`).join('');
+  }
+
+  function setLocScale(scale, btn) {
+    document.querySelectorAll('#loc-scale-toggle .group-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    ['jcs', 'gcs', 'rass'].forEach(s => document.getElementById(`loc-${s}-panel`).style.display = (s === scale.toLowerCase()) ? 'block' : 'none');
+    document.getElementById('v-jcs').value = '';
+  }
+
+  function selectJcsChip(val, el) {
+    document.querySelectorAll('#loc-jcs-chips .chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('v-jcs').value = `JCS ${val}`;
+  }
+
+  function updateGcsTotal() {
+    const eRaw = document.getElementById('loc-gcs-e').value;
+    const vRaw = document.getElementById('loc-gcs-v').value;
+    const mRaw = document.getElementById('loc-gcs-m').value;
+    if (!eRaw || !vRaw || !mRaw) {
+      document.getElementById('loc-gcs-total').textContent = 'E・V・Mすべて選択してください';
+      document.getElementById('v-jcs').value = '';
+      return;
+    }
+    const e = parseInt(eRaw), v = parseInt(vRaw), m = parseInt(mRaw);
+    const total = e + v + m;
+    document.getElementById('loc-gcs-total').textContent = `合計: ${total}点`;
+    document.getElementById('v-jcs').value = `GCS E${e}V${v}M${m}(${total})`;
+  }
+
+  function updateLocFromRass() {
+    const sel = document.getElementById('loc-rass-select');
+    if (!sel.value) { document.getElementById('v-jcs').value = ''; return; }
+    document.getElementById('v-jcs').value = `RASS ${sel.options[sel.selectedIndex].text}`;
+  }
+
+  function resetLocPicker() {
+    document.querySelectorAll('#loc-jcs-chips .chip').forEach(c => c.classList.remove('on'));
+    document.getElementById('loc-gcs-e').value = ''; document.getElementById('loc-gcs-v').value = ''; document.getElementById('loc-gcs-m').value = '';
+    document.getElementById('loc-gcs-total').textContent = 'E・V・Mすべて選択してください';
+    document.getElementById('loc-rass-select').value = '';
+  }
 
   function autoLoadCaseFromUrl(id) {
     document.getElementById("global-loader").style.display = "flex";
@@ -435,10 +553,10 @@
     const banner = document.getElementById("case-banner");
     if (currentCaseData && currentCaseData.id) {
       banner.classList.add("linked");
-      banner.innerHTML = `📋 選択中の事案: <b>${currentCaseData.id}</b>（${(currentCaseData.date||'').split('T')[0]}）<span class="cb-link" onclick="switchTab('sec1')">変更する</span>`;
+      banner.innerHTML = `<span class="cb-info">📋 事案: <b>${currentCaseData.id}</b>（${(currentCaseData.date||'').split('T')[0]}）</span><button type="button" class="cb-change" onclick="switchTab('sec1')">🔄 変更</button>`;
     } else {
       banner.classList.remove("linked");
-      banner.innerHTML = `⚠️ 事案が未選択です。まず「1.事案を選ぶ」で検索してください`;
+      banner.innerHTML = `<span class="cb-info">⚠️ 事案が未選択です。「1.事案を選ぶ」で検索してください</span>`;
     }
   }
 
@@ -547,10 +665,18 @@
     let inputsHtml = "";
     bloodSubs.forEach((sub, i) => {
       let items = bloodTests.filter(t => t.subCategory === sub);
-      inputsHtml += `<div class="blood-sub-panel" id="blood-sub-${sub}" style="display:${i===0?'block':'none'};"><div class="grid-2col">`;
+      inputsHtml += `<div class="blood-sub-panel" id="blood-sub-${sub}" style="display:${i===0?'block':'none'};"><div class="test-grid">`;
       inputsHtml += items.map(t => {
-        let hint = t.note ? `\n備考: ${t.note}` : ''; let range = (t.min || t.max) ? ` (${t.min||''}〜${t.max||''})` : '';
-        return `<div class="input-row" title="正常値${range}${hint}"><label style="width:75px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${t.name}</label><input type="text" inputmode="decimal" class="dyn-test-input" data-name="${t.name}" placeholder="${t.unit||''}" oninput="forceNum(this)"></div>`;
+        let range = (t.min || t.max) ? `正常値 ${t.min||''}〜${t.max||''}${t.unit?(' '+t.unit):''}` : (t.unit ? `単位: ${t.unit}` : '');
+        let hint = t.note ? `<div class="test-note">${t.note}</div>` : '';
+        return `<div class="test-row">
+          <div class="test-row-head"><span class="test-name">${t.name}</span>${range ? `<span class="test-range">${range}</span>` : ''}</div>
+          <div class="test-row-body">
+            <input type="text" inputmode="decimal" class="dyn-test-input" data-name="${t.name}" oninput="forceNum(this)">
+            ${t.unit ? `<span class="test-unit">${t.unit}</span>` : ''}
+          </div>
+          ${hint}
+        </div>`;
       }).join("");
       inputsHtml += `</div></div>`;
     });
@@ -590,6 +716,7 @@
         if(input.value) { let label = input.previousElementSibling ? input.previousElementSibling.textContent : input.id; parts.push(`${label}:${input.value}`); rawValues[input.id] = input.value; input.value = ""; }
       });
       if(parts.length === 0) return alert("数値を入力してください"); contentText = parts.join(" | ");
+      resetLocPicker();
     } else if (catName === '血液検査') {
       let parts = [];
       document.querySelectorAll('#panel-data-blood .dyn-test-input').forEach(inp => {
@@ -682,6 +809,47 @@
     chartHrSpo2 = new Chart(ctx1, { type: 'line', data: { labels: times, datasets: [ { label: 'HR', data: hrData, borderColor: '#d32f2f' }, { label: 'SpO2', data: spo2Data, borderColor: '#007aff' } ]}, options: { responsive: true, maintainAspectRatio: false } });
     const ctx2 = document.getElementById('chart-bp').getContext('2d');
     chartBp = new Chart(ctx2, { type: 'line', data: { labels: times, datasets: [ { label: 'SYS', data: bpsData, borderColor: '#f59e0b' }, { label: 'DIA', data: bpdData, borderColor: '#1d4ed8' } ]}, options: { responsive: true, maintainAspectRatio: false } });
+    renderFlowParamSelect(); renderFlowTable();
+  }
+
+  // ----- バイタル経過表（一般経過表スタイル・表示項目選択式） -----
+  const FLOW_PARAMS = [
+    { key: 'v-hr', label: 'HR' }, { key: 'v-spo2', label: 'SpO2' }, { key: 'v-rr', label: 'RR' },
+    { key: 'v-bps', label: 'BP収縮' }, { key: 'v-bpd', label: 'BP拡張' }, { key: 'v-bt', label: 'BT' },
+    { key: 'v-jcs', label: '意識レベル' }, { key: 'v-pews', label: 'PEWS' }
+  ];
+  let selectedFlowParams = new Set(FLOW_PARAMS.map(p => p.key));
+
+  function renderFlowParamSelect() {
+    document.getElementById('flow-param-select').innerHTML = FLOW_PARAMS.map(p =>
+      `<label class="flow-chk"><input type="checkbox" ${selectedFlowParams.has(p.key) ? 'checked' : ''} onchange="toggleFlowParam('${p.key}', this.checked)"> ${p.label}</label>`
+    ).join('');
+  }
+
+  function toggleFlowParam(key, checked) {
+    if (checked) selectedFlowParams.add(key); else selectedFlowParams.delete(key);
+    renderFlowTable();
+  }
+
+  function toggleAllFlowParams() {
+    if (selectedFlowParams.size === FLOW_PARAMS.length) selectedFlowParams.clear();
+    else FLOW_PARAMS.forEach(p => selectedFlowParams.add(p.key));
+    renderFlowParamSelect(); renderFlowTable();
+  }
+
+  function renderFlowTable() {
+    const rows = timelineArray.filter(t => t.cat === 'バイタル').sort((a, b) => a.time.localeCompare(b.time));
+    const activeParams = FLOW_PARAMS.filter(p => selectedFlowParams.has(p.key));
+    let html = '<thead><tr><th>時刻</th>' + activeParams.map(p => `<th>${p.label}</th>`).join('') + '</tr></thead><tbody>';
+    if (rows.length === 0) {
+      html += `<tr><td colspan="${activeParams.length + 1}" style="text-align:center; color:var(--sub);">記録なし（3.時系列/薬剤タブでバイタルを登録してください）</td></tr>`;
+    } else {
+      rows.forEach(r => {
+        html += `<tr><td>${r.time}</td>` + activeParams.map(p => `<td>${r.rawValues[p.key] || '-'}</td>`).join('') + '</tr>';
+      });
+    }
+    html += '</tbody>';
+    document.getElementById('flow-table').innerHTML = html;
   }
 
   function calcDuration() {
@@ -700,11 +868,18 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: target, imageBase64: currentAiImageBase64, mimeType: currentAiMimeType }) })
     .then(res => res.json()).then(data => {
       document.getElementById("ai-file-name").innerText = "";
-      if(data.status === "success" && data.data) {
-        for(let k in data.data) { let el = document.getElementById(k.replace('_','-')); if(el) { el.value = data.data[k]; el.classList.add('input-highlight'); } }
-        alert("数値を自動入力しました。確認の上登録してください。");
-      } else { alert("解析失敗"); }
-    }).catch(() => { document.getElementById("ai-file-name").innerText = ""; });
+      if(data.status === "success" && data.data && Object.keys(data.data).length > 0) {
+        let filled = 0;
+        for(let k in data.data) {
+          let el = (target === 'blood')
+            ? document.querySelector(`.dyn-test-input[data-name="${CSS.escape(k)}"]`)
+            : document.getElementById(k.replace(/_/g, '-'));
+          if(el) { el.value = data.data[k]; el.classList.add('input-highlight'); filled++; }
+        }
+        if (filled > 0) alert(`${filled}件の数値を自動入力しました。確認の上登録してください。`);
+        else alert("項目を読み取れませんでした。マスタの項目名と一致しなかった可能性があります。");
+      } else { alert("数値を読み取れませんでした。画像の写り方を変えて再度お試しください。"); }
+    }).catch((err) => { document.getElementById("ai-file-name").innerText = ""; alert("解析中に通信エラーが発生しました。\n" + err.message); });
   }
   function analyzeBulkKarte(btn) {
     const text = document.getElementById("bulk-text-input").value; if(!text) return;
