@@ -41,6 +41,11 @@
     .status-toggle button.active { background: var(--blue); color: #fff; }
     .status-toggle button.active.warn-mode { background: var(--warn); }
 
+    .chip-cross { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip-cross .x-chip { padding: 7px 12px; border: 1.5px solid var(--line); border-radius: 20px; font-size: 12px; font-weight: 600; color: var(--sub); cursor: pointer; background: var(--bg); user-select: none; }
+    .chip-cross .x-chip.on { background: #eff6ff; border-color: var(--blue); color: var(--blue); }
+    .chip-cross .x-chip-empty { font-size: 11px; color: #ccc; }
+
     .btn-search { width: 100%; padding: 14px; background: var(--ink); color: #fff; font-weight: bold; border-radius: 8px; border: none; font-size: 15px; cursor: pointer; margin-top: 4px; }
     .btn-search:active { transform: scale(0.98); }
 
@@ -66,6 +71,7 @@
     .rc-actions { display: flex; flex-wrap: wrap; gap: 8px; }
     .rc-actions a, .rc-actions button { flex: 1; min-width: 140px; text-align: center; padding: 10px 12px; border-radius: 8px; font-size: 13px; font-weight: bold; cursor: pointer; text-decoration: none; border: none; }
     .btn-detail { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe !important; }
+    .btn-plan { background: #fef2f2; color: var(--brand); border: 1px solid #fecaca !important; }
     .btn-edit { background: #fff3e0; color: #e65100; border: 1px solid #ffe0b2 !important; }
 
     .rc-debrief-detail { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display: none; }
@@ -112,13 +118,25 @@
       </div>
     </div>
 
-    <div class="filter-item" style="margin-bottom: 4px;">
+    <div class="filter-item" style="margin-bottom: 12px;">
       <label>振り返り状況</label>
       <div class="status-toggle" id="status-toggle">
         <button type="button" data-val="" class="active" onclick="setStatusFilter('')">全て</button>
         <button type="button" data-val="未完了" onclick="setStatusFilter('未完了')">未完了</button>
         <button type="button" data-val="完了" onclick="setStatusFilter('完了')">完了</button>
       </div>
+    </div>
+
+    <div class="filter-item" style="margin-bottom: 12px;">
+      <label>事案種別</label>
+      <div class="status-toggle" id="type-toggle">
+        <button type="button" data-val="" class="active" onclick="setTypeFilter('')">全て</button>
+      </div>
+    </div>
+
+    <div class="filter-item">
+      <label>キーワードで絞り込み（複数選択可・すべて含む事案を表示）<button type="button" class="hdr-btn" style="font-size:11px; padding:4px 8px;" onclick="clearKeywordFilter()">クリア</button></label>
+      <div class="chip-cross" id="keyword-cross"></div>
     </div>
   </div>
 
@@ -131,6 +149,8 @@
 
   let allResults = [];
   let statusFilter = "";
+  let typeFilter = "";
+  let selectedKeywords = new Set();
   const debriefDetailCache = {};
 
   function escapeHtml(str) {
@@ -155,6 +175,7 @@
         else { throw new Error(res.message || "取得に失敗しました"); }
         const now = new Date();
         document.getElementById("sync-status").innerText = `データ状態: 同期完了 (${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')})`;
+        buildFilterChips();
         executeSearch();
         if (isManual) alert("最新のデータを取得しました。");
       })
@@ -175,6 +196,39 @@
     executeSearch();
   }
 
+  function setTypeFilter(val) {
+    typeFilter = val;
+    document.querySelectorAll('#type-toggle button').forEach(b => b.classList.toggle('active', b.getAttribute('data-val') === val));
+    executeSearch();
+  }
+
+  function buildFilterChips() {
+    // 事案種別（存在する値だけ動的にボタンを追加）
+    const types = [...new Set(allResults.map(r => r.caseType).filter(Boolean))].sort();
+    const typeToggle = document.getElementById('type-toggle');
+    typeToggle.innerHTML = `<button type="button" data-val="" class="${typeFilter === '' ? 'active' : ''}" onclick="setTypeFilter('')">全て</button>` +
+      types.map(t => `<button type="button" data-val="${escapeHtml(t)}" class="${typeFilter === t ? 'active' : ''}" onclick="setTypeFilter('${escapeHtml(t)}')">${escapeHtml(t)}</button>`).join("");
+
+    // キーワード（カンマ区切りを分解して重複排除・出現順）
+    const kwSet = new Set();
+    allResults.forEach(r => String(r.keywords || "").split(",").map(k => k.trim()).filter(Boolean).forEach(k => kwSet.add(k)));
+    const kwBox = document.getElementById('keyword-cross');
+    if (kwSet.size === 0) { kwBox.innerHTML = `<span class="x-chip-empty">登録されたキーワードがまだありません</span>`; return; }
+    kwBox.innerHTML = [...kwSet].sort().map(k => `<div class="x-chip ${selectedKeywords.has(k) ? 'on' : ''}" onclick="toggleKeywordChip('${escapeHtml(k)}')">${escapeHtml(k)}</div>`).join("");
+  }
+
+  function toggleKeywordChip(kw) {
+    if (selectedKeywords.has(kw)) selectedKeywords.delete(kw); else selectedKeywords.add(kw);
+    buildFilterChips();
+    executeSearch();
+  }
+
+  function clearKeywordFilter() {
+    selectedKeywords.clear();
+    buildFilterChips();
+    executeSearch();
+  }
+
   function executeSearch() {
     const freeW = document.getElementById("q-free").value.trim().toLowerCase();
     const qId = document.getElementById("q-id").value.trim();
@@ -190,6 +244,12 @@
         const isDone = r.debriefStatus === "完了";
         if (statusFilter === "完了" && !isDone) return false;
         if (statusFilter === "未完了" && isDone) return false;
+      }
+      if (typeFilter && r.caseType !== typeFilter) return false;
+      if (selectedKeywords.size > 0) {
+        const caseKws = String(r.keywords || "").split(",").map(k => k.trim());
+        const matchesAll = [...selectedKeywords].every(k => caseKws.includes(k));
+        if (!matchesAll) return false;
       }
       if (freeW) {
         const fullText = [r.summary, r.keywords, r.caseType, r.facility, r.id].filter(Boolean).join(" ").toLowerCase();
@@ -230,6 +290,7 @@
         ${keywordChips ? `<div class="rc-tags">${keywordChips}</div>` : ''}
         <div class="rc-actions">
           <button type="button" class="btn-detail" onclick="toggleDetail('${cardId}', '${encodeURIComponent(r.id)}')">📖 振り返り詳細を見る</button>
+          <a class="btn-plan" href="index.html?caseId=${encodeURIComponent(r.id)}">🚑 作戦盤を見る</a>
           <a class="btn-edit" href="debriefing.html?id=${encodeURIComponent(r.id)}">✏️ デブリーフィングを開く</a>
         </div>
         <div class="rc-debrief-detail" id="detail-${cardId}"></div>

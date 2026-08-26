@@ -16,11 +16,14 @@
     .master-time { font-size: 10px; color: var(--sub); margin-top: 2px; }
     
     .tab-container { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; z-index: 99; scrollbar-width: none; }
+    .case-banner { position: fixed; top: calc(104px + var(--safe-top)); left: 0; right: 0; height: 34px; background: #fffbeb; border-bottom: 1px solid #fde68a; z-index: 98; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 12px; font-weight: 700; color: #92400e; padding: 0 12px; }
+    .case-banner.linked { background: #eff6ff; border-bottom-color: #bfdbfe; color: var(--blue); }
+    .case-banner .cb-link { text-decoration: underline; cursor: pointer; }
     .tab-container::-webkit-scrollbar { display: none; }
     .nav-tab { flex: 0 0 auto; padding: 0 12px; height: 44px; line-height: 44px; font-size: 12px; font-weight: 700; color: var(--sub); cursor: pointer; border-bottom: 3px solid transparent; white-space: nowrap; } 
     .nav-tab.active { color: var(--brand); border-bottom-color: var(--brand); }
     
-    main { margin-top: calc(114px + var(--safe-top)); padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    main { margin-top: calc(148px + var(--safe-top)); padding: 12px; max-width: 800px; margin-left: auto; margin-right: auto; }
     
     .card { background: var(--card); border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--line); padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
     .section-label { font-size: 13px; font-weight: 800; color: var(--sub); margin-bottom: 12px; border-bottom: 1px solid var(--line); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
@@ -73,7 +76,7 @@
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--blue); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
 
-    @media print { body { background: #fff; padding:0; } header, .tab-container, main > div:not(#tab-sec8), .no-print { display: none !important; } #tab-sec8 { display: block !important; margin: 0; padding: 0; } .print-report { border: none; padding: 0; } }
+    @media print { body { background: #fff; padding:0; } header, .tab-container, .case-banner, main > div:not(#tab-sec8), .no-print { display: none !important; } #tab-sec8 { display: block !important; margin: 0; padding: 0; } .print-report { border: none; padding: 0; } }
   </style>
 </head>
 <body>
@@ -89,15 +92,17 @@
 </header>
 
 <div class="tab-container">
-  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1.検索・事案</div>
-  <div class="nav-tab" data-tab="sec2" onclick="switchTab('sec2')">2.事前準備G</div>
+  <div class="nav-tab active" data-tab="sec1" onclick="switchTab('sec1')">1.事案を選ぶ</div>
+  <div class="nav-tab" data-tab="sec2" onclick="switchTab('sec2')">2.準備とのギャップ</div>
   <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">3.時系列/薬剤</div>
   <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">4.データ入力</div>
-  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.トレンドG</div>
+  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.バイタル推移</div>
   <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">6.医学的評価</div>
   <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">7.チーム・環境</div>
-  <div class="nav-tab" data-tab="sec8" onclick="switchTab('sec8')">8.一括確認</div>
+  <div class="nav-tab" data-tab="sec8" onclick="switchTab('sec8')">8.確認・送信</div>
 </div>
+
+<div class="case-banner no-print" id="case-banner">⚠️ 事案が未選択です。まず「1.事案を選ぶ」で検索してください</div>
 
 <main>
   <div id="tab-sec1" class="tab-content active">
@@ -340,11 +345,33 @@
 
   window.onload = () => {
     document.getElementById("d-date").valueAsDate = new Date();
-    renderEvalBlocks(); loadMasterData();
+    renderEvalBlocks(); loadMasterData(); updateCaseBanner();
+    const urlId = new URLSearchParams(location.search).get('id');
+    if (urlId) autoLoadCaseFromUrl(urlId);
   };
 
+  function autoLoadCaseFromUrl(id) {
+    document.getElementById("global-loader").style.display = "flex";
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", keyword: id }) })
+    .then(res => res.json()).then(data => {
+      if (data.status === "success" && data.results && data.results.length > 0) {
+        const item = data.results.find(r => r.id === id) || data.results[0];
+        selectCase(item);
+        switchTab('sec2');
+      } else {
+        alert(`要請番号「${id}」の事案が見つかりませんでした。手動で検索してください。`);
+      }
+    }).catch(err => {
+      alert("事案の自動読込に失敗しました。手動で検索してください。\n" + err.message);
+    }).finally(() => { document.getElementById("global-loader").style.display = "none"; });
+  }
+
   function switchTab(id) {
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); 
+    if (id !== 'sec1' && !currentCaseData.id) {
+      alert("先に「1.事案を選ぶ」で事案を検索・選択してください。");
+      id = 'sec1';
+    }
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     let tabBtn = document.querySelector(`.nav-tab[data-tab="${id}"]`); if(tabBtn) tabBtn.classList.add('active');
     let content = document.getElementById('tab-' + id); if(content) content.classList.add('active');
@@ -404,13 +431,25 @@
     }).catch(e => { document.getElementById("btn-search").textContent = "検索を実行"; alert("エラー"); });
   }
 
+  function updateCaseBanner() {
+    const banner = document.getElementById("case-banner");
+    if (currentCaseData && currentCaseData.id) {
+      banner.classList.add("linked");
+      banner.innerHTML = `📋 選択中の事案: <b>${currentCaseData.id}</b>（${(currentCaseData.date||'').split('T')[0]}）<span class="cb-link" onclick="switchTab('sec1')">変更する</span>`;
+    } else {
+      banner.classList.remove("linked");
+      banner.innerHTML = `⚠️ 事案が未選択です。まず「1.事案を選ぶ」で検索してください`;
+    }
+  }
+
   function selectCase(item) {
     currentCaseData = item;
+    updateCaseBanner();
     document.getElementById("search-results-area").style.display = "none";
     document.getElementById("mock-data-area").style.display = "block";
     document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト】\n${item.protocol}`;
     document.getElementById("link-to-plan").href = "index.html?caseId=" + encodeURIComponent(item.id);
-    
+
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
     .then(res => res.json()).then(data => {
       if (data && data.debriefData) {
