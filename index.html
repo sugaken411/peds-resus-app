@@ -566,9 +566,63 @@
   function expandEms(reg, btn) {
     document.querySelectorAll("#g-ems-region .chip").forEach(b => b.classList.remove('active-blue')); if(btn) btn.classList.add('active-blue');
     const eb = document.getElementById("box-ems-chips");
-    document.getElementById('v-ems-region').value = reg; 
+    document.getElementById('v-ems-region').value = reg;
     if(!reg || !EMS_DB[reg]) { eb.innerHTML = ''; return; }
     eb.innerHTML = EMS_DB[reg].map(e => `<div class="chip" onclick="document.getElementById('v-ems-name').value=this.textContent; syncToPrintLayout();">${e}</div>`).join("");
+  }
+
+  function addMaster(target, inputId, btnEl) {
+    const val1 = document.getElementById(inputId)?.value.trim();
+    if (!val1) return alert("登録する値を入力してください。");
+    let val2 = "";
+    if (target === 'hospital') {
+      const activeCat = document.querySelector('#g-hosp-cat .chip.active-blue');
+      val2 = activeCat ? activeCat.textContent : "";
+    }
+    const origText = btnEl.textContent; btnEl.disabled = true; btnEl.textContent = "登録中...";
+    fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'add_to_master', target, val1, val2 }) })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("マスタに登録しました。");
+        if (target === 'keyword') {
+          master.keywords.push(val1);
+          document.getElementById('v-new-kw').value = '';
+          document.getElementById("box-keywords").innerHTML = master.keywords.map(kw => `<div class="chip" onclick="tChipKw(this)">${kw}</div>`).join("");
+        } else if (target === 'hospital') {
+          const cat = val2 || 'その他';
+          if (!HOSPITAL_DB[cat]) HOSPITAL_DB[cat] = [];
+          HOSPITAL_DB[cat].push(val1);
+          document.getElementById("g-hosp-cat").innerHTML = Object.keys(HOSPITAL_DB).map(c => `<div class="chip" onclick="expandHosp('${c}', this)">${c}</div>`).join("");
+        }
+      } else {
+        alert("登録に失敗しました。\n" + (data.message || "不明なエラーです。"));
+      }
+    })
+    .catch(err => alert("通信エラーのため登録できませんでした。\n" + err.message))
+    .finally(() => { btnEl.disabled = false; btnEl.textContent = origText; });
+  }
+
+  function addMasterEms(btnEl) {
+    const val1 = document.getElementById('v-ems-name')?.value.trim();
+    const val2 = document.getElementById('v-ems-region')?.value.trim() || "";
+    if (!val1) return alert("隊名を入力してください。");
+    const origText = btnEl.textContent; btnEl.disabled = true; btnEl.textContent = "登録中...";
+    fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'add_to_master', target: 'ems', val1, val2 }) })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        alert("マスタに登録しました。");
+        const reg = val2 || 'その他地域';
+        if (!EMS_DB[reg]) EMS_DB[reg] = [];
+        EMS_DB[reg].push(val1);
+        document.getElementById("g-ems-region").innerHTML = Object.keys(EMS_DB).map(r => `<div class="chip" onclick="expandEms('${r}', this)">${r}</div>`).join("");
+      } else {
+        alert("登録に失敗しました。\n" + (data.message || "不明なエラーです。"));
+      }
+    })
+    .catch(err => alert("通信エラーのため登録できませんでした。\n" + err.message))
+    .finally(() => { btnEl.disabled = false; btnEl.textContent = origText; });
   }
 
   function setOriginMode(m, btnEl) {
@@ -683,9 +737,23 @@
 
   function selectPat(el, dim, status) { el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); appState.pat[dim] = status; syncToPrintLayout(); }
 
+  function syncCalToEra(dateStr) {
+    if (!dateStr) return;
+    const [y, m, d] = dateStr.split('-').map(Number);
+    tBtn('g-era', '西暦', document.querySelector('#g-era .group-btn[data-val="西暦"]'));
+    document.getElementById('v-era-y').value = y;
+    document.getElementById('v-era-m').value = m;
+    document.getElementById('v-era-d').value = d;
+    calcPeds();
+  }
+
+  const ERA_OFFSET = { '令和': 2019, '平成': 1989 };
+
   function calcPeds() {
     try {
-      const ey = parseInt(document.getElementById("v-era-y").value)||0; const em = parseInt(document.getElementById("v-era-m").value)||0; const ed = parseInt(document.getElementById("v-era-d").value)||1;
+      const eraMode = document.querySelector('#g-era .group-btn.active')?.dataset.val || '西暦';
+      let ey = parseInt(document.getElementById("v-era-y").value)||0; const em = parseInt(document.getElementById("v-era-m").value)||0; const ed = parseInt(document.getElementById("v-era-d").value)||1;
+      if (ey > 0 && ERA_OFFSET[eraMode]) ey = ey - 1 + ERA_OFFSET[eraMode];
       const manualY = parseInt(document.getElementById("v-manual-age-y").value); const manualM = parseInt(document.getElementById("v-manual-age-m").value);
       let mTotal = -1, ageText = "--"; let wtMid = 0, htMid = 0; let resolvedAgeY = 0;
       if(ey > 0 && em > 0) {
@@ -904,24 +972,64 @@
           }
           calcPeds();
           alert(`【要請番号: ${caseId}】\n当時の事前指示・患者情報を画面に全復元しました！`);
+        } else {
+          alert(`【要請番号: ${caseId}】\n過去データが見つかりませんでした。`);
         }
+      }).catch(err => {
+        alert("過去事案の復元に失敗しました。通信状況をご確認のうえ、再度お試しください。\n" + err.message);
       }).finally(() => { document.getElementById("global-loader").style.display = "none"; });
     }
   }
 
   function submitPedsCase() {
+    syncToPrintLayout(); // appState (役割分担・搬入前処置テキスト等) を送信直前に最新化
+
     let id = document.getElementById("v-id").value || "P" + Date.now();
-    const payload = { 
-      action: "peds_submit", 
-      payload: { 
-        ageText: document.getElementById("lbl-age").textContent, 
-        weight: appState.calcWeight.toFixed(1), 
-        data: { "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": appState.origin, "概要": document.getElementById("v-case-summary").value, "搬入前処置": document.getElementById("v-preinfo")?.value||"" } 
-      } 
+    const originStr = appState.origin || "";
+    let facility = "";
+    if (originStr === "紹介") facility = document.getElementById("v-referral-facility").value || "";
+    else if (originStr === "救急") facility = document.getElementById("v-ems-name").value || "";
+    else if (originStr === "その他") facility = document.getElementById("v-other-origin").value || "";
+
+    const sexText = document.querySelector('#g-sex .active')?.textContent || "";
+    const vitalsText = `HR: ${document.getElementById("v-vit-hr").value || "未"} ｜ SpO2: ${document.getElementById("v-vit-spo2").value || "未"}% ｜ RR: ${document.getElementById("v-vit-rr").value || "未"} ｜ BP: ${document.getElementById("v-vit-bpsys").value || "-"}/${document.getElementById("v-vit-bpdia").value || "-"} mmHg`;
+    const patText = `Appearance: ${appState.pat.a} ｜ Breathing: ${appState.pat.b} ｜ Circulation: ${appState.pat.c}`;
+    let lText = "不明"; if(appState.ampStatus.l === '絶食') lText = "絶食"; else if(appState.ampStatus.l === '摂取あり') lText = `摂取あり (内容: ${document.getElementById("v-amp-l-detail")?.value || '不明'})`;
+    const ampleText = `A: ${appState.ampStatus.a==='あり'?document.getElementById("v-amp-a")?.value:appState.ampStatus.a} ｜ M: ${appState.ampStatus.m==='あり'?document.getElementById("v-amp-m")?.value:appState.ampStatus.m} ｜ P: ${appState.ampStatus.p==='あり'?document.getElementById("v-amp-p")?.value:appState.ampStatus.p} ｜ L: ${lText}`;
+    const selectedItems = Object.keys(appState.checkedItems || {}).filter(k => appState.checkedItems[k]);
+
+    const payload = {
+      action: "peds_submit",
+      payload: {
+        ageText: document.getElementById("lbl-age").textContent,
+        weight: (appState.calcWeight || 0).toFixed(1),
+        height: (appState.calcHeight || 0).toFixed(1),
+        keywords: appState.keywords || [],
+        staffRoles: appState.staffRoles || {leader:[], airway:[], cpr:[], route:[], record:[], other:[]},
+        data: {
+          "要請番号": id, "日付": document.getElementById("v-date").value, "事案種別": originStr,
+          "紹介元": facility, "性別": sexText,
+          "概要": document.getElementById("v-case-summary").value,
+          "搬入前処置": appState.preTxText || document.getElementById("v-preinfo")?.value || "",
+          "AMPL": ampleText, "PAT": patText, "バイタル": vitalsText, "PEWS": appState.pews,
+          "プロトコル詳細": selectedItems.join(', ')
+        }
+      }
     };
-    document.getElementById("btnSubmit").textContent = "送信中...";
+
+    const btn = document.getElementById("btnSubmit");
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = "送信中...";
     fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
-    .then(res => res.json()).then(data => { if(data.status === "success") alert("保存しました！"); });
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === "success") alert("保存しました！");
+      else alert("保存に失敗しました。\n" + (data.message || "不明なエラーです。時間をおいて再度お試しください。"));
+    })
+    .catch(err => {
+      alert("通信エラーのため保存できませんでした。電波状況をご確認のうえ、再度お試しください。\n" + err.message);
+    })
+    .finally(() => { btn.disabled = false; btn.textContent = originalText; });
   }
 </script>
 </body>

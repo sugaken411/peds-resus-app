@@ -419,6 +419,8 @@
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
       }
+    }).catch(err => {
+      alert("過去の振り返りデータの取得に失敗しました。通信状況をご確認のうえ、再度事案を選択し直してください。\n" + err.message);
     });
   }
 
@@ -670,12 +672,13 @@
     const old = btn.textContent; btn.textContent = "解析中...";
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "timeline", imageText: text }) })
     .then(res => res.json()).then(data => {
-      btn.textContent = old;
       if (data.status === "success" && Array.isArray(data.data)) {
         data.data.forEach(item => { if(item.time) timelineArray.push({ rowId: Date.now()+Math.random(), time: item.time, cat: item.cat || "記事", contentText: item.contentText, rawValues: {} }); });
         renderTimeline(); document.getElementById("bulk-text-input").value = ""; alert("タイムラインに自動追加しました");
-      }
-    });
+      } else { alert("解析に失敗しました。" + (data.message || "")); }
+    }).catch(err => {
+      alert("通信エラーのため解析できませんでした。\n" + err.message);
+    }).finally(() => { btn.textContent = old; });
   }
 
   function generatePreview() {
@@ -740,8 +743,19 @@
         status: statusFlag
       }
     };
+    const btnTemp = document.getElementById("btn-save-temp"); const btnSubmit = document.getElementById("btn-submit");
+    const tempText = btnTemp.textContent; const submitText = btnSubmit.textContent;
+    btnTemp.disabled = true; btnSubmit.disabled = true; btnTemp.textContent = "送信中..."; btnSubmit.textContent = "送信中...";
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
-    .then(res => res.json()).then(data => { if(data.status==='success'){ alert("保存しました"); location.reload(); } });
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') { alert("保存しました"); location.reload(); }
+      else alert("保存に失敗しました。\n" + (data.message || "不明なエラーです。時間をおいて再度お試しください。"));
+    })
+    .catch(err => {
+      alert("通信エラーのため保存できませんでした。電波状況をご確認のうえ、再度お試しください。\n" + err.message);
+    })
+    .finally(() => { btnTemp.disabled = false; btnSubmit.disabled = false; btnTemp.textContent = tempText; btnSubmit.textContent = submitText; });
   }
 </script>
 </body>
