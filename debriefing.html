@@ -532,6 +532,26 @@
     document.getElementById("box-staff-recorder").innerHTML = masterStaff.map(n => `<div class="chip" onclick="selectSingleChip(this, 'box-staff-recorder', 'on-dark')">${n}</div>`).join("");
     document.getElementById("box-staff-actual").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on-blue')">${n}</div>`).join("");
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
+    if (pendingStaffRestore) { applyStaffRestore(pendingStaffRestore); pendingStaffRestore = null; }
+  }
+
+  // マスタ（スタッフ一覧）の読込タイミングと事案選択のタイミングが前後しても
+  // 復元漏れが起きないよう、チップがまだ描画されていない場合は一旦保留する
+  let pendingStaffRestore = null;
+  function applyStaffRestore(d) {
+    if (!document.querySelectorAll('#box-staff-debrief .chip').length) { pendingStaffRestore = d; return; }
+    if (d.recorder) {
+      const el = Array.from(document.querySelectorAll('#box-staff-recorder .chip')).find(c => c.textContent === d.recorder);
+      if (el) selectSingleChip(el, 'box-staff-recorder', 'on-dark');
+    }
+    if (d.actualStaffs) {
+      const names = String(d.actualStaffs).split(',').map(s => s.trim()).filter(Boolean);
+      document.querySelectorAll('#box-staff-actual .chip').forEach(c => c.classList.toggle('on-blue', names.includes(c.textContent)));
+    }
+    if (d.debriefStaffs) {
+      const names = String(d.debriefStaffs).split(',').map(s => s.trim()).filter(Boolean);
+      document.querySelectorAll('#box-staff-debrief .chip').forEach(c => c.classList.toggle('on', names.includes(c.textContent)));
+    }
   }
 
   function selectSingleChip(el, boxId, onClass) { document.querySelectorAll(`#${boxId} .chip`).forEach(c => c.classList.remove(onClass)); el.classList.add(onClass); }
@@ -570,11 +590,20 @@
 
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_debrief", id: item.id }) })
     .then(res => res.json()).then(data => {
-      if (data && data.debriefData) {
+      if (data && data.debriefData && Object.keys(data.debriefData).length > 0) {
         const d = data.debriefData;
         ['actualDiff','gapBad','gapGood','gapMaster','team','action'].forEach(k => { if(d[k]) document.getElementById("v-"+k.replace(/([A-Z])/g, "-$1").toLowerCase()).value = d[k]; });
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
-        if(d.timeline) { timelineArray = JSON.parse(d.timeline).filter(x => x.type !== 'eval'); renderTimeline(); }
+        if(d.timeline) {
+          let fullParsed = [];
+          try { fullParsed = JSON.parse(d.timeline); } catch(e) {}
+          timelineArray = fullParsed.filter(x => x.type !== 'eval');
+          const restoredEvals = fullParsed.filter(x => x.type === 'eval');
+          if (restoredEvals.length > 0) evalBlocks = restoredEvals.map(x => ({ id: x.id, title: x.title||'', time: x.time||'', a: x.a||'', b: x.b||'', c: x.c||'', d: x.d||'', e: x.e||'', f: x.f||'' }));
+          renderTimeline(); renderEvalBlocks();
+        }
+        applyStaffRestore(d);
+        alert("この事案の過去の振り返り記録を復元しました。各タブの内容をご確認ください。");
       }
     }).catch(err => {
       alert("過去の振り返りデータの取得に失敗しました。通信状況をご確認のうえ、再度事案を選択し直してください。\n" + err.message);

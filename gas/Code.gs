@@ -1,4 +1,4 @@
-// バージョン: V6.27 (analyze_karteのvital/bloodプロンプトを具体化しマスタ項目名と照合可能に)
+// バージョン: V6.28 (fetch_debriefで欠落していた保存済み項目(担当スタッフ・記録者・事案概要等)を返却)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -189,7 +189,7 @@ function doPost(e) {
       var debriefData = {};
       for (var i = data.length - 1; i >= 1; i--) {
         if (safeGet(data[i], hm, '要請番号') === parsedPayload.id) {
-          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: safeGet(data[i], hm, '開催日'), dTime: safeGet(data[i], hm, '開始時間'), dEndTime: safeGet(data[i], hm, '終了時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON'), status: safeGet(data[i], hm, 'ステータス') }; break;
+          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: safeGet(data[i], hm, '開催日'), dTime: safeGet(data[i], hm, '開始時間'), dEndTime: safeGet(data[i], hm, '終了時間'), dDuration: safeGet(data[i], hm, '所要時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON'), status: safeGet(data[i], hm, 'ステータス'), summary: safeGet(data[i], hm, '事案概要'), patientInfo: safeGet(data[i], hm, '患者情報'), recorder: safeGet(data[i], hm, '記録者'), actualStaffs: safeGet(data[i], hm, '実際の対応スタッフ'), debriefStaffs: safeGet(data[i], hm, '参加スタッフ') }; break;
         }
       }
       return ContentService.createTextOutput(JSON.stringify({ status: "success", debriefData: debriefData })).setMimeType(ContentService.MimeType.JSON);
