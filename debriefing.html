@@ -317,6 +317,13 @@
       <div class="chart-box"><canvas id="chart-hr-spo2"></canvas></div>
       <div class="chart-box"><canvas id="chart-bp"></canvas></div>
     </div>
+    <div class="card">
+      <div class="section-label">🩸 検査値経過表（採血・血ガス）<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllLabParams()">表示項目を全選択/解除</button></div>
+      <div class="flow-param-select" id="lab-param-select"></div>
+      <div style="overflow-x:auto;">
+        <table class="flow-table" id="lab-flow-table"></table>
+      </div>
+    </div>
     <button class="btn" onclick="switchTab('sec6')">次へ (医学的評価) ➔</button>
   </div>
 
@@ -585,6 +592,17 @@
     }
   }
 
+  // 「チーム連携評価」は保存のたびに "【視点】タグ\n本文" という形で
+  // タグ行を先頭に組み立てて送信している。復元時にこの文字列をそのまま
+  // v-teamへ戻すと、次回保存でまた新しいタグ行が前に足され「【視点】…
+  // 【視点】…」と際限なく積み重なってしまう。そこで復元時は先頭のタグ行を
+  // 分離し、チップ選択状態と本文だけを別々に戻す。
+  function parseTeamValue(raw) {
+    const m = String(raw || '').match(/^【視点】([^\n]*)\n([\s\S]*)$/);
+    if (m) return { tags: m[1] ? m[1].split('/').filter(Boolean) : [], text: m[2] };
+    return { tags: [], text: raw || '' };
+  }
+
   function selectCase(item) {
     // 既に選択中の事案を再度クリックした場合（検索結果へ戻って再選択、
     // 二重クリック等）、ここで無条件にサーバーから再取得・上書きしてしまうと、
@@ -614,7 +632,12 @@
     .then(res => res.json()).then(data => {
       if (data && data.debriefData && Object.keys(data.debriefData).length > 0) {
         const d = data.debriefData;
-        ['actualDiff','gapBad','gapGood','gapMaster','team','action'].forEach(k => { if(d[k]) document.getElementById("v-"+k.replace(/([A-Z])/g, "-$1").toLowerCase()).value = d[k]; });
+        ['actualDiff','gapBad','gapGood','gapMaster','action'].forEach(k => { if(d[k]) document.getElementById("v-"+k.replace(/([A-Z])/g, "-$1").toLowerCase()).value = d[k]; });
+        if (d.team) {
+          const parsed = parseTeamValue(d.team);
+          document.querySelectorAll('#eval-tags-grid .chip').forEach(c => c.classList.toggle('on', parsed.tags.includes(c.textContent)));
+          document.getElementById("v-team").value = parsed.text;
+        }
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
         if(d.timeline) {
           let fullParsed = [];
@@ -873,6 +896,7 @@
     const ctx2 = document.getElementById('chart-bp').getContext('2d');
     chartBp = new Chart(ctx2, { type: 'line', data: { labels: times, datasets: [ { label: 'SYS', data: bpsData, borderColor: '#f59e0b' }, { label: 'DIA', data: bpdData, borderColor: '#1d4ed8' } ]}, options: { responsive: true, maintainAspectRatio: false } });
     renderFlowParamSelect(); renderFlowTable();
+    renderLabParamSelect(); renderLabFlowTable();
   }
 
   // ----- バイタル経過表（一般経過表スタイル・表示項目選択式） -----
@@ -913,6 +937,71 @@
     }
     html += '</tbody>';
     document.getElementById('flow-table').innerHTML = html;
+  }
+
+  // ----- 検査値経過表（採血・血ガス。案件ごとに登録された項目だけを動的に列挙） -----
+  let selectedLabParams = new Set();
+  let knownLabParams = [];
+
+  function getUsedLabParamNames() {
+    const names = [];
+    timelineArray.filter(t => t.cat === '血液検査').forEach(t => {
+      Object.keys(t.rawValues || {}).forEach(k => {
+        if (k.indexOf('test_') === 0) {
+          const name = k.slice(5);
+          if (names.indexOf(name) === -1) names.push(name);
+        }
+      });
+    });
+    return names;
+  }
+
+  function renderLabParamSelect() {
+    const used = getUsedLabParamNames();
+    // 新しく登場した項目は初期状態で表示ONにする（以前からの選択状態は維持）
+    used.forEach(n => { if (knownLabParams.indexOf(n) === -1) { knownLabParams.push(n); selectedLabParams.add(n); } });
+    document.getElementById('lab-param-select').innerHTML = used.length ? used.map(n =>
+      `<label class="flow-chk"><input type="checkbox" ${selectedLabParams.has(n) ? 'checked' : ''} onchange="toggleLabParam('${n.replace(/'/g, "\\'")}', this.checked)"> ${n}</label>`
+    ).join('') : '<span style="font-size:12px; color:var(--sub);">まだ検査値が登録されていません</span>';
+  }
+
+  function toggleLabParam(name, checked) {
+    if (checked) selectedLabParams.add(name); else selectedLabParams.delete(name);
+    renderLabFlowTable();
+  }
+
+  function toggleAllLabParams() {
+    const used = getUsedLabParamNames();
+    const allOn = used.length > 0 && used.every(n => selectedLabParams.has(n));
+    if (allOn) used.forEach(n => selectedLabParams.delete(n));
+    else used.forEach(n => selectedLabParams.add(n));
+    renderLabParamSelect(); renderLabFlowTable();
+  }
+
+  function renderLabFlowTable() {
+    const rows = timelineArray.filter(t => t.cat === '血液検査').sort((a, b) => a.time.localeCompare(b.time));
+    const used = getUsedLabParamNames();
+    const activeParams = used.filter(n => selectedLabParams.has(n));
+    let html = '<thead><tr><th>時刻</th>' + activeParams.map(n => `<th>${n}</th>`).join('') + '</tr></thead><tbody>';
+    if (rows.length === 0 || activeParams.length === 0) {
+      html += `<tr><td colspan="${activeParams.length + 1}" style="text-align:center; color:var(--sub);">記録なし（4.データ入力タブで血液検査を登録してください）</td></tr>`;
+    } else {
+      rows.forEach(r => {
+        html += `<tr><td>${r.time}</td>` + activeParams.map(n => {
+          const v = r.rawValues['test_' + n];
+          if (v === undefined || v === '') return '<td>-</td>';
+          const master = masterTests.find(t => t.category === '血液' && t.name === n);
+          const num = parseFloat(v);
+          const outOfRange = master && !isNaN(num) && (
+            (master.min !== '' && master.min != null && num < master.min) ||
+            (master.max !== '' && master.max != null && num > master.max)
+          );
+          return `<td${outOfRange ? ' style="color:#d32f2f; font-weight:800;"' : ''}>${v}</td>`;
+        }).join('') + '</tr>';
+      });
+    }
+    html += '</tbody>';
+    document.getElementById('lab-flow-table').innerHTML = html;
   }
 
   function calcDuration() {
