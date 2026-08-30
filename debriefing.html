@@ -1032,14 +1032,24 @@
 
   function renderTimeline() {
     timelineArray.sort((a,b) => a.time.localeCompare(b.time));
-    let html = timelineArray.map(item => `
+    // 医学的評価（evalBlocks）も、時刻が入力されているものは時系列に混ぜて表示する。
+    // 編集はそのまま「6.医学的評価」タブで行うため、✏️は同タブへジャンプする。
+    const evalRows = evalBlocks.filter(e => e.time).map(e => {
+      const filled = ABCDEF_FIELDS.filter(f => e[f.key]);
+      const summary = filled.length ? filled.map(f => `${f.key.toUpperCase()}: ${e[f.key]}`).join(' / ') : '(未記載)';
+      return { time: e.time, cat: '医学的評価', contentText: `【${e.title||'評価'}】${summary}`, isEval: true, evalId: e.id };
+    });
+    let combined = [...timelineArray.map(item => ({...item, isEval:false})), ...evalRows].sort((a,b) => a.time.localeCompare(b.time));
+    let html = combined.map(item => `
       <div class="tl-row">
         <div class="tl-time">${item.time}</div>
         <div class="tl-cat">${item.cat}</div>
         <div class="tl-content">${item.contentText}</div>
         <div class="no-print" style="display:flex; gap:4px;">
-          <button class="btn small ghost" style="color:var(--blue); padding:4px 8px;" onclick="editTimelineRow(${item.rowId})">✏️</button>
-          <button class="btn small ghost" style="color:red; padding:4px 8px;" onclick="deleteRow(${item.rowId})">✕</button>
+          ${item.isEval
+            ? `<button class="btn small ghost" style="color:var(--blue); padding:4px 8px;" onclick="editEvalBlockFromTimeline(${item.evalId})">✏️</button>`
+            : `<button class="btn small ghost" style="color:var(--blue); padding:4px 8px;" onclick="editTimelineRow(${item.rowId})">✏️</button>
+               <button class="btn small ghost" style="color:red; padding:4px 8px;" onclick="deleteRow(${item.rowId})">✕</button>`}
         </div>
       </div>`).join("");
     document.getElementById("timeline-list-3").innerHTML = html || "記録なし"; document.getElementById("timeline-list-4").innerHTML = html || "記録なし";
@@ -1077,18 +1087,53 @@
     }
   }
 
+  // タイミングはよく使うものをプリセットとして選び、必要な時だけ自由記述に切り替えられるようにする
+  const EVAL_TIMING_PRESETS = ['搬入時', '初期評価後', '治療介入後', '状態変化時', '退室前', 'カスタム入力'];
+  const ABCDEF_FIELDS = [
+    { key: 'a', label: 'A: 気道 (Airway)', ph: '気道の開通・確保状況、評価の妥当性など' },
+    { key: 'b', label: 'B: 呼吸 (Breathing)', ph: '呼吸様式・SpO2・酸素化への対応など' },
+    { key: 'c', label: 'C: 循環 (Circulation)', ph: '循環動態・輸液/薬剤対応の妥当性など' },
+    { key: 'd', label: 'D: 意識/中枢神経 (Disability)', ph: '意識レベル・瞳孔・神経学的評価など' },
+    { key: 'e', label: 'E: 体表/体温 (Exposure)', ph: '外傷所見・体温管理・皮膚所見など' },
+    { key: 'f', label: 'F: 家族対応・その他 (Family/Other)', ph: '家族への説明・その他特記事項' }
+  ];
+
   function renderEvalBlocks() {
-    document.getElementById("eval-container").innerHTML = evalBlocks.map((ev, i) => `
+    document.getElementById("eval-container").innerHTML = evalBlocks.map((ev, i) => {
+      const isPreset = EVAL_TIMING_PRESETS.slice(0, -1).includes(ev.title);
+      return `
       <div style="border:1px solid var(--line); border-radius:8px; padding:12px; background:#f8fafc; margin-bottom:12px;">
-        <div style="font-weight:bold; color:var(--brand); margin-bottom:8px;">🩺 評価 #${i+1}</div>
-        <div style="display:flex; gap:6px; margin-bottom:8px;">
-          <input type="text" placeholder="評価タイミング" value="${ev.title}" onchange="evalBlocks[${i}].title=this.value" style="flex:2; margin:0;">
-          <input type="time" value="${ev.time}" onchange="evalBlocks[${i}].time=this.value" style="flex:1; margin:0;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <div style="font-weight:bold; color:var(--brand);">🩺 評価 #${i+1}</div>
+          <button type="button" class="btn small ghost" style="color:red; padding:4px 8px; margin:0;" onclick="removeEvalBlock(${i})">✕ 削除</button>
         </div>
-        <textarea rows="2" placeholder="介入の自己評価・臨床判断の妥当性について記載" onchange="evalBlocks[${i}].a=this.value">${ev.a}</textarea>
-      </div>`).join("");
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <select onchange="setEvalTimingPreset(${i}, this.value)" style="flex:2; margin:0;">
+            ${EVAL_TIMING_PRESETS.map(p => `<option value="${p}" ${(isPreset && ev.title===p) || (!isPreset && p==='カスタム入力') ? 'selected' : ''}>${p}</option>`).join('')}
+          </select>
+          <input type="time" value="${ev.time}" onchange="evalBlocks[${i}].time=this.value; renderTimeline();" style="flex:1; margin:0;">
+        </div>
+        ${!isPreset ? `<input type="text" placeholder="評価タイミング（自由記述）" value="${ev.title}" onchange="evalBlocks[${i}].title=this.value; renderEvalBlocks(); renderTimeline();" style="margin-bottom:8px;">` : ''}
+        ${ABCDEF_FIELDS.map(f => `
+          <div style="margin-bottom:8px;">
+            <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">${f.label}</label>
+            <textarea rows="2" placeholder="${f.ph}" onchange="evalBlocks[${i}].${f.key}=this.value; renderTimeline();">${ev[f.key]||''}</textarea>
+          </div>`).join('')}
+      </div>`;
+    }).join("");
   }
-  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "", time: "", a: "" }); renderEvalBlocks(); }
+  function setEvalTimingPreset(i, val) { evalBlocks[i].title = (val === 'カスタム入力') ? '' : val; renderEvalBlocks(); renderTimeline(); }
+  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); }
+  function removeEvalBlock(i) { if(confirm("この評価ブロックを削除しますか？")) { evalBlocks.splice(i, 1); renderEvalBlocks(); renderTimeline(); } }
+
+  function editEvalBlockFromTimeline(id) {
+    switchTab('sec6');
+    setTimeout(() => {
+      const idx = evalBlocks.findIndex(e => e.id === id);
+      const blocks = document.querySelectorAll('#eval-container > div');
+      if (idx > -1 && blocks[idx]) blocks[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  }
 
   function renderCharts() {
     let times = []; let hrData = []; let spo2Data = []; let bpsData = []; let bpdData = [];
