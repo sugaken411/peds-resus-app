@@ -1,4 +1,4 @@
-// バージョン: V6.29 (fetch_debriefの日時Date化バグ修正、submit_debriefを空欄上書きしないマージ保存に変更)
+// バージョン: V6.30 (peds_submitを要請番号一致時は上書き更新に変更、アーカイブ検索の重複表示を修正)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -155,7 +155,17 @@ function doPost(e) {
       var dataDict = {
         '分野区分': '小児', '保存日時': timestamp, '要請番号': pd["要請番号"] || '', '搬入日': pd["日付"] || '', '事案種別': pd["事案種別"] || '', '紹介元医療機関': pd["紹介元"] || '', '年齢/月齢': p.ageText || '', '性別': pd["性別"] || '', '計算体重': p.weight || '', '目安身長': p.height || '', 'キーワード': (p.keywords || []).join(', '), '概要・経過': pd["概要"] || '', '搬入前処置': pd["搬入前処置"] || '', 'AMPL': pd["AMPL"] || '', 'PAT': pd["PAT"] || '', 'バイタル': pd["バイタル"] || '', 'PEWS': pd["PEWS"] || '', '統括': (roles.leader || []).join(', '), '気道管理': (roles.airway || []).join(', '), '胸骨圧迫': (roles.cpr || []).join(', '), 'ルート・薬剤': (roles.route || []).join(', '), '記録': (roles.record || []).join(', '), 'その他役割': (roles.other || []).join(', '), '想定シナリオ・薬剤物品詳細': pd["プロトコル詳細"] || ''
       };
-      dbSheet.appendRow(createRowData(hm, dataDict));
+      // 要請番号が既存行と一致する場合は追記ではなく上書き更新する。
+      // 常にappendRowしていたため、同じ事案を開き直して再送信するだけで
+      // （URLからの復元＋再送信、二重送信など）事案アーカイブ検索に
+      // 全く同じ内容の行が2件以上並ぶ原因になっていた。
+      var newRow = createRowData(hm, dataDict);
+      var pedsData = dbSheet.getDataRange().getValues(); var pedsTargetRow = -1;
+      if (dataDict['要請番号']) {
+        for (var pr = 1; pr < pedsData.length; pr++) { if (safeGet(pedsData[pr], hm, '要請番号') === dataDict['要請番号']) { pedsTargetRow = pr + 1; break; } }
+      }
+      if (pedsTargetRow > -1) dbSheet.getRange(pedsTargetRow, 1, 1, newRow.length).setValues([newRow]);
+      else dbSheet.appendRow(newRow);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
     }
 
