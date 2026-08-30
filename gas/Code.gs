@@ -1,4 +1,4 @@
-// バージョン: V6.28 (fetch_debriefで欠落していた保存済み項目(担当スタッフ・記録者・事案概要等)を返却)
+// バージョン: V6.29 (fetch_debriefの日時Date化バグ修正、submit_debriefを空欄上書きしないマージ保存に変更)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -37,6 +37,24 @@ function safeGet(row, hm, key) {
 function formatDateVal(val) {
   if (val instanceof Date) return Utilities.formatDate(val, "Asia/Tokyo", "yyyy/MM/dd");
   return val;
+}
+
+// <input type="date">にそのままセットできるYYYY-MM-DD形式に正規化する
+// （セルがDate型化されているとgetValuesはISO日時文字列を返し、date inputへの
+//   代入が無効値として無視され、次回保存時に空欄で上書きされる原因になっていた）
+function formatDateForInput(val) {
+  if (val instanceof Date) return Utilities.formatDate(val, "Asia/Tokyo", "yyyy-MM-dd");
+  if (!val) return '';
+  return String(val).split('T')[0];
+}
+
+// <input type="time">にそのままセットできるHH:mm形式に正規化する
+// （開始時間・終了時間のセルがTime型化されると同様にDateで返ってくるため）
+function formatTimeForInput(val) {
+  if (val instanceof Date) return Utilities.formatDate(val, "Asia/Tokyo", "HH:mm");
+  if (!val) return '';
+  var m = String(val).match(/(\d{1,2}):(\d{2})/);
+  return m ? (m[1].length === 1 ? '0' + m[1] : m[1]) + ':' + m[2] : String(val);
 }
 
 function doGet(e) {
@@ -189,7 +207,7 @@ function doPost(e) {
       var debriefData = {};
       for (var i = data.length - 1; i >= 1; i--) {
         if (safeGet(data[i], hm, '要請番号') === parsedPayload.id) {
-          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: safeGet(data[i], hm, '開催日'), dTime: safeGet(data[i], hm, '開始時間'), dEndTime: safeGet(data[i], hm, '終了時間'), dDuration: safeGet(data[i], hm, '所要時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON'), status: safeGet(data[i], hm, 'ステータス'), summary: safeGet(data[i], hm, '事案概要'), patientInfo: safeGet(data[i], hm, '患者情報'), recorder: safeGet(data[i], hm, '記録者'), actualStaffs: safeGet(data[i], hm, '実際の対応スタッフ'), debriefStaffs: safeGet(data[i], hm, '参加スタッフ') }; break;
+          debriefData = { actualDiff: safeGet(data[i], hm, '想定との相違点'), gapBad: safeGet(data[i], hm, 'ギャップ課題'), gapGood: safeGet(data[i], hm, 'ギャップ良かった点'), gapMaster: safeGet(data[i], hm, 'マスタ改修提案'), team: safeGet(data[i], hm, 'チーム連携評価'), action: safeGet(data[i], hm, '次回アクションプラン'), dDate: formatDateForInput(safeGet(data[i], hm, '開催日')), dTime: formatTimeForInput(safeGet(data[i], hm, '開始時間')), dEndTime: formatTimeForInput(safeGet(data[i], hm, '終了時間')), dDuration: safeGet(data[i], hm, '所要時間'), dPlace: safeGet(data[i], hm, '場所'), timeline: safeGet(data[i], hm, 'タイムラインJSON'), status: safeGet(data[i], hm, 'ステータス'), summary: safeGet(data[i], hm, '事案概要'), patientInfo: safeGet(data[i], hm, '患者情報'), recorder: safeGet(data[i], hm, '記録者'), actualStaffs: safeGet(data[i], hm, '実際の対応スタッフ'), debriefStaffs: safeGet(data[i], hm, '参加スタッフ') }; break;
         }
       }
       return ContentService.createTextOutput(JSON.stringify({ status: "success", debriefData: debriefData })).setMimeType(ContentService.MimeType.JSON);
@@ -200,11 +218,46 @@ function doPost(e) {
       var dbSheet = ss.getSheetByName('振り返りアーカイブ');
       if (!dbSheet) throw new Error("振り返りアーカイブが見つかりません");
       var hm = getHeaderMap(dbSheet); var p = parsedPayload.payload || {};
-      var dataDict = {
-        'タイムスタンプ': Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss"), '要請番号': p.id || '', '発生日': p.date || '', '患者情報': p.patientInfo || '', '参加スタッフ': p.debriefStaffs || '', '事案概要': p.summary || '', 'タイムラインJSON': JSON.stringify(p.timeline || []), '記録者': p.recorder || '', '実際の対応スタッフ': p.actualStaffs || '', '想定との相違点': p.actualDiff || '', 'ギャップ課題': p.gapBad || '', 'ギャップ良かった点': p.gapGood || '', 'チーム連携評価': p.team || '', 'マスタ改修提案': p.gapMaster || '', '次回アクションプラン': p.action || '', '開催日': p.dDate || '', '開始時間': p.dTime || '', '終了時間': p.dEndTime || '', '所要時間': p.dDuration || '', '場所': p.dPlace || '', 'ステータス': p.status || ''
-      };
       var data = dbSheet.getDataRange().getValues(); var targetRow = -1;
       for (var i = 1; i < data.length; i++) { if (safeGet(data[i], hm, '要請番号') === p.id) { targetRow = i + 1; break; } }
+      var existingRow = (targetRow > -1) ? data[targetRow - 1] : null;
+
+      // 画面側で復元漏れ等により項目が空のまま送信された場合でも、
+      // 既存の保存済み内容を空欄で上書きして消してしまわないよう、
+      // 送信値が空の項目はスプレッドシート上の既存値を維持する。
+      // （タイムスタンプ・要請番号・ステータスは常に今回の送信値で確定させる）
+      function keepIfEmpty(newVal, colName) {
+        if (newVal !== '' && newVal !== undefined && newVal !== null) return newVal;
+        if (existingRow) { var old = safeGet(existingRow, hm, colName); if (old) return old; }
+        return '';
+      }
+      var timelineJson = (p.timeline && p.timeline.length > 0)
+        ? JSON.stringify(p.timeline)
+        : keepIfEmpty('', 'タイムラインJSON');
+
+      var dataDict = {
+        'タイムスタンプ': Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss"),
+        '要請番号': p.id || '',
+        '発生日': keepIfEmpty(p.date || '', '発生日'),
+        '患者情報': keepIfEmpty(p.patientInfo || '', '患者情報'),
+        '参加スタッフ': keepIfEmpty(p.debriefStaffs || '', '参加スタッフ'),
+        '事案概要': keepIfEmpty(p.summary || '', '事案概要'),
+        'タイムラインJSON': timelineJson,
+        '記録者': keepIfEmpty(p.recorder || '', '記録者'),
+        '実際の対応スタッフ': keepIfEmpty(p.actualStaffs || '', '実際の対応スタッフ'),
+        '想定との相違点': keepIfEmpty(p.actualDiff || '', '想定との相違点'),
+        'ギャップ課題': keepIfEmpty(p.gapBad || '', 'ギャップ課題'),
+        'ギャップ良かった点': keepIfEmpty(p.gapGood || '', 'ギャップ良かった点'),
+        'チーム連携評価': keepIfEmpty(p.team || '', 'チーム連携評価'),
+        'マスタ改修提案': keepIfEmpty(p.gapMaster || '', 'マスタ改修提案'),
+        '次回アクションプラン': keepIfEmpty(p.action || '', '次回アクションプラン'),
+        '開催日': keepIfEmpty(p.dDate || '', '開催日'),
+        '開始時間': keepIfEmpty(p.dTime || '', '開始時間'),
+        '終了時間': keepIfEmpty(p.dEndTime || '', '終了時間'),
+        '所要時間': keepIfEmpty(p.dDuration || '', '所要時間'),
+        '場所': keepIfEmpty(p.dPlace || '', '場所'),
+        'ステータス': p.status || ''
+      };
       var newRow = createRowData(hm, dataDict);
       if (targetRow > -1) dbSheet.getRange(targetRow, 1, 1, newRow.length).setValues([newRow]);
       else dbSheet.appendRow(newRow);
