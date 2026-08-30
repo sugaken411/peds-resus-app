@@ -586,6 +586,16 @@
   }
 
   function selectCase(item) {
+    // 既に選択中の事案を再度クリックした場合（検索結果へ戻って再選択、
+    // 二重クリック等）、ここで無条件にサーバーから再取得・上書きしてしまうと、
+    // まだ保存していないバイタル・検査データやタイムライン入力が
+    // 問答無用で消えてしまう。同じ事案が選択中なら何もしない。
+    if (currentCaseData && currentCaseData.id === item.id) {
+      document.getElementById("search-results-area").style.display = "none";
+      document.getElementById("mock-data-area").style.display = "block";
+      return Promise.resolve();
+    }
+
     currentCaseData = item;
     updateCaseBanner();
     document.getElementById("search-results-area").style.display = "none";
