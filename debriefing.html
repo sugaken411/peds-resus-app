@@ -151,6 +151,7 @@
           <a id="link-to-plan" href="index.html" target="_blank" class="btn small ghost" style="color:var(--blue); border-color:var(--blue); text-decoration:none;">🔗 この事案で作戦盤を開く</a>
         </div>
         <div class="section-label" style="margin-top:16px;">🚑 実対応スタッフ</div>
+        <div style="font-size:11px; color:var(--sub); margin:-4px 0 8px;">この事案の対応に実際に当たったスタッフを選択（振り返りへの出席有無は問いません）</div>
         <div class="chip-grid" id="box-staff-actual"></div>
       </div>
     </div>
@@ -376,17 +377,21 @@
   <div id="tab-sec7" class="tab-content">
     <div class="card">
       <div class="section-label" style="color:var(--brand); border-bottom-color:var(--brand-light);">✅ ノンテクニカルスキル・多職種視点別評価</div>
-      <div class="chip-grid" id="eval-tags-grid">
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">システム・機器</div>
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">プロトコル・運用</div>
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">チーム連携・通信</div>
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">リーダーシップ</div>
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">知識・手技スキル</div>
-        <div class="chip text-tag" onclick="this.classList.toggle('on')">安全管理</div>
+      <div style="font-size:12px; color:var(--sub); background:var(--bg); border-radius:8px; padding:10px; margin-bottom:10px; line-height:1.6;">
+        <b>誰が：</b>この振り返り（デブリーフィング）に参加した全職種のスタッフで話し合いながら<br>
+        <b>何を：</b>下のタグから「今回の事案で話題に上がった観点」を選び（複数選択可）、話し合った具体的な内容を下の記述欄に記載してください
       </div>
-      <textarea id="v-team" rows="4" placeholder="【詳細分析】現場での実際の動き、クローズドループの成否などを記録"></textarea>
-      <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】"></textarea>
-      <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】"></textarea>
+      <div class="chip-grid" id="eval-tags-grid">
+        <div class="chip text-tag" title="モニター・輸液ポンプ・人工呼吸器など機材面での課題や気づき" onclick="this.classList.toggle('on')">システム・機器</div>
+        <div class="chip text-tag" title="院内プロトコル・マニュアル・運用ルールに関する課題や気づき" onclick="this.classList.toggle('on')">プロトコル・運用</div>
+        <div class="chip text-tag" title="スタッフ間の声かけ・情報共有・クローズドループコミュニケーションなど" onclick="this.classList.toggle('on')">チーム連携・通信</div>
+        <div class="chip text-tag" title="指揮命令系統・役割分担・意思決定プロセスに関する評価" onclick="this.classList.toggle('on')">リーダーシップ</div>
+        <div class="chip text-tag" title="個々のスタッフの臨床知識・手技の習熟度に関する振り返り" onclick="this.classList.toggle('on')">知識・手技スキル</div>
+        <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on')">安全管理</div>
+      </div>
+      <textarea id="v-team" rows="4" placeholder="【詳細分析】上で選んだ観点について、現場での実際の動き・クローズドループの成否など、話し合った具体的な内容を記録"></textarea>
+      <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】マスタデータや本アプリ自体への改善要望があれば記載"></textarea>
+      <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
     </div>
 
     <div class="card">
@@ -400,11 +405,13 @@
       <div class="input-row" style="justify-content: flex-end;"><label>所要(分)</label><input type="text" id="d-duration" readonly style="width:80px; text-align:center;"></div>
       
       <div style="font-size:11px; font-weight:bold; color:var(--ink); margin-bottom:4px; margin-top:8px;">✍️ レポート記録責任者</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:6px;">この振り返りシート自体を入力・作成している人を1名選択（1人のみ選択可）</div>
       <div class="chip-grid" id="box-staff-recorder"></div>
-      
+
       <div style="font-size:11px; font-weight:bold; color:var(--brand); margin-top:8px; margin-bottom:4px;">🗣️ 出席スタッフ</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:6px;">この振り返り（デブリーフィング）の場に実際に参加したスタッフ全員を選択（対応した本人でなくても可）</div>
       <div class="chip-grid" id="box-staff-debrief"></div>
-      <input type="text" id="v-staff-other" placeholder="その他の参加者 (フリー入力)" style="margin-top:4px;">
+      <input type="text" id="v-staff-other" placeholder="その他の参加者 (フリー入力・マスタ未登録の職種等)" style="margin-top:4px;">
     </div>
     <button class="btn" onclick="switchTab('sec8')">次へ (最終確認) ➔</button>
   </div>
