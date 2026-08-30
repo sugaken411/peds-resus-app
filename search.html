@@ -313,11 +313,20 @@
       .then(res => res.json())
       .then(res => {
         const d = res.debriefData || {};
-        const hasContent = d.actualDiff || d.gapBad || d.gapGood || d.team || d.action;
+        let evalEntries = [];
+        if (d.timeline) { try { evalEntries = JSON.parse(d.timeline).filter(x => x.type === 'eval' && x.a); } catch(e) {} }
+        const staffLine = [
+          d.recorder ? `記録者: ${escapeHtml(d.recorder)}` : '',
+          d.actualStaffs ? `実対応: ${escapeHtml(d.actualStaffs)}` : '',
+          d.debriefStaffs && d.debriefStaffs.trim() ? `参加: ${escapeHtml(d.debriefStaffs)}` : ''
+        ].filter(Boolean).join(' ｜ ');
+        const hasContent = d.actualDiff || d.gapBad || d.gapGood || d.team || d.action || evalEntries.length > 0 || staffLine;
         const html = hasContent ? `
+          ${staffLine ? `<div class="fb-box" style="color:var(--sub); font-size:11px;">${staffLine}</div>` : ''}
           ${d.actualDiff ? `<div class="fb-box"><div class="fb-title">🔀 想定との相違点</div>${escapeHtml(d.actualDiff)}</div>` : ''}
           ${d.gapBad ? `<div class="fb-box"><div class="fb-title">⚠️ 事前準備の課題</div>${escapeHtml(d.gapBad)}</div>` : ''}
           ${d.gapGood ? `<div class="fb-box"><div class="fb-title">🟢 良かった点</div>${escapeHtml(d.gapGood)}</div>` : ''}
+          ${evalEntries.map(ev => `<div class="fb-box"><div class="fb-title">🩺 医学的評価${ev.title ? `（${escapeHtml(ev.title)}）` : ''}${ev.time ? ` ${escapeHtml(ev.time)}` : ''}</div>${escapeHtml(ev.a)}</div>`).join('')}
           ${d.team ? `<div class="fb-box"><div class="fb-title">🤝 チーム連携評価</div>${escapeHtml(d.team)}</div>` : ''}
           ${d.action ? `<div class="fb-box"><div class="fb-title">➡️ 次回アクションプラン</div>${escapeHtml(d.action)}</div>` : ''}
         ` : `<div class="fb-box" style="color:var(--sub); text-align:center;">振り返りの記載がまだありません</div>`;
