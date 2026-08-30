@@ -72,6 +72,8 @@
     .flow-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
     .flow-table th, .flow-table td { border: 1px solid var(--line); padding: 6px 8px; text-align: center; white-space: nowrap; }
     .flow-table th { background: var(--bg); font-weight: 700; }
+    .flow-row-editable { cursor: pointer; }
+    .flow-row-editable:hover { background: var(--med-blue, #eef6ff); }
     
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); } .chip-tx.active { background: var(--blue); color: #fff; }
     .chip-tx-opt { background: #fff; border: 1px solid #d48806; color: #d48806; }
@@ -236,14 +238,45 @@
       </select>
 
       <div id="panel-data-vital" class="tl-panel" style="display:block;">
+        <button type="button" class="btn small ghost" style="width:100%; margin-bottom:8px;" onclick="toggleBulkVitalMode()">📋 複数時刻をまとめて入力</button>
+        <div id="bulk-vital-area" style="display:none; margin-bottom:12px;"></div>
+        <div id="single-vital-area">
         <div class="grid-2col">
-          <div class="input-row"><label>HR (bpm)</label><input type="text" inputmode="decimal" id="v-hr" oninput="forceNum(this)"></div>
-          <div class="input-row"><label>SpO2 (%)</label><input type="text" inputmode="decimal" id="v-spo2" oninput="forceNum(this)"></div>
-          <div class="input-row"><label>RR (/min)</label><input type="text" inputmode="decimal" id="v-rr" oninput="forceNum(this)"></div>
-          <div class="input-row"><label>BP収縮期</label><input type="text" inputmode="decimal" id="v-bps" oninput="forceNum(this)"></div>
-          <div class="input-row"><label>BP拡張期</label><input type="text" inputmode="decimal" id="v-bpd" oninput="forceNum(this)"></div>
+          <div class="input-row"><label>HR (bpm)</label><input type="text" inputmode="decimal" id="v-hr" oninput="forceNum(this); triggerVitalPews();"></div>
+          <div class="input-row"><label>SpO2 (%)</label><input type="text" inputmode="decimal" id="v-spo2" oninput="forceNum(this); triggerVitalPews();"></div>
+          <div class="input-row"><label>RR (/min)</label><input type="text" inputmode="decimal" id="v-rr" oninput="forceNum(this); triggerVitalPews();"></div>
           <div class="input-row"><label>BT (℃)</label><input type="text" inputmode="decimal" id="v-bt" oninput="forceNum(this)"></div>
         </div>
+        <div class="input-row" style="margin-top:4px;">
+          <label>血圧 (mmHg)</label>
+          <input type="text" inputmode="decimal" id="v-bps" placeholder="収縮期" style="flex:1;" oninput="forceNum(this); updateBpPreview(); triggerVitalPews();">
+          <span style="font-weight:bold; color:var(--sub);">/</span>
+          <input type="text" inputmode="decimal" id="v-bpd" placeholder="拡張期" style="flex:1;" oninput="forceNum(this); updateBpPreview();">
+          <span id="bp-mean-preview" style="font-size:12px; color:var(--sub); white-space:nowrap;"></span>
+        </div>
+
+        <div style="margin-top:12px; background:var(--bg); border-radius:8px; padding:10px;">
+          <div style="font-size:11px; font-weight:700; color:var(--sub); margin-bottom:6px;">💨 酸素投与・人工呼吸器</div>
+          <label style="display:none;">酸素投与</label><input type="text" id="v-ox-device" readonly style="display:none;">
+          <div class="chips" id="ox-device-chips"></div>
+          <div id="ox-flow-row" style="display:none; margin-top:6px;">
+            <div class="grid-2col">
+              <div class="input-row"><label>流量</label><input type="text" id="v-ox-flow" placeholder="例: 2L/min"></div>
+              <div class="input-row"><label>FiO2 (%)</label><input type="text" inputmode="decimal" id="v-ox-fio2" oninput="forceNum(this)"></div>
+            </div>
+          </div>
+          <div id="ox-vent-panel" style="display:none; margin-top:8px; border-top:1px dashed var(--line); padding-top:8px;">
+            <div style="font-size:11px; font-weight:700; color:var(--sub); margin-bottom:6px;">📟 人工呼吸器設定</div>
+            <div class="input-row"><label>モード</label><input type="text" id="v-vent-mode" placeholder="例: SIMV, PSV, A/C"></div>
+            <div class="grid-2col">
+              <div class="input-row"><label>PEEP</label><input type="text" inputmode="decimal" id="v-vent-peep" oninput="forceNum(this)"></div>
+              <div class="input-row"><label>PIP</label><input type="text" inputmode="decimal" id="v-vent-pip" oninput="forceNum(this)"></div>
+              <div class="input-row"><label>設定回数</label><input type="text" inputmode="decimal" id="v-vent-rate" oninput="forceNum(this)"></div>
+              <div class="input-row"><label>一回換気量</label><input type="text" inputmode="decimal" id="v-vent-vt" oninput="forceNum(this)"></div>
+            </div>
+          </div>
+        </div>
+
         <div class="loc-picker" style="margin-top:8px; background:var(--bg); border-radius:8px; padding:10px;">
           <div style="font-size:11px; font-weight:700; color:var(--sub); margin-bottom:6px;">🧠 意識レベル</div>
           <div class="btn-group" id="loc-scale-toggle" style="margin-bottom:8px;">
@@ -271,7 +304,9 @@
         </div>
         <div class="input-row" style="margin-top:8px;"><label>意識レベル</label><input type="text" id="v-jcs" readonly placeholder="上のJCS/GCS/RASSから選択してください"></div>
         <div class="input-row" style="margin-top:4px;"><label>PEWS</label><input type="text" inputmode="decimal" id="v-pews" oninput="forceNum(this)"></div>
+        <div style="font-size:10px; color:var(--sub); margin:-4px 0 8px 89px;">※ HR/RR/血圧収縮期/SpO2/酸素投与/意識レベルから自動計算されます（手動で上書き可）</div>
         <button class="btn blue" id="btn-add-vital" onclick="addTimeline('バイタル')">＋ バイタルを登録</button>
+        </div>
       </div>
 
       <div id="panel-data-blood" class="tl-panel" style="display:none;">
@@ -307,6 +342,7 @@
   <div id="tab-sec5" class="tab-content">
     <div class="card">
       <div class="section-label">📋 バイタル経過表<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllFlowParams()">表示項目を全選択/解除</button></div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">行をタップすると、その時刻の入力内容を編集できます</div>
       <div class="flow-param-select" id="flow-param-select"></div>
       <div style="overflow-x:auto;">
         <table class="flow-table" id="flow-table"></table>
@@ -319,6 +355,7 @@
     </div>
     <div class="card">
       <div class="section-label">🩸 検査値経過表（採血・血ガス）<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllLabParams()">表示項目を全選択/解除</button></div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">行をタップすると、その時刻の入力内容を編集できます</div>
       <div class="flow-param-select" id="lab-param-select"></div>
       <div style="overflow-x:auto;">
         <table class="flow-table" id="lab-flow-table"></table>
@@ -393,6 +430,7 @@
   let currentDataCategory = 'vital';
   let currentSelectedDai = ""; 
   let masterStaff = []; let masterDrugs = []; let masterTreatments = []; let masterTests = [];
+  let masterPewsMaster = []; let masterVentilators = [];
   let currentCaseData = {}; 
   let timelineArray = [];
   let evalBlocks = [ { id: 1, title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
@@ -408,7 +446,7 @@
 
   window.onload = () => {
     document.getElementById("d-date").valueAsDate = new Date();
-    renderEvalBlocks(); loadMasterData(); updateCaseBanner(); initLocPicker();
+    renderEvalBlocks(); loadMasterData(); updateCaseBanner(); initLocPicker(); initOxPicker();
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId) autoLoadCaseFromUrl(urlId);
   };
@@ -475,6 +513,155 @@
     document.getElementById('loc-rass-select').value = '';
   }
 
+  // ----- 酸素投与・人工呼吸器（バイタル登録パネル内） -----
+  const OX_DEVICES = ['なし(RA)', '経鼻', 'マスク', 'リザーバ', '人工呼吸器'];
+
+  function initOxPicker() {
+    document.getElementById('ox-device-chips').innerHTML = OX_DEVICES.map(v =>
+      `<div class="chip" onclick="selectOxDevice('${v}', this)">${v}</div>`).join('');
+  }
+
+  function selectOxDevice(val, el) {
+    document.querySelectorAll('#ox-device-chips .chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    document.getElementById('v-ox-device').value = val;
+    document.getElementById('ox-flow-row').style.display = (val === 'なし(RA)') ? 'none' : 'block';
+    document.getElementById('ox-vent-panel').style.display = (val === '人工呼吸器') ? 'block' : 'none';
+    triggerVitalPews();
+  }
+
+  function resetOxPicker() {
+    document.querySelectorAll('#ox-device-chips .chip').forEach(c => c.classList.remove('on'));
+    document.getElementById('v-ox-device').value = '';
+    document.getElementById('ox-flow-row').style.display = 'none';
+    document.getElementById('ox-vent-panel').style.display = 'none';
+  }
+
+  // ----- 血圧の平均値プレビュー（収縮期+2×拡張期）/3 -----
+  function calcMeanBp(sys, dia) {
+    sys = parseFloat(sys); dia = parseFloat(dia);
+    if (isNaN(sys) || isNaN(dia)) return null;
+    return Math.round((sys + 2 * dia) / 3);
+  }
+
+  function updateBpPreview() {
+    const sys = document.getElementById('v-bps').value; const dia = document.getElementById('v-bpd').value;
+    const mean = calcMeanBp(sys, dia);
+    document.getElementById('bp-mean-preview').textContent = (mean !== null) ? `平均 ${mean}` : '';
+  }
+
+  // ----- PEWS自動計算（作戦盤の年齢別マスタ判定ロジックを流用） -----
+  function getAgeYears() {
+    const ageStr = (currentCaseData && currentCaseData.age) || '';
+    const m = String(ageStr).match(/(\d+)\s*歳/);
+    return m ? parseInt(m[1]) : 0;
+  }
+
+  function getLocPewsBonus() {
+    const v = document.getElementById('v-jcs').value || '';
+    if (v.indexOf('JCS') === 0) {
+      const n = v.replace('JCS', '').trim();
+      if (['20','30','100','200','300'].indexOf(n) !== -1) return 3;
+      if (['1','2','3','10'].indexOf(n) !== -1) return 1;
+      return 0;
+    }
+    if (v.indexOf('GCS') === 0) {
+      const m = v.match(/\((\d+)\)/); const total = m ? parseInt(m[1]) : null;
+      if (total !== null) { if (total <= 8) return 3; if (total <= 13) return 1; }
+      return 0;
+    }
+    if (v.indexOf('RASS') === 0) {
+      const m = v.match(/RASS\s*([+-]?\d+)/); const val = m ? parseInt(m[1]) : null;
+      if (val !== null) { if (val >= 3 || val <= -4) return 3; if (val === 2 || val === 1 || val === -2 || val === -3) return 1; }
+      return 0;
+    }
+    return 0;
+  }
+
+  function triggerVitalPews() {
+    const hr = parseFloat(document.getElementById('v-hr').value) || 0;
+    const rr = parseFloat(document.getElementById('v-rr').value) || 0;
+    const sys = parseFloat(document.getElementById('v-bps').value) || 0;
+    const spo2 = parseFloat(document.getElementById('v-spo2').value) || 0;
+    const dev = document.getElementById('v-ox-device').value || '';
+    const ageY = getAgeYears();
+    let pews = 0;
+    if (masterPewsMaster && masterPewsMaster.length > 0) {
+      const matchHr = masterPewsMaster.find(p => p.item.indexOf('HR') !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+      if (matchHr) { if (hr > 0 && (hr > matchHr.th2 || hr < matchHr.normalMin)) pews += 2; else if (hr > 0 && hr > matchHr.th1) pews += 1; }
+      const matchRr = masterPewsMaster.find(p => p.item.indexOf('RR') !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+      if (matchRr) { if (rr > 0 && (rr > matchRr.th2 || rr < matchRr.normalMin)) pews += 2; else if (rr > 0 && rr > matchRr.th1) pews += 1; }
+      const matchBp = masterPewsMaster.find(p => p.item.indexOf('sys') !== -1 && ageY >= p.ageMin && ageY <= p.ageMax);
+      if (matchBp) { if (sys > 0 && sys < matchBp.normalMin) pews += 2; }
+    }
+    if (spo2 > 0) { if (spo2 < 92) pews += 3; else if (spo2 < 95) pews += 1; }
+    if (dev && dev !== 'なし(RA)') pews += 1;
+    pews += getLocPewsBonus();
+    document.getElementById('v-pews').value = pews;
+  }
+
+  // ----- バイタル複数時刻まとめ入力 -----
+  let bulkVitalRows = [];
+
+  function toggleBulkVitalMode() {
+    const bulkArea = document.getElementById('bulk-vital-area'); const singleArea = document.getElementById('single-vital-area');
+    const isOpen = bulkArea.style.display !== 'none';
+    if (isOpen) { bulkArea.style.display = 'none'; singleArea.style.display = 'block'; }
+    else { bulkArea.style.display = 'block'; singleArea.style.display = 'none'; if (bulkVitalRows.length === 0) addBulkVitalRow(); renderBulkVitalArea(); }
+  }
+
+  function addBulkVitalRow() {
+    bulkVitalRows.push({ id: Date.now() + Math.random(), time: '', hr: '', spo2: '', rr: '', bps: '', bpd: '', bt: '' });
+    renderBulkVitalArea();
+  }
+
+  function updateBulkVitalField(id, field, val) {
+    const row = bulkVitalRows.find(r => r.id === id); if (row) row[field] = val;
+  }
+
+  function removeBulkVitalRow(id) {
+    bulkVitalRows = bulkVitalRows.filter(r => r.id !== id);
+    renderBulkVitalArea();
+  }
+
+  function renderBulkVitalArea() {
+    const cols = [['time','時刻','time'],['hr','HR','decimal'],['spo2','SpO2','decimal'],['rr','RR','decimal'],['bps','収縮期','decimal'],['bpd','拡張期','decimal'],['bt','BT','decimal']];
+    let html = `<div style="font-size:11px; color:var(--sub); margin-bottom:6px;">カルテを見ながら複数時刻分をまとめて入力し、最後に一括登録できます（意識レベル・酸素・PEWSは個別登録をご利用ください）。</div>`;
+    html += `<div style="overflow-x:auto;"><table class="flow-table"><thead><tr>${cols.map(c => `<th>${c[1]}</th>`).join('')}<th></th></tr></thead><tbody>`;
+    bulkVitalRows.forEach(r => {
+      html += '<tr>' + cols.map(c => `<td><input type="${c[2]==='time'?'time':'text'}" ${c[2]==='decimal'?'inputmode="decimal"':''} value="${r[c[0]]}" style="width:64px; margin:0; padding:6px;" oninput="updateBulkVitalField(${r.id}, '${c[0]}', this.value)${c[2]==='decimal'?'; forceNum(this)':''}"></td>`).join('')
+        + `<td><button class="btn small ghost" style="color:red; padding:4px 8px; margin:0;" onclick="removeBulkVitalRow(${r.id})">✕</button></td></tr>`;
+    });
+    html += '</tbody></table></div>';
+    html += `<div style="display:flex; gap:8px; margin-top:8px;">
+      <button class="btn small ghost" style="flex:1;" onclick="addBulkVitalRow()">＋ 行を追加</button>
+      <button class="btn blue small" style="flex:2;" onclick="submitBulkVitalRows()">まとめて登録</button>
+    </div>`;
+    document.getElementById('bulk-vital-area').innerHTML = html;
+  }
+
+  function submitBulkVitalRows() {
+    let added = 0;
+    bulkVitalRows.forEach(r => {
+      if (!r.time) return;
+      let parts = []; let rawValues = {};
+      if (r.hr) { parts.push(`HR (bpm):${r.hr}`); rawValues['v-hr'] = r.hr; }
+      if (r.spo2) { parts.push(`SpO2 (%):${r.spo2}`); rawValues['v-spo2'] = r.spo2; }
+      if (r.rr) { parts.push(`RR (/min):${r.rr}`); rawValues['v-rr'] = r.rr; }
+      if (r.bps && r.bpd) { const mean = calcMeanBp(r.bps, r.bpd); parts.push(`血圧:${r.bps}/${r.bpd}(${mean})`); rawValues['v-bps'] = r.bps; rawValues['v-bpd'] = r.bpd; rawValues['v-bp-mean'] = mean; }
+      else { if (r.bps) { parts.push(`血圧収縮期:${r.bps}`); rawValues['v-bps'] = r.bps; } if (r.bpd) { parts.push(`血圧拡張期:${r.bpd}`); rawValues['v-bpd'] = r.bpd; } }
+      if (r.bt) { parts.push(`BT (℃):${r.bt}`); rawValues['v-bt'] = r.bt; }
+      if (parts.length === 0) return;
+      timelineArray.push({ rowId: Date.now() + Math.random(), time: r.time, cat: 'バイタル', contentText: parts.join(' | '), rawValues: rawValues });
+      added++;
+    });
+    if (added === 0) { alert("時刻と数値を入力してください"); return; }
+    bulkVitalRows = []; renderBulkVitalArea();
+    toggleBulkVitalMode();
+    renderTimeline();
+    alert(`${added}件のバイタルを登録しました（画面下部の「途中保存」で確定してください）`);
+  }
+
   function autoLoadCaseFromUrl(id) {
     document.getElementById("global-loader").style.display = "flex";
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "fetch_history", keyword: id }) })
@@ -537,6 +724,8 @@
       if(res.drugs) { masterDrugs = res.drugs.filter(d => d.type === "単発薬").map(d => d.name); renderDrugChips(); }
       if(res.treatments) { masterTreatments = res.treatments; renderTxCategories(); }
       if(res.tests) { masterTests = res.tests; renderTestInputs(); }
+      if(res.pewsMaster) { masterPewsMaster = res.pewsMaster; }
+      if(res.ventilators) { masterVentilators = res.ventilators; }
     }
   }
 
@@ -798,11 +987,21 @@
       contentText = document.getElementById("tl-text-basic").value; document.getElementById("tl-text-basic").value = ""; rawValues["tl-text-basic"] = contentText;
     } else if (catName === 'バイタル') {
       let parts = [];
+      const sys = document.getElementById('v-bps').value; const dia = document.getElementById('v-bpd').value;
+      if (sys && dia) {
+        const mean = calcMeanBp(sys, dia);
+        parts.push(`血圧:${sys}/${dia}(${mean})`); rawValues['v-bps'] = sys; rawValues['v-bpd'] = dia; rawValues['v-bp-mean'] = mean;
+      } else {
+        if (sys) { parts.push(`血圧収縮期:${sys}`); rawValues['v-bps'] = sys; }
+        if (dia) { parts.push(`血圧拡張期:${dia}`); rawValues['v-bpd'] = dia; }
+      }
       document.querySelectorAll('#panel-data-vital input').forEach(input => {
+        if (input.id === 'v-bps' || input.id === 'v-bpd') return;
         if(input.value) { let label = input.previousElementSibling ? input.previousElementSibling.textContent : input.id; parts.push(`${label}:${input.value}`); rawValues[input.id] = input.value; input.value = ""; }
       });
+      document.getElementById('v-bps').value = ""; document.getElementById('v-bpd').value = ""; document.getElementById('bp-mean-preview').textContent = "";
       if(parts.length === 0) return alert("数値を入力してください"); contentText = parts.join(" | ");
-      resetLocPicker();
+      resetLocPicker(); resetOxPicker();
     } else if (catName === '血液検査') {
       let parts = [];
       document.querySelectorAll('#panel-data-blood .dyn-test-input').forEach(inp => {
@@ -867,6 +1066,14 @@
         else if(key === 'temp') { temporaryExams = item.rawValues[key]; document.getElementById("ex-temporary-list").innerHTML = temporaryExams.map((x, i) => `<div class="chip on-dark" onclick="temporaryExams.splice(${i},1); this.remove();">📎 ${x.name}: ${x.res} ✕</div>`).join(""); }
         else { let el = document.getElementById(key); if(el) { el.value = item.rawValues[key]; el.classList.add('input-highlight'); } }
       }
+      if (item.cat === 'バイタル') {
+        updateBpPreview();
+        const dev = item.rawValues['v-ox-device'];
+        if (dev) {
+          const chip = Array.from(document.querySelectorAll('#ox-device-chips .chip')).find(c => c.textContent === dev);
+          if (chip) selectOxDevice(dev, chip);
+        }
+      }
     }
   }
 
@@ -902,7 +1109,7 @@
   // ----- バイタル経過表（一般経過表スタイル・表示項目選択式） -----
   const FLOW_PARAMS = [
     { key: 'v-hr', label: 'HR' }, { key: 'v-spo2', label: 'SpO2' }, { key: 'v-rr', label: 'RR' },
-    { key: 'v-bps', label: 'BP収縮' }, { key: 'v-bpd', label: 'BP拡張' }, { key: 'v-bt', label: 'BT' },
+    { key: 'bp-combined', label: '血圧(平均)' }, { key: 'v-bt', label: 'BT' }, { key: 'v-ox-device', label: '酸素' },
     { key: 'v-jcs', label: '意識レベル' }, { key: 'v-pews', label: 'PEWS' }
   ];
   let selectedFlowParams = new Set(FLOW_PARAMS.map(p => p.key));
@@ -929,10 +1136,18 @@
     const activeParams = FLOW_PARAMS.filter(p => selectedFlowParams.has(p.key));
     let html = '<thead><tr><th>時刻</th>' + activeParams.map(p => `<th>${p.label}</th>`).join('') + '</tr></thead><tbody>';
     if (rows.length === 0) {
-      html += `<tr><td colspan="${activeParams.length + 1}" style="text-align:center; color:var(--sub);">記録なし（3.時系列/薬剤タブでバイタルを登録してください）</td></tr>`;
+      html += `<tr><td colspan="${activeParams.length + 1}" style="text-align:center; color:var(--sub);">記録なし（4.データ入力タブでバイタルを登録してください）</td></tr>`;
     } else {
       rows.forEach(r => {
-        html += `<tr><td>${r.time}</td>` + activeParams.map(p => `<td>${r.rawValues[p.key] || '-'}</td>`).join('') + '</tr>';
+        html += `<tr class="flow-row-editable" onclick="editTimelineRow(${r.rowId})" title="クリックして編集"><td>${r.time}</td>` + activeParams.map(p => {
+          if (p.key === 'bp-combined') {
+            const sys = r.rawValues['v-bps']; const dia = r.rawValues['v-bpd'];
+            if (sys && dia) return `<td>${sys}/${dia}(${r.rawValues['v-bp-mean'] || calcMeanBp(sys, dia)})</td>`;
+            if (sys || dia) return `<td>${sys || '-'}/${dia || '-'}</td>`;
+            return '<td>-</td>';
+          }
+          return `<td>${r.rawValues[p.key] || '-'}</td>`;
+        }).join('') + '</tr>';
       });
     }
     html += '</tbody>';
@@ -987,7 +1202,7 @@
       html += `<tr><td colspan="${activeParams.length + 1}" style="text-align:center; color:var(--sub);">記録なし（4.データ入力タブで血液検査を登録してください）</td></tr>`;
     } else {
       rows.forEach(r => {
-        html += `<tr><td>${r.time}</td>` + activeParams.map(n => {
+        html += `<tr class="flow-row-editable" onclick="editTimelineRow(${r.rowId})" title="クリックして編集"><td>${r.time}</td>` + activeParams.map(n => {
           const v = r.rawValues['test_' + n];
           if (v === undefined || v === '') return '<td>-</td>';
           const master = masterTests.find(t => t.category === '血液' && t.name === n);
