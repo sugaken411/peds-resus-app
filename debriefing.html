@@ -786,7 +786,29 @@
     document.getElementById("box-staff-recorder").innerHTML = masterStaff.map(n => `<div class="chip" onclick="selectSingleChip(this, 'box-staff-recorder', 'on-dark')">${n}</div>`).join("");
     document.getElementById("box-staff-actual").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on-blue')">${n}</div>`).join("");
     document.getElementById("box-staff-debrief").innerHTML = masterStaff.map(n => `<div class="chip" onclick="this.classList.toggle('on')">${n}</div>`).join("");
+    prefillActualStaffFromBriefing();
     if (pendingStaffRestore) { applyStaffRestore(pendingStaffRestore); pendingStaffRestore = null; refreshPreviewIfActive(); }
+  }
+
+  // ブリーフィング（作戦盤）で入力した役割分担を、デブリーフィングの
+  // 「実対応スタッフ」の初期値として反映する。マスタ読込とcase選択の
+  // 前後関係に関わらず反映されるよう、renderStaffChips/selectCaseの両方から呼ぶ
+  // （チップが未生成の場合は何もしない＝どちらか遅い方の呼び出しで反映される）。
+  function prefillActualStaffFromBriefing() {
+    if (!currentCaseData.roles) return;
+    if (!document.querySelectorAll('#box-staff-actual .chip').length) return;
+    const printLabels = [];
+    ['leader', 'airway', 'cpr', 'route', 'record'].forEach(r => {
+      String(currentCaseData.roles[r] || '').split(',').map(s => s.trim()).filter(Boolean).forEach(n => printLabels.push(n));
+    });
+    if (printLabels.length === 0) return;
+    // 作戦盤側の役割分担は「所属+姓(内線)」形式のprint labelで保存されており、
+    // デブリーフィング側のスタッフマスタ表示名（「姓 名」形式）と文字列が完全一致しない。
+    // 表示名の姓（スペース前の部分）がprint labelに含まれるかで緩く一致させる。
+    document.querySelectorAll('#box-staff-actual .chip').forEach(c => {
+      const surname = c.textContent.split(/\s+/)[0];
+      if (surname && printLabels.some(p => p.indexOf(surname) !== -1)) c.classList.add('on-blue');
+    });
   }
 
   // マスタ（スタッフ一覧）の読込タイミングと事案選択のタイミングが前後しても
@@ -862,6 +884,7 @@
     document.getElementById("mock-data-area").style.display = "block";
     document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト】\n${item.protocol}`;
     document.getElementById("link-to-plan").href = "index.html?caseId=" + encodeURIComponent(item.id);
+    prefillActualStaffFromBriefing();
 
     // 復元データの取得中にタブを切り替えられると、確認・送信プレビューなどが
     // 「まだ何も届いていない空の状態」のまま固定表示されてしまうため、
