@@ -197,6 +197,7 @@
       <div id="panel-tx" class="tl-panel" style="display:block;">
         <div id="tx-kbn-chips" class="chip-grid"></div>
         <div id="tx-dai-container" style="display:none; margin-top:8px;">
+          <input type="text" id="tx-dai-search" placeholder="🔍 処置区分を検索（例: 気道、輸液、けいれん）" oninput="filterTxDaiChips(this.value)" style="margin-bottom:8px;">
           <div id="tx-dai-chips" class="chip-grid"></div>
         </div>
         <div id="tx-detail-container" style="display:none; background:#f9f9f9; padding:8px; border-radius:8px; margin-top:8px; margin-bottom:8px;"></div>
@@ -206,6 +207,7 @@
 
       <div id="panel-drug" class="tl-panel" style="display:none;">
         <div style="font-size:11px; font-weight:bold; color:var(--blue); margin-bottom:6px;">マスタ採用薬一覧（タップで用量入力）</div>
+        <input type="text" id="drug-search" placeholder="🔍 薬剤名で検索" oninput="filterDrugChips(this.value)" style="margin-bottom:8px;">
         <div class="chip-grid" id="box-drug-chips"></div>
         <div id="panel-drug-prompt" style="display:none; background:var(--warn-light); border:1px solid var(--warn); border-radius:8px; padding:12px; margin-top:8px;">
           <div style="font-size:13px; font-weight:bold; color:var(--ink);" id="lbl-prompt-drugname">薬剤名</div>
@@ -974,8 +976,17 @@
     document.querySelectorAll('#tx-kbn-chips .chip').forEach(c => c.classList.remove('active')); el.classList.add('active');
     let dais = [...new Set(masterTreatments.filter(t => t.category === kbn).map(t => t.large))].filter(Boolean);
     document.getElementById("tx-dai-container").style.display = "block";
-    document.getElementById("tx-dai-chips").innerHTML = dais.map(d => `<div class="chip chip-tx-opt" onclick="selectTxDai('${d}', this)">${d}</div>`).join("");
+    document.getElementById("tx-dai-chips").innerHTML = dais.map(d => `<div class="chip chip-tx-opt" data-search="${d}" onclick="selectTxDai('${d}', this)">${d}</div>`).join("");
+    document.getElementById("tx-dai-search").value = "";
     document.getElementById("tx-detail-container").style.display = "none"; document.getElementById("tx-final-text").value = ""; currentSelectedDai = "";
+  }
+
+  // 処置区分（大項目）が90種類超と多いため、名前で絞り込めるようにする
+  function filterTxDaiChips(keyword) {
+    const kw = keyword.trim();
+    document.querySelectorAll('#tx-dai-chips .chip').forEach(c => {
+      c.style.display = (!kw || c.dataset.search.indexOf(kw) !== -1) ? '' : 'none';
+    });
   }
   function selectTxDai(dai, el) {
     document.querySelectorAll('#tx-dai-chips .chip').forEach(c => c.classList.remove('active')); el.classList.add('active'); currentSelectedDai = dai;
@@ -1006,7 +1017,15 @@
   }
 
   // ■ 薬剤マスタ
-  function renderDrugChips() { document.getElementById("box-drug-chips").innerHTML = masterDrugs.map(d => `<div class="chip" onclick="openDrugPrompt('${d}')">${d}</div>`).join(""); }
+  function renderDrugChips() { document.getElementById("box-drug-chips").innerHTML = masterDrugs.map(d => `<div class="chip" data-search="${d}" onclick="openDrugPrompt('${d}')">${d}</div>`).join(""); }
+
+  // 単発薬一覧がフラットなチップの羅列で項目数が多いため、名前で絞り込めるようにする
+  function filterDrugChips(keyword) {
+    const kw = keyword.trim();
+    document.querySelectorAll('#box-drug-chips .chip').forEach(c => {
+      c.style.display = (!kw || c.dataset.search.indexOf(kw) !== -1) ? '' : 'none';
+    });
+  }
   function openDrugPrompt(name) {
     document.getElementById('lbl-prompt-drugname').innerText = `【薬量入力】 ${name}`;
     document.getElementById('v-prompt-dose').value = ""; document.getElementById('panel-drug-prompt').style.display = 'block'; document.getElementById('panel-drug-prompt').dataset.targetdrug = name;
