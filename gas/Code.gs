@@ -398,7 +398,9 @@ function getBloodTestNames(ss) {
     var r = tData[i];
     var name = safeGet(r, hMapTest, '検査項目名');
     var category = safeGet(r, hMapTest, '大項目');
-    if (name && category === '血液') names.push(String(name).trim());
+    // デブリーフィング側の検査値入力パネルは血液以外（尿・髄液・培養等）も
+    // 対象にしたため、OCR照合候補も同じ範囲に合わせる
+    if (name && (category === '血液' || category === '尿' || category === '髄液' || category === 'その他')) names.push(String(name).trim());
   }
   return names;
 }

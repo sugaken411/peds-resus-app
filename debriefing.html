@@ -313,9 +313,10 @@
       </div>
 
       <div id="panel-data-blood" class="tl-panel" style="display:none;">
+        <input type="text" id="test-search" placeholder="🔍 検査項目名で検索（例: CRP、抗原、培養）" oninput="filterTestInputs(this.value)" style="margin-bottom:8px;">
         <div class="btn-group" id="blood-sub-tabs" style="margin-bottom:8px;"></div>
         <div id="blood-inputs-container" style="max-height: 420px; overflow-y: auto; overflow-x: hidden;"></div>
-        <button class="btn blue" id="btn-add-blood" onclick="addTimeline('血液検査')">＋ 血液検査を登録</button>
+        <button class="btn blue" id="btn-add-blood" onclick="addTimeline('血液検査')">＋ 検査値を登録</button>
       </div>
 
       <div id="panel-data-imaging" class="tl-panel" style="display:none;">
@@ -1005,8 +1006,39 @@
   }
 
   // ■ 検査マスタ連動動的生成
+  // 検体検査は血液以外（尿・髄液・培養等）もマスタには存在するのに
+  // このパネルでは血液しか表示されず、せっかくの登録データが使われていなかった。
+  // 検査に関わる主要カテゴリをまとめて対象にする。
+  const SPECIMEN_TEST_CATEGORIES = ['血液', '尿', '髄液', 'その他'];
+
+  function renderTestRow(t) {
+    const isQualitative = t.unit === '陽性/陰性';
+    const range = (!isQualitative && (t.min || t.max)) ? `正常値 ${t.min||''}〜${t.max||''}${t.unit?(' '+t.unit):''}` : (!isQualitative && t.unit ? `単位: ${t.unit}` : '');
+    const hint = t.note ? `<div class="test-note">${t.note}</div>` : '';
+    const body = isQualitative
+      ? `<div class="chips" style="margin:0;">
+          <div class="chip" onclick="setQualTestResult(this, '陽性')">陽性</div>
+          <div class="chip" onclick="setQualTestResult(this, '陰性')">陰性</div>
+          <div class="chip" onclick="setQualTestResult(this, '未実施')">未実施</div>
+        </div>
+        <input type="text" class="dyn-test-input" data-name="${t.name}" readonly style="margin-top:6px; background:var(--bg);">`
+      : `<input type="text" inputmode="decimal" class="dyn-test-input" data-name="${t.name}" oninput="forceNum(this)">
+        ${t.unit ? `<span class="test-unit">${t.unit}</span>` : ''}`;
+    return `<div class="test-row" data-search="${t.name}">
+      <div class="test-row-head"><span class="test-name">${t.name}</span>${range ? `<span class="test-range">${range}</span>` : ''}</div>
+      <div class="test-row-body">${body}</div>
+      ${hint}
+    </div>`;
+  }
+
+  function setQualTestResult(el, val) {
+    el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    el.closest('.test-row-body').querySelector('.dyn-test-input').value = val === '未実施' ? '' : val;
+  }
+
   function renderTestInputs() {
-    let bloodTests = masterTests.filter(t => t.category === '血液');
+    let bloodTests = masterTests.filter(t => SPECIMEN_TEST_CATEGORIES.includes(t.category));
     let imageTests = masterTests.filter(t => t.category === '画像');
 
     let bloodSubs = [...new Set(bloodTests.map(t => t.subCategory))].filter(Boolean);
@@ -1017,24 +1049,35 @@
     bloodSubs.forEach((sub, i) => {
       let items = bloodTests.filter(t => t.subCategory === sub);
       inputsHtml += `<div class="blood-sub-panel" id="blood-sub-${sub}" style="display:${i===0?'block':'none'};"><div class="test-grid">`;
-      inputsHtml += items.map(t => {
-        let range = (t.min || t.max) ? `正常値 ${t.min||''}〜${t.max||''}${t.unit?(' '+t.unit):''}` : (t.unit ? `単位: ${t.unit}` : '');
-        let hint = t.note ? `<div class="test-note">${t.note}</div>` : '';
-        return `<div class="test-row">
-          <div class="test-row-head"><span class="test-name">${t.name}</span>${range ? `<span class="test-range">${range}</span>` : ''}</div>
-          <div class="test-row-body">
-            <input type="text" inputmode="decimal" class="dyn-test-input" data-name="${t.name}" oninput="forceNum(this)">
-            ${t.unit ? `<span class="test-unit">${t.unit}</span>` : ''}
-          </div>
-          ${hint}
-        </div>`;
-      }).join("");
+      inputsHtml += items.map(renderTestRow).join("");
       inputsHtml += `</div></div>`;
     });
     document.getElementById('blood-inputs-container').innerHTML = inputsHtml;
 
     let imgHtml = imageTests.map(t => `<div class="input-row"><label style="width:90px; text-align:left;">${t.subCategory} ${t.name}</label><input type="text" class="dyn-img-input" data-name="${t.subCategory} ${t.name}" placeholder="所見を入力"></div>`).join("");
     document.getElementById('image-inputs-container').innerHTML = imgHtml;
+  }
+
+  // 項目数が増えたため、名前でその場検索できるようにする。
+  // 検索中はタブ切り替えを無視し、全サブカテゴリを横断して一致した項目だけを表示する。
+  function filterTestInputs(keyword) {
+    const kw = keyword.trim();
+    const panels = document.querySelectorAll('.blood-sub-panel');
+    if (!kw) {
+      // 検索クリア時はタブ選択状態に戻す
+      const activeSub = document.querySelector('#blood-sub-tabs .group-btn.active')?.textContent;
+      panels.forEach(p => { p.style.display = (p.id === `blood-sub-${activeSub}`) ? 'block' : 'none'; p.querySelectorAll('.test-row').forEach(r => r.style.display = ''); });
+      return;
+    }
+    panels.forEach(p => {
+      let anyMatch = false;
+      p.querySelectorAll('.test-row').forEach(row => {
+        const match = row.dataset.search.indexOf(kw) !== -1;
+        row.style.display = match ? '' : 'none';
+        if (match) anyMatch = true;
+      });
+      p.style.display = anyMatch ? 'block' : 'none';
+    });
   }
 
   function switchBloodSub(sub, el) {
@@ -1340,7 +1383,7 @@
         html += `<tr class="flow-row-editable" onclick="editTimelineRow(${r.rowId})" title="クリックして編集"><td>${r.time}</td>` + activeParams.map(n => {
           const v = r.rawValues['test_' + n];
           if (v === undefined || v === '') return '<td>-</td>';
-          const master = masterTests.find(t => t.category === '血液' && t.name === n);
+          const master = masterTests.find(t => SPECIMEN_TEST_CATEGORIES.includes(t.category) && t.name === n);
           const num = parseFloat(v);
           const outOfRange = master && !isNaN(num) && (
             (master.min !== '' && master.min != null && num < master.min) ||
