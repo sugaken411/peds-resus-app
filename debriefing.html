@@ -129,8 +129,10 @@
 </div>
 
 <div class="case-banner no-print" id="case-banner">⚠️ 事案が未選択です。まず「1.事案を選ぶ」で検索してください</div>
+<div id="unsaved-indicator" class="no-print" style="display:none; position:sticky; top:calc(148px + var(--safe-top)); z-index:97; background:#fffbea; color:#92600a; font-size:11px; font-weight:700; text-align:center; padding:5px; border-bottom:1px solid #fde68a;">💾 未保存の変更があります（「途中保存」または「完了として送信」で保存してください）</div>
+<div id="undo-toast" class="no-print" style="display:none; position:fixed; left:50%; bottom:20px; transform:translateX(-50%); background:var(--ink); color:#fff; font-size:13px; font-weight:700; padding:10px 16px; border-radius:24px; box-shadow:0 4px 16px rgba(0,0,0,0.3); z-index:999; align-items:center; gap:12px;"></div>
 
-<main>
+<main id="main-content">
   <div id="tab-sec1" class="tab-content active">
     <div class="card">
       <div class="section-label">🔍 事案アーカイブ検索</div>
@@ -420,9 +422,12 @@
     <div class="card" style="padding:0; border:none; box-shadow:none;">
       <div id="print-area"></div>
     </div>
-    <div class="no-print" style="display:flex; gap:12px; margin-top:16px;">
-      <button class="btn ghost" id="btn-save-temp" onclick="submitDebrief('作成中')" style="flex:1; font-weight:bold;">⏸️ 途中保存</button>
-      <button class="btn" id="btn-submit" onclick="submitDebrief('完了')" style="flex:2; background:var(--ink); font-weight:800;">✅ アーカイブ一括送信</button>
+    <div class="no-print" style="font-size:11px; color:var(--sub); margin-top:12px; line-height:1.6;">
+      <b>⏸️ 途中保存</b>と<b>✅ 完了として送信</b>は、保存される内容は全く同じです（入力済みの全項目）。違いは「ステータス」だけ：途中保存は<b>下書き</b>として保存され、ポータルの「振り返り未完了」一覧に残り続けます。完了送信は<b>作業終了</b>の合図で、その一覧から外れます。まだ入力中でも、こまめに途中保存しておけば内容は失われません。
+    </div>
+    <div class="no-print" style="display:flex; gap:12px; margin-top:8px;">
+      <button class="btn ghost" id="btn-save-temp" onclick="submitDebrief('作成中')" style="flex:1; font-weight:bold;">⏸️ 途中保存<br><span style="font-size:10px; font-weight:normal;">（下書き・後で続きから）</span></button>
+      <button class="btn" id="btn-submit" onclick="submitDebrief('完了')" style="flex:2; background:var(--ink); font-weight:800;">✅ 完了として送信<br><span style="font-size:10px; font-weight:normal;">（振り返り作業を終了する）</span></button>
     </div>
   </div>
 </main>
@@ -444,6 +449,40 @@
   let temporaryExams = []; let editingRowId = null;
   let chartHrSpo2 = null; let chartBp = null; let currentAiImageBase64 = null; let currentAiMimeType = null;
 
+  // ----- 未保存変更の検知・離脱時の警告（Office等で見慣れた「未保存」の合図） -----
+  let isDirty = false;
+  function markDirty() {
+    isDirty = true;
+    const el = document.getElementById('unsaved-indicator');
+    if (el) el.style.display = 'block';
+  }
+  function clearDirty() {
+    isDirty = false;
+    const el = document.getElementById('unsaved-indicator');
+    if (el) el.style.display = 'none';
+  }
+  window.addEventListener('beforeunload', (e) => {
+    if (!isDirty) return;
+    e.preventDefault(); e.returnValue = '';
+  });
+
+  // ----- 削除の取り消し（Undo）。Gmail/Trello等でおなじみの「元に戻す」トースト方式 -----
+  let undoToastTimer = null;
+  function showUndoToast(message, undoFn) {
+    const el = document.getElementById('undo-toast');
+    el.innerHTML = `<span>${message}</span><button type="button" onclick="runUndo()" style="background:var(--blue); color:#fff; border:none; border-radius:14px; padding:5px 14px; font-weight:700; font-size:12px;">元に戻す</button>`;
+    el.style.display = 'flex';
+    window.__pendingUndo = undoFn;
+    clearTimeout(undoToastTimer);
+    undoToastTimer = setTimeout(() => { el.style.display = 'none'; window.__pendingUndo = null; }, 8000);
+  }
+  function runUndo() {
+    if (window.__pendingUndo) window.__pendingUndo();
+    document.getElementById('undo-toast').style.display = 'none';
+    clearTimeout(undoToastTimer);
+    window.__pendingUndo = null;
+  }
+
   function forceNum(el) {
     let val = el.value; if(!val) return;
     val = val.replace(/[Ａ-Ｚａ-ｚ０-９：・／．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
@@ -456,6 +495,13 @@
     renderEvalBlocks(); loadMasterData(); updateCaseBanner(); initLocPicker(); initOxPicker();
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId) autoLoadCaseFromUrl(urlId);
+    // ユーザー操作（入力・チップ選択）はすべて「未保存」扱いにする。
+    // 復元処理はJSから直接.valueを書き換えるだけでinput/changeを発火させないため、
+    // ここでは誤って復元直後にdirty化することはない。
+    const main = document.getElementById('main-content');
+    main.addEventListener('input', () => { if (currentCaseData.id) markDirty(); });
+    main.addEventListener('change', () => { if (currentCaseData.id) markDirty(); });
+    main.addEventListener('click', (e) => { if (e.target.classList.contains('chip') && currentCaseData.id) markDirty(); });
   };
 
   // ----- 意識レベル（JCS/GCS/RASS）入力 -----
@@ -665,7 +711,7 @@
     if (added === 0) { alert("時刻と数値を入力してください"); return; }
     bulkVitalRows = []; renderBulkVitalArea();
     toggleBulkVitalMode();
-    renderTimeline();
+    renderTimeline(); markDirty();
     alert(`${added}件のバイタルを登録しました（画面下部の「途中保存」で確定してください）`);
   }
 
@@ -1034,7 +1080,7 @@
       timelineArray.push({ rowId: Date.now(), time: time, cat: catName, contentText: contentText, rawValues: rawValues });
     }
     document.querySelectorAll('.input-highlight').forEach(el => el.classList.remove('input-highlight'));
-    renderTimeline();
+    renderTimeline(); markDirty();
   }
 
   function renderTimeline() {
@@ -1062,7 +1108,15 @@
     document.getElementById("timeline-list-3").innerHTML = html || "記録なし"; document.getElementById("timeline-list-4").innerHTML = html || "記録なし";
   }
 
-  function deleteRow(rowId) { if(confirm("削除しますか？")) { timelineArray = timelineArray.filter(x => x.rowId !== rowId); renderTimeline(); } }
+  function deleteRow(rowId) {
+    const idx = timelineArray.findIndex(x => x.rowId === rowId); if (idx === -1) return;
+    const removed = timelineArray[idx]; const removedIdx = idx;
+    timelineArray = timelineArray.filter(x => x.rowId !== rowId);
+    renderTimeline(); markDirty();
+    showUndoToast(`削除しました（${removed.cat} ${removed.time}）`, () => {
+      timelineArray.splice(removedIdx, 0, removed); renderTimeline();
+    });
+  }
 
   function editTimelineRow(rowId) {
     let item = timelineArray.find(x => x.rowId === rowId); if(!item) return;
@@ -1118,20 +1172,26 @@
           <select onchange="setEvalTimingPreset(${i}, this.value)" style="flex:2; margin:0;">
             ${EVAL_TIMING_PRESETS.map(p => `<option value="${p}" ${(isPreset && ev.title===p) || (!isPreset && p==='カスタム入力') ? 'selected' : ''}>${p}</option>`).join('')}
           </select>
-          <input type="time" value="${ev.time}" onchange="evalBlocks[${i}].time=this.value; renderTimeline();" style="flex:1; margin:0;">
+          <input type="time" value="${ev.time}" onchange="evalBlocks[${i}].time=this.value; renderTimeline(); markDirty();" style="flex:1; margin:0;">
         </div>
-        ${!isPreset ? `<input type="text" placeholder="評価タイミング（自由記述）" value="${ev.title}" onchange="evalBlocks[${i}].title=this.value; renderEvalBlocks(); renderTimeline();" style="margin-bottom:8px;">` : ''}
+        ${!isPreset ? `<input type="text" placeholder="評価タイミング（自由記述）" value="${ev.title}" onchange="evalBlocks[${i}].title=this.value; renderEvalBlocks(); renderTimeline(); markDirty();" style="margin-bottom:8px;">` : ''}
         ${ABCDEF_FIELDS.map(f => `
           <div style="margin-bottom:8px;">
             <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">${f.label}</label>
-            <textarea rows="2" placeholder="${f.ph}" onchange="evalBlocks[${i}].${f.key}=this.value; renderTimeline();">${ev[f.key]||''}</textarea>
+            <textarea rows="2" placeholder="${f.ph}" onchange="evalBlocks[${i}].${f.key}=this.value; renderTimeline(); markDirty();">${ev[f.key]||''}</textarea>
           </div>`).join('')}
       </div>`;
     }).join("");
   }
   function setEvalTimingPreset(i, val) { evalBlocks[i].title = (val === 'カスタム入力') ? '' : val; renderEvalBlocks(); renderTimeline(); }
-  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); }
-  function removeEvalBlock(i) { if(confirm("この評価ブロックを削除しますか？")) { evalBlocks.splice(i, 1); renderEvalBlocks(); renderTimeline(); } }
+  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); markDirty(); }
+  function removeEvalBlock(i) {
+    const removed = evalBlocks[i]; if (!removed) return;
+    evalBlocks.splice(i, 1); renderEvalBlocks(); renderTimeline(); markDirty();
+    showUndoToast(`評価ブロックを削除しました（${removed.title||'評価'}）`, () => {
+      evalBlocks.splice(i, 0, removed); renderEvalBlocks(); renderTimeline();
+    });
+  }
 
   function editEvalBlockFromTimeline(id) {
     switchTab('sec6');
@@ -1382,7 +1442,7 @@
     fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) })
     .then(res => res.json())
     .then(data => {
-      if (data.status === 'success') { alert("保存しました"); location.reload(); }
+      if (data.status === 'success') { clearDirty(); alert("保存しました"); location.reload(); }
       else alert("保存に失敗しました。\n" + (data.message || "不明なエラーです。時間をおいて再度お試しください。"));
     })
     .catch(err => {
