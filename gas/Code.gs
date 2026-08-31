@@ -1,4 +1,4 @@
-// バージョン: V6.30 (peds_submitを要請番号一致時は上書き更新に変更、アーカイブ検索の重複表示を修正)
+// バージョン: V6.33 (振り返り内容のAI下書き要約機能を追加)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -341,6 +341,26 @@ function doPost(e) {
       var apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
       if (!apiKey) throw new Error("APIキーが設定されていません。");
       var target = parsedPayload.target;
+      // 振り返り内容のAI下書き要約：他のtargetと異なり画像OCRではなく、
+      // 入力済みタイムライン・医学的評価から振り返り文章の下書きを生成する
+      if (target === "debrief_summary") {
+        var summaryPrompt = "あなたは小児救急のインシデントレビュー（デブリーフィング）を支援するアシスタントです。"
+          + "以下のタイムライン記録と医学的評価（ABCDEFアプローチ）をもとに、振り返りシートの「詳細分析・チーム連携評価」欄にそのまま使える"
+          + "日本語の下書き文章を200〜350字程度で作成してください。事実に基づいて淡々と記述し、断定的な医学的判断や責任追及の表現は避け、"
+          + "良かった点と気付いた点（改善余地）をバランス良く含めてください。マークダウン不可。出力は次のJSON形式のみ: {\"summary\": \"...\"}\n\n"
+          + "【タイムライン】\n" + JSON.stringify(parsedPayload.timeline || []) + "\n\n"
+          + "【医学的評価(ABCDEF)】\n" + JSON.stringify(parsedPayload.evalBlocks || []);
+        var summaryRes = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+          method: "post", contentType: "application/json", muteHttpExceptions: true,
+          payload: JSON.stringify({ contents: [{ parts: [{ text: summaryPrompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } })
+        });
+        var summaryJson = JSON.parse(summaryRes.getContentText()); if (summaryJson.error) throw new Error(summaryJson.error.message);
+        var summaryClean = summaryJson.candidates[0].content.parts[0].text;
+        var summaryMatch = summaryClean.match(/\{[\s\S]*\}/);
+        if (summaryMatch) summaryClean = summaryMatch[0];
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", target: target, data: JSON.parse(summaryClean) })).setMimeType(ContentService.MimeType.JSON);
+      }
+
       var promptText = "あなたは医療記録アシスタントです。提供されたデータから指定JSONのみ出力。マークダウン不可。読み取れない項目はキー自体を省略してください。数値以外の文字（単位・記号）は含めないでください。\n";
       if (target === "timeline") {
         promptText += "【抽出】時間(time)と内容(contentText)の配列。catは'処置','薬剤','記事'。例:[{\"time\":\"14:23\",\"cat\":\"記事\",\"contentText\":\"挿管\"}]";

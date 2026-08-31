@@ -392,6 +392,7 @@
         <div class="chip text-tag" title="個々のスタッフの臨床知識・手技の習熟度に関する振り返り" onclick="this.classList.toggle('on')">知識・手技スキル</div>
         <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on')">安全管理</div>
       </div>
+      <button type="button" class="btn small" id="btn-ai-summary" style="background:var(--brand); color:#fff; width:100%; margin-bottom:8px;" onclick="generateAiSummary()">🤖 タイムライン・評価からAIで下書きを生成</button>
       <textarea id="v-team" rows="4" placeholder="【詳細分析】上で選んだ観点について、現場での実際の動き・クローズドループの成否など、話し合った具体的な内容を記録"></textarea>
       <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】マスタデータや本アプリ自体への改善要望があれば記載"></textarea>
       <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
@@ -1400,6 +1401,29 @@
   function calcDuration() {
     let st = document.getElementById("d-time").value; let ed = document.getElementById("d-end-time").value;
     if(st && ed) { let diff = (new Date("1970/01/01 " + ed) - new Date("1970/01/01 " + st)) / 60000; document.getElementById("d-duration").value = diff < 0 ? diff + 1440 : diff; }
+  }
+
+  // タイムライン・医学的評価から振り返り文章の下書きをAIに生成させる
+  function generateAiSummary() {
+    const btn = document.getElementById('btn-ai-summary');
+    const origText = btn.textContent;
+    btn.disabled = true; btn.textContent = "🤖 AI生成中...（数秒お待ちください）";
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "analyze_karte", target: "debrief_summary", timeline: timelineArray, evalBlocks: evalBlocks }) })
+    .then(res => res.json())
+    .then(res => {
+      if (res.status === 'success' && res.data && res.data.summary) {
+        const current = document.getElementById('v-team').value.trim();
+        document.getElementById('v-team').value = current ? (current + '\n\n【AI下書き（要確認・編集してください）】\n' + res.data.summary) : res.data.summary;
+        markDirty();
+        alert("AIによる下書きを詳細分析欄に追記しました。内容を必ずご確認・編集のうえご利用ください。");
+      } else {
+        alert("AI下書きの生成に失敗しました。\n" + (res.message || "不明なエラーです。"));
+      }
+    })
+    .catch(err => {
+      alert("通信エラーのためAI下書きを生成できませんでした。\n" + err.message);
+    })
+    .finally(() => { btn.disabled = false; btn.textContent = origText; });
   }
 
   // AI抽出ロジック
