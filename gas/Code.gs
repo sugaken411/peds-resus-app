@@ -84,6 +84,16 @@ function getHeaderMap(sheet) {
   return map;
 }
 
+// シートに指定した列見出しが無ければ、末尾に新しい列を追加してから
+// 最新のヘッダーマップを返す（既存シートへの後付け列追加用）
+function ensureColumn(sheet, columnName) {
+  var hm = getHeaderMap(sheet);
+  if (hm.hasOwnProperty(columnName)) return hm;
+  var lastCol = sheet.getLastColumn();
+  sheet.getRange(1, lastCol + 1).setValue(columnName);
+  return getHeaderMap(sheet);
+}
+
 function createRowData(headerMap, dataDict) {
   var row = new Array(Object.keys(headerMap).length).fill("");
   for (var key in dataDict) {
@@ -149,21 +159,60 @@ function doPost(e) {
     if (parsedPayload.action === "peds_submit") {
       var dbSheet = ss.getSheetByName('事案アーカイブ');
       if (!dbSheet) throw new Error("事案アーカイブシートが見つかりません");
-      var hm = getHeaderMap(dbSheet);
+      var hm = ensureColumn(dbSheet, '完全復元用JSON');
       var timestamp = Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss");
       var p = parsedPayload.payload || {}; var pd = p.data || {}; var roles = p.staffRoles || {};
+
+      var pedsData = dbSheet.getDataRange().getValues(); var pedsTargetRow = -1;
+      if (pd["要請番号"]) {
+        for (var pr = 1; pr < pedsData.length; pr++) { if (safeGet(pedsData[pr], hm, '要請番号') === pd["要請番号"]) { pedsTargetRow = pr + 1; break; } }
+      }
+      var existingPedsRow = (pedsTargetRow > -1) ? pedsData[pedsTargetRow - 1] : null;
+
+      // submit_debriefと同様、送信値が空の項目は既存の保存済み値を維持する。
+      // 復元処理が全項目をカバーしきれていない場合でも、再送信のたびに
+      // 既存データが空欄で上書き消去されるのを防ぐための安全策。
+      function keepIfEmptyPeds(newVal, colName) {
+        if (newVal !== '' && newVal !== undefined && newVal !== null) return newVal;
+        if (existingPedsRow) { var old = safeGet(existingPedsRow, hm, colName); if (old) return old; }
+        return '';
+      }
+
+      // 復元漏れがあっても次回開いたときに完全復元できるよう、送信された
+      // appStateの生データをJSON列にもフル保存しておく（画面の各表示文字列は
+      // 人間が読む要約であり、そこから逆算復元するのは不正確・不安定なため）
+      var fullStateJson = JSON.stringify(p);
+
       var dataDict = {
-        '分野区分': '小児', '保存日時': timestamp, '要請番号': pd["要請番号"] || '', '搬入日': pd["日付"] || '', '事案種別': pd["事案種別"] || '', '紹介元医療機関': pd["紹介元"] || '', '年齢/月齢': p.ageText || '', '性別': pd["性別"] || '', '計算体重': p.weight || '', '目安身長': p.height || '', 'キーワード': (p.keywords || []).join(', '), '概要・経過': pd["概要"] || '', '搬入前処置': pd["搬入前処置"] || '', 'AMPL': pd["AMPL"] || '', 'PAT': pd["PAT"] || '', 'バイタル': pd["バイタル"] || '', 'PEWS': pd["PEWS"] || '', '統括': (roles.leader || []).join(', '), '気道管理': (roles.airway || []).join(', '), '胸骨圧迫': (roles.cpr || []).join(', '), 'ルート・薬剤': (roles.route || []).join(', '), '記録': (roles.record || []).join(', '), 'その他役割': (roles.other || []).join(', '), '想定シナリオ・薬剤物品詳細': pd["プロトコル詳細"] || ''
+        '分野区分': '小児', '保存日時': timestamp, '要請番号': pd["要請番号"] || '',
+        '搬入日': keepIfEmptyPeds(pd["日付"] || '', '搬入日'),
+        '事案種別': keepIfEmptyPeds(pd["事案種別"] || '', '事案種別'),
+        '紹介元医療機関': keepIfEmptyPeds(pd["紹介元"] || '', '紹介元医療機関'),
+        '年齢/月齢': keepIfEmptyPeds(p.ageText || '', '年齢/月齢'),
+        '性別': keepIfEmptyPeds(pd["性別"] || '', '性別'),
+        '計算体重': keepIfEmptyPeds(p.weight || '', '計算体重'),
+        '目安身長': keepIfEmptyPeds(p.height || '', '目安身長'),
+        'キーワード': keepIfEmptyPeds((p.keywords || []).join(', '), 'キーワード'),
+        '概要・経過': keepIfEmptyPeds(pd["概要"] || '', '概要・経過'),
+        '搬入前処置': keepIfEmptyPeds(pd["搬入前処置"] || '', '搬入前処置'),
+        'AMPL': keepIfEmptyPeds(pd["AMPL"] || '', 'AMPL'),
+        'PAT': keepIfEmptyPeds(pd["PAT"] || '', 'PAT'),
+        'バイタル': keepIfEmptyPeds(pd["バイタル"] || '', 'バイタル'),
+        'PEWS': keepIfEmptyPeds(pd["PEWS"] || '', 'PEWS'),
+        '統括': keepIfEmptyPeds((roles.leader || []).join(', '), '統括'),
+        '気道管理': keepIfEmptyPeds((roles.airway || []).join(', '), '気道管理'),
+        '胸骨圧迫': keepIfEmptyPeds((roles.cpr || []).join(', '), '胸骨圧迫'),
+        'ルート・薬剤': keepIfEmptyPeds((roles.route || []).join(', '), 'ルート・薬剤'),
+        '記録': keepIfEmptyPeds((roles.record || []).join(', '), '記録'),
+        'その他役割': keepIfEmptyPeds((roles.other || []).join(', '), 'その他役割'),
+        '想定シナリオ・薬剤物品詳細': keepIfEmptyPeds(pd["プロトコル詳細"] || '', '想定シナリオ・薬剤物品詳細'),
+        '完全復元用JSON': fullStateJson
       };
       // 要請番号が既存行と一致する場合は追記ではなく上書き更新する。
       // 常にappendRowしていたため、同じ事案を開き直して再送信するだけで
       // （URLからの復元＋再送信、二重送信など）事案アーカイブ検索に
       // 全く同じ内容の行が2件以上並ぶ原因になっていた。
       var newRow = createRowData(hm, dataDict);
-      var pedsData = dbSheet.getDataRange().getValues(); var pedsTargetRow = -1;
-      if (dataDict['要請番号']) {
-        for (var pr = 1; pr < pedsData.length; pr++) { if (safeGet(pedsData[pr], hm, '要請番号') === dataDict['要請番号']) { pedsTargetRow = pr + 1; break; } }
-      }
       if (pedsTargetRow > -1) dbSheet.getRange(pedsTargetRow, 1, 1, newRow.length).setValues([newRow]);
       else dbSheet.appendRow(newRow);
       return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
@@ -196,12 +245,25 @@ function doPost(e) {
       for (var i = 1; i < data.length; i++) {
         var row = data[i]; var id = safeGet(row, hm, '要請番号'); var rawDate = safeGet(row, hm, '搬入日'); var date = formatDateVal(rawDate); var summary = safeGet(row, hm, '概要・経過'); var keywords = safeGet(row, hm, 'キーワード');
         if (sKw && id.indexOf(sKw) === -1 && summary.indexOf(sKw) === -1 && keywords.indexOf(sKw) === -1) continue;
-        if (sMonth && String(rawDate).replace(/\//g, '-').indexOf(sMonth) === -1) continue;
+        // 「搬入日」セルがDate型化されている場合、rawDate(Dateオブジェクト)を
+        // そのままString()化すると toString() 形式("Wed Aug 02 2026...")になり、
+        // "yyyy-MM"形式の検索キーワードと絶対に一致しないため月検索が機能していなかった。
+        // 既にyyyy/MM/dd文字列へ正規化済みの date を使う。
+        if (sMonth && String(date).replace(/\//g, '-').indexOf(sMonth) === -1) continue;
+        // 「対応スタッフ」検索：sStaffパラメータはこれまで受け取るだけで
+        // 一切フィルタに使われておらず、常に無効化されていた。
+        // ラベル・オートコンプリートの内容から、ブリーフィングで役割分担された
+        // スタッフ（統括/気道管理/胸骨圧迫/ルート・薬剤/記録）を検索する項目と判断し実装。
+        if (sStaff) {
+          var rolesStr = [safeGet(row, hm, '統括'), safeGet(row, hm, '気道管理'), safeGet(row, hm, '胸骨圧迫'), safeGet(row, hm, 'ルート・薬剤'), safeGet(row, hm, '記録')].join(',');
+          if (rolesStr.indexOf(sStaff) === -1) continue;
+        }
         var debriefStatus = debriefStatusMap.hasOwnProperty(id) ? debriefStatusMap[id] : '未入力';
         if (sStatus && sStatus !== debriefStatus) continue;
         results.push({
           id: id, date: date, age: safeGet(row, hm, '年齢/月齢'), weight: safeGet(row, hm, '計算体重'), sex: safeGet(row, hm, '性別'), summary: summary, keywords: keywords, preTx: safeGet(row, hm, '搬入前処置'), protocol: safeGet(row, hm, '想定シナリオ・薬剤物品詳細'), vitals: safeGet(row, hm, 'バイタル'), pat: safeGet(row, hm, 'PAT'), caseType: safeGet(row, hm, '事案種別'), facility: safeGet(row, hm, '紹介元医療機関'), debriefStatus: debriefStatus,
-          roles: { leader: safeGet(row, hm, '統括'), airway: safeGet(row, hm, '気道管理'), cpr: safeGet(row, hm, '胸骨圧迫'), route: safeGet(row, hm, 'ルート・薬剤'), record: safeGet(row, hm, '記録') }
+          roles: { leader: safeGet(row, hm, '統括'), airway: safeGet(row, hm, '気道管理'), cpr: safeGet(row, hm, '胸骨圧迫'), route: safeGet(row, hm, 'ルート・薬剤'), record: safeGet(row, hm, '記録') },
+          fullState: safeGet(row, hm, '完全復元用JSON')
         });
       }
       results.reverse();

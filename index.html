@@ -560,7 +560,7 @@
     document.querySelectorAll("#g-hosp-cat .chip").forEach(b => b.classList.remove('active-blue')); if(btn) btn.classList.add('active-blue');
     const hb = document.getElementById("box-hospital-chips");
     if(!cat || !HOSPITAL_DB[cat]) { hb.innerHTML = ''; return; }
-    hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
+    hb.innerHTML = HOSPITAL_DB[cat].map(h => `<div class="chip" onclick="document.querySelectorAll('#box-hospital-chips .chip').forEach(c=>c.classList.remove('on')); this.classList.add('on'); document.getElementById('v-referral-facility').value=this.textContent; syncToPrintLayout();">${h}</div>`).join("");
   }
 
   function expandEms(reg, btn) {
@@ -568,7 +568,7 @@
     const eb = document.getElementById("box-ems-chips");
     document.getElementById('v-ems-region').value = reg;
     if(!reg || !EMS_DB[reg]) { eb.innerHTML = ''; return; }
-    eb.innerHTML = EMS_DB[reg].map(e => `<div class="chip" onclick="document.getElementById('v-ems-name').value=this.textContent; syncToPrintLayout();">${e}</div>`).join("");
+    eb.innerHTML = EMS_DB[reg].map(e => `<div class="chip" onclick="document.querySelectorAll('#box-ems-chips .chip').forEach(c=>c.classList.remove('on')); this.classList.add('on'); document.getElementById('v-ems-name').value=this.textContent; syncToPrintLayout();">${e}</div>`).join("");
   }
 
   function addMaster(target, inputId, btnEl) {
@@ -940,6 +940,177 @@
     tbody.appendChild(tr);
   }
 
+  // ----- 完全復元用スナップショットの取得・適用 -----
+  // AMPL/PAT/バイタル等は表示用の要約文字列であり、そこから個々の入力欄・
+  // チップ状態を逆算するのは不正確・不安定。保存のたびに生の状態を丸ごと
+  // JSONで保持しておき、復元時はこちらを優先して使う。
+  function captureFullSnapshot() {
+    return {
+      appState: JSON.parse(JSON.stringify(appState)),
+      origin: {
+        mode: appState.origin,
+        referralFacility: document.getElementById('v-referral-facility').value,
+        emsRegion: document.getElementById('v-ems-region').value,
+        emsName: document.getElementById('v-ems-name').value,
+        otherOrigin: document.getElementById('v-other-origin').value
+      },
+      eta: { time: document.getElementById('v-eta-time').value, text: appState.etaText },
+      age: {
+        eraMode: document.querySelector('#g-era .group-btn.active')?.dataset.val || '西暦',
+        eraY: document.getElementById('v-era-y').value, eraM: document.getElementById('v-era-m').value, eraD: document.getElementById('v-era-d').value,
+        manualY: document.getElementById('v-manual-age-y').value, manualM: document.getElementById('v-manual-age-m').value
+      },
+      physique: { bw: document.getElementById('v-bw').value, bh: document.getElementById('v-bh').value },
+      txMain: document.querySelector('#g-tx-main .group-btn.active')?.dataset.val || '不明',
+      preinfo: document.getElementById('v-preinfo').value,
+      ampleDetails: {
+        a: document.getElementById('v-amp-a').value, m: document.getElementById('v-amp-m').value, p: document.getElementById('v-amp-p').value,
+        lDate: document.getElementById('v-amp-l-date').value, lTime: document.getElementById('v-amp-l-time').value, lDetail: document.getElementById('v-amp-l-detail').value
+      },
+      vitals: {
+        hr: document.getElementById('v-vit-hr').value, spo2: document.getElementById('v-vit-spo2').value, rr: document.getElementById('v-vit-rr').value,
+        bpSys: document.getElementById('v-vit-bpsys').value, bpDia: document.getElementById('v-vit-bpdia').value,
+        btInt: document.getElementById('v-vit-bt-int').value, btDec: document.getElementById('v-vit-bt-dec').value
+      },
+      oxygen: {
+        device: document.querySelector('#g-ox-device .group-btn.active')?.dataset.val || 'なし',
+        flow: document.querySelector('#g-ox-flow .group-btn.active')?.dataset.val || '',
+        flowFree: document.getElementById('v-ox-flow-free').value,
+        meReq: document.querySelector('#g-me-req .group-btn.active')?.dataset.val || '不要',
+        ventModel: document.querySelector('input[name="vent_model"]:checked')?.value || '',
+        ventCustom: document.getElementById('v-vent-custom').value,
+        ventHumid: document.querySelector('#g-vent-humid .group-btn.active')?.dataset.val || '',
+        ventMemo: document.getElementById('v-ox-vent-memo').value
+      },
+      consciousness: { mode: document.querySelector('#g-con-mode .group-btn.active')?.dataset.val || '不明', jcsValue: document.getElementById('v-vit-jcs').value },
+      freeStaff: Array.from(document.querySelectorAll('#free-staff-tbody tr')).map(tr => ({
+        name: tr.querySelector('.free-name')?.value || '',
+        roles: Array.from(tr.querySelectorAll('.staff-check:checked')).map(cb => cb.dataset.role)
+      })).filter(r => r.name)
+    };
+  }
+
+  function clickGroupBtn(groupId, val) {
+    if (!val) return;
+    const btn = document.querySelector(`#${groupId} .group-btn[data-val="${CSS.escape(val)}"]`);
+    if (btn) btn.click();
+  }
+
+  function applyFullSnapshot(snap) {
+    if (!snap) return;
+    if (snap.origin) {
+      clickGroupBtn('g-case-origin', snap.origin.mode);
+      if (snap.origin.referralFacility) document.getElementById('v-referral-facility').value = snap.origin.referralFacility;
+      if (snap.origin.emsRegion) document.getElementById('v-ems-region').value = snap.origin.emsRegion;
+      if (snap.origin.emsName) document.getElementById('v-ems-name').value = snap.origin.emsName;
+      if (snap.origin.otherOrigin) document.getElementById('v-other-origin').value = snap.origin.otherOrigin;
+    }
+    if (snap.eta) {
+      if (snap.eta.time) { document.getElementById('v-eta-time').value = snap.eta.time; setETAManual(snap.eta.time); }
+      else if (snap.eta.text) { appState.etaText = snap.eta.text; document.getElementById('v-eta-display').textContent = snap.eta.text; }
+    }
+    if (snap.age) {
+      clickGroupBtn('g-era', snap.age.eraMode);
+      if (snap.age.eraY) document.getElementById('v-era-y').value = snap.age.eraY;
+      if (snap.age.eraM) document.getElementById('v-era-m').value = snap.age.eraM;
+      if (snap.age.eraD) document.getElementById('v-era-d').value = snap.age.eraD;
+      if (snap.age.manualY) document.getElementById('v-manual-age-y').value = snap.age.manualY;
+      if (snap.age.manualM) document.getElementById('v-manual-age-m').value = snap.age.manualM;
+    }
+    if (snap.physique) {
+      if (snap.physique.bw) document.getElementById('v-bw').value = snap.physique.bw;
+      if (snap.physique.bh) document.getElementById('v-bh').value = snap.physique.bh;
+    }
+    if (snap.txMain) clickGroupBtn('g-tx-main', snap.txMain);
+    if (snap.preinfo) document.getElementById('v-preinfo').value = snap.preinfo;
+    if (snap.appState && snap.appState.ampStatus) {
+      ['a', 'm', 'p', 'l'].forEach(k => clickGroupBtn(`g-amp-${k}`, snap.appState.ampStatus[k]));
+    }
+    if (snap.ampleDetails) {
+      if (snap.ampleDetails.a) document.getElementById('v-amp-a').value = snap.ampleDetails.a;
+      if (snap.ampleDetails.m) document.getElementById('v-amp-m').value = snap.ampleDetails.m;
+      if (snap.ampleDetails.p) document.getElementById('v-amp-p').value = snap.ampleDetails.p;
+      if (snap.ampleDetails.lDate) document.getElementById('v-amp-l-date').value = snap.ampleDetails.lDate;
+      if (snap.ampleDetails.lTime) document.getElementById('v-amp-l-time').value = snap.ampleDetails.lTime;
+      if (snap.ampleDetails.lDetail) document.getElementById('v-amp-l-detail').value = snap.ampleDetails.lDetail;
+    }
+    if (snap.appState && snap.appState.pat) {
+      ['a', 'b', 'c'].forEach(dim => {
+        const status = snap.appState.pat[dim]; if (!status) return;
+        const chip = Array.from(document.querySelectorAll(`#pat-g-${dim} .chip`)).find(c => c.textContent === status);
+        if (chip) chip.click();
+      });
+    }
+    if (snap.vitals) {
+      if (snap.vitals.hr) document.getElementById('v-vit-hr').value = snap.vitals.hr;
+      if (snap.vitals.spo2) document.getElementById('v-vit-spo2').value = snap.vitals.spo2;
+      if (snap.vitals.rr) document.getElementById('v-vit-rr').value = snap.vitals.rr;
+      if (snap.vitals.bpSys) document.getElementById('v-vit-bpsys').value = snap.vitals.bpSys;
+      if (snap.vitals.bpDia) document.getElementById('v-vit-bpdia').value = snap.vitals.bpDia;
+      if (snap.vitals.btInt) document.getElementById('v-vit-bt-int').value = snap.vitals.btInt;
+      if (snap.vitals.btDec) document.getElementById('v-vit-bt-dec').value = snap.vitals.btDec;
+    }
+    if (snap.oxygen) {
+      if (snap.oxygen.device) clickGroupBtn('g-ox-device', snap.oxygen.device);
+      if (snap.oxygen.flow) clickGroupBtn('g-ox-flow', snap.oxygen.flow);
+      if (snap.oxygen.flowFree) document.getElementById('v-ox-flow-free').value = snap.oxygen.flowFree;
+      if (snap.oxygen.meReq) clickGroupBtn('g-me-req', snap.oxygen.meReq);
+      if (snap.oxygen.ventCustom) document.getElementById('v-vent-custom').value = snap.oxygen.ventCustom;
+      if (snap.oxygen.ventHumid) clickGroupBtn('g-vent-humid', snap.oxygen.ventHumid);
+      if (snap.oxygen.ventMemo) document.getElementById('v-ox-vent-memo').value = snap.oxygen.ventMemo;
+      if (snap.oxygen.ventModel) {
+        setTimeout(() => {
+          const radio = Array.from(document.querySelectorAll('input[name="vent_model"]')).find(r => r.value === snap.oxygen.ventModel);
+          if (radio) radio.checked = true;
+        }, 150);
+      }
+    }
+    if (snap.consciousness && snap.consciousness.mode && snap.consciousness.mode !== '不明') {
+      clickGroupBtn('g-con-mode', snap.consciousness.mode);
+      if (snap.consciousness.mode === 'JCS' && snap.consciousness.jcsValue) {
+        const chip = Array.from(document.querySelectorAll('#cg-jcs .chip')).find(c => c.textContent.indexOf(snap.consciousness.jcsValue + '(') === 0);
+        if (chip) chip.click();
+      } else if (snap.consciousness.mode === 'GCS' && snap.appState && snap.appState.gcs) {
+        ['e', 'v', 'm'].forEach(t => { const val = snap.appState.gcs[t]; if (val && val !== '不明') setGCS(t, val); });
+      }
+    }
+    if (snap.appState && snap.appState.staffRoles) {
+      const roles = snap.appState.staffRoles;
+      Object.keys(roles).forEach(role => {
+        if (role === 'other') return;
+        (roles[role] || []).forEach(printLabel => {
+          if (!printLabel) return;
+          const cb = Array.from(document.querySelectorAll(`.staff-check[data-role="${role}"]`)).find(c => c.dataset.print === printLabel);
+          if (cb) cb.checked = true;
+        });
+      });
+    }
+    if (snap.freeStaff && snap.freeStaff.length) {
+      snap.freeStaff.forEach(fs => {
+        addFreeStaffRow();
+        const rows = document.querySelectorAll('#free-staff-tbody tr');
+        const tr = rows[rows.length - 1];
+        tr.querySelector('.free-name').value = fs.name;
+        (fs.roles || []).forEach(role => { const cb = tr.querySelector(`.staff-check[data-role="${role}"]`); if (cb) cb.checked = true; });
+      });
+    }
+    if (snap.appState && snap.appState.checkedItems) {
+      Object.keys(snap.appState.checkedItems).forEach(name => {
+        if (!snap.appState.checkedItems[name]) return;
+        let chip = Array.from(document.querySelectorAll('#box-scenarios .chip, #box-sets .chip')).find(c => c.textContent === name);
+        if (!chip) chip = document.querySelector(`.chip-item[data-name="${CSS.escape(name)}"]`);
+        if (chip && !chip.classList.contains('on')) chip.click();
+      });
+    }
+    if (snap.appState && snap.appState.keywords) {
+      snap.appState.keywords.forEach(kw => {
+        const chip = Array.from(document.querySelectorAll('#box-keywords .chip')).find(c => c.textContent === kw);
+        if (chip && !chip.classList.contains('on')) chip.click();
+      });
+    }
+    calcPeds(); syncToPrintLayout();
+  }
+
   // デブリーフィング等からの復元処理（全項目完全復元）
   function checkUrlParams() {
     const caseId = new URLSearchParams(window.location.search).get('caseId');
@@ -951,27 +1122,44 @@
           let item = data.results[0];
           document.getElementById('v-id').value = item.id || '';
           if(item.date) document.getElementById('v-date').value = item.date.split('T')[0];
-          if(item.caseType) setOriginMode(item.caseType, null);
-          if(item.facility) {
-            if(item.caseType === '紹介') document.getElementById('v-referral-facility').value = item.facility;
-            else if(item.caseType === '救急') document.getElementById('v-ems-name').value = item.facility;
-            else document.getElementById('v-other-origin').value = item.facility;
-          }
-          if(item.weight) document.getElementById('v-bw').value = item.weight;
           if(item.sex) tBtn('g-sex', item.sex, null);
           if(item.summary) document.getElementById('v-case-summary').value = item.summary;
-          if(item.preTx) document.getElementById('v-preinfo').value = item.preTx;
-          if(item.age) {
-            let yMatch = item.age.match(/(\d+)歳/); let mMatch = item.age.match(/(\d+)ヶ月/);
-            if(yMatch) document.getElementById('v-manual-age-y').value = yMatch[1];
-            if(mMatch) document.getElementById('v-manual-age-m').value = mMatch[1];
+
+          // 完全復元用JSONがあればそれを最優先で使い、全項目を精密に復元する。
+          // 表示用の要約文字列(AMPL/PAT/バイタル等)から逆算するより確実で、
+          // この列が無い古いレコード（この機能追加より前に保存されたもの）に対しては
+          // 従来通りの簡易復元（年齢・体重・キーワード等）にフォールバックする。
+          // 保存されているJSONは submitPedsCase の payload.payload をまるごと
+          // JSON.stringify したもの（要請番号・PEWS等の要約フィールドも含む）。
+          // 実際に画面復元へ使うスナップショットはその中の fullSnapshot キー。
+          let fullSnap = null;
+          if (item.fullState) { try { fullSnap = JSON.parse(item.fullState).fullSnapshot || null; } catch(e) {} }
+
+          if (fullSnap) {
+            applyFullSnapshot(fullSnap);
+          } else {
+            if(item.caseType) setOriginMode(item.caseType, null);
+            if(item.facility) {
+              if(item.caseType === '紹介') document.getElementById('v-referral-facility').value = item.facility;
+              else if(item.caseType === '救急') document.getElementById('v-ems-name').value = item.facility;
+              else document.getElementById('v-other-origin').value = item.facility;
+            }
+            if(item.weight) document.getElementById('v-bw').value = item.weight;
+            if(item.preTx) document.getElementById('v-preinfo').value = item.preTx;
+            if(item.age) {
+              let yMatch = item.age.match(/(\d+)歳/); let mMatch = item.age.match(/(\d+)ヶ月/);
+              if(yMatch) document.getElementById('v-manual-age-y').value = yMatch[1];
+              if(mMatch) document.getElementById('v-manual-age-m').value = mMatch[1];
+            }
           }
           if(item.keywords) {
-            let kws = item.keywords.split(',').map(s=>s.trim()); appState.keywords = kws;
-            document.querySelectorAll('#box-keywords .chip').forEach(c => { if(kws.includes(c.textContent)) c.classList.add('on'); });
+            let kws = item.keywords.split(',').map(s=>s.trim());
+            document.querySelectorAll('#box-keywords .chip').forEach(c => { if(kws.includes(c.textContent) && !c.classList.contains('on')) c.click(); });
           }
           calcPeds();
-          alert(`【要請番号: ${caseId}】\n当時の事前指示・患者情報を画面に全復元しました！`);
+          alert(fullSnap
+            ? `【要請番号: ${caseId}】\n当時の入力内容を画面に全復元しました！`
+            : `【要請番号: ${caseId}】\n※このデータは仕様変更前に保存されたため、一部項目（AMPLE詳細・PAT・バイタル・酸素投与・役割分担・シナリオ選択等）は復元されません。年齢・体重・キーワード等のみ復元しています。`);
         } else {
           alert(`【要請番号: ${caseId}】\n過去データが見つかりませんでした。`);
         }
@@ -1013,7 +1201,12 @@
           "搬入前処置": appState.preTxText || document.getElementById("v-preinfo")?.value || "",
           "AMPL": ampleText, "PAT": patText, "バイタル": vitalsText, "PEWS": appState.pews,
           "プロトコル詳細": selectedItems.join(', ')
-        }
+        },
+        // 上記のAMPL/PAT/バイタル等は表示用に要約した文字列で、これだけでは
+        // 再度開いたときに各入力欄・チップの状態を正確に復元できない。
+        // 個々の生の入力値・選択状態をまるごとJSONで保存し、次回開いたときに
+        // それを使って完全復元する（fullState列。checkUrlParams参照）。
+        fullSnapshot: captureFullSnapshot()
       }
     };
 
@@ -1023,7 +1216,13 @@
     fetch(GAS_API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) })
     .then(res => res.json())
     .then(data => {
-      if (data.status === "success") alert("保存しました！");
+      if (data.status === "success") {
+        // 新規事案の1回目の送信ではv-idが空のままのため、ここでidを書き戻して
+        // おかないと、再度保存ボタンを押すたびに新しいPで始るIDが発番され、
+        // 同じ事案が別レコードとして重複保存されてしまう。
+        document.getElementById("v-id").value = id;
+        alert("保存しました！");
+      }
       else alert("保存に失敗しました。\n" + (data.message || "不明なエラーです。時間をおいて再度お試しください。"));
     })
     .catch(err => {
