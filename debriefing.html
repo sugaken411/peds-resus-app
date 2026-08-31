@@ -1045,9 +1045,14 @@
   // 検査に関わる主要カテゴリをまとめて対象にする。
   const SPECIMEN_TEST_CATEGORIES = ['血液', '尿', '髄液', 'その他'];
 
+  function hasVal(v) { return v !== '' && v !== null && v !== undefined; }
+
   function renderTestRow(t) {
     const isQualitative = t.unit === '陽性/陰性';
-    const range = (!isQualitative && (t.min || t.max)) ? `正常値 ${t.min||''}〜${t.max||''}${t.unit?(' '+t.unit):''}` : (!isQualitative && t.unit ? `単位: ${t.unit}` : '');
+    // 正常値が0の項目（例: エタノール血中濃度 0〜0）を、JSの0が偽値になることで
+    // 「範囲指定なし」と誤判定していたバグを修正（truthy判定 → 値の有無判定に変更）
+    const hasRange = hasVal(t.min) || hasVal(t.max);
+    const range = (!isQualitative && hasRange) ? `正常値 ${hasVal(t.min)?t.min:''}〜${hasVal(t.max)?t.max:''}${t.unit?(' '+t.unit):''}` : (!isQualitative && t.unit ? `単位: ${t.unit}` : '');
     const hint = t.note ? `<div class="test-note">${t.note}</div>` : '';
     const body = isQualitative
       ? `<div class="chips" style="margin:0;">
