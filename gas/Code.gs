@@ -1,4 +1,4 @@
-// バージョン: V6.33 (振り返り内容のAI下書き要約機能を追加)
+// バージョン: V6.34 (Geminiモデル名をgemini-1.5-flash→gemini-flash-latestに修正)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -350,7 +350,7 @@ function doPost(e) {
           + "良かった点と気付いた点（改善余地）をバランス良く含めてください。マークダウン不可。出力は次のJSON形式のみ: {\"summary\": \"...\"}\n\n"
           + "【タイムライン】\n" + JSON.stringify(parsedPayload.timeline || []) + "\n\n"
           + "【医学的評価(ABCDEF)】\n" + JSON.stringify(parsedPayload.evalBlocks || []);
-        var summaryRes = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+        var summaryRes = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + apiKey, {
           method: "post", contentType: "application/json", muteHttpExceptions: true,
           payload: JSON.stringify({ contents: [{ parts: [{ text: summaryPrompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } })
         });
@@ -379,7 +379,7 @@ function doPost(e) {
       if (parsedPayload.imageText) parts.push({ text: "【テキスト】\n" + parsedPayload.imageText });
       if (parsedPayload.imageBase64) parts.push({ inlineData: { mimeType: parsedPayload.mimeType || "image/jpeg", data: parsedPayload.imageBase64.replace(/^data:image\/[a-z]+;base64,/, "") } });
 
-      var res = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + apiKey, {
+      var res = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + apiKey, {
         method: "post", contentType: "application/json", muteHttpExceptions: true, payload: JSON.stringify({ contents: [{ parts: parts }], generationConfig: { temperature: 0.0, responseMimeType: "application/json" } })
       });
       var json = JSON.parse(res.getContentText()); if (json.error) throw new Error(json.error.message);

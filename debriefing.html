@@ -15,7 +15,7 @@
     .title-box { text-align: center; font-weight: 800; font-size: 15px; }
     .master-time { font-size: 10px; color: var(--sub); margin-top: 2px; }
     
-    .tab-container { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; overflow-y: hidden; z-index: 99; scrollbar-width: none; }
+    .tab-container { position: fixed; top: calc(60px + var(--safe-top)); left: 0; right: 0; height: 44px; background: var(--card); border-bottom: 1px solid var(--line); display: flex; overflow-x: auto; overflow-y: hidden; z-index: 99; scrollbar-width: none; touch-action: pan-x; overscroll-behavior: contain; }
     .case-banner { position: sticky; top: calc(104px + var(--safe-top)); margin-top: calc(104px + var(--safe-top)); z-index: 98; background: #fffbeb; border-bottom: 1px solid #fde68a; display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 12px; font-weight: 700; color: #92400e; padding: 8px 12px; }
     .case-banner.linked { background: #eff6ff; border-bottom-color: #bfdbfe; color: var(--blue); }
     .case-banner .cb-info { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
@@ -131,7 +131,7 @@
   <div class="nav-tab" data-tab="sec2" onclick="switchTab('sec2')">2.準備とのギャップ</div>
   <div class="nav-tab" data-tab="sec3" onclick="switchTab('sec3')">3.時系列/薬剤</div>
   <div class="nav-tab" data-tab="sec4" onclick="switchTab('sec4')">4.データ入力</div>
-  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.バイタル推移</div>
+  <div class="nav-tab" data-tab="sec5" onclick="switchTab('sec5')">5.推移・俯瞰</div>
   <div class="nav-tab" data-tab="sec6" onclick="switchTab('sec6')">6.医学的評価</div>
   <div class="nav-tab" data-tab="sec7" onclick="switchTab('sec7')">7.チーム・環境</div>
   <div class="nav-tab" data-tab="sec8" onclick="switchTab('sec8')">8.確認・送信</div>
@@ -356,6 +356,11 @@
 
   <div id="tab-sec5" class="tab-content">
     <div class="card">
+      <div class="section-label">🗺️ 事案全体タイムライン俯瞰</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">処置・薬剤・バイタル・検査・評価を1本の時間軸にまとめて表示します。マーカーをタップすると詳細の編集画面へ移動します</div>
+      <div style="overflow-x:auto;"><div id="overview-timeline"></div></div>
+    </div>
+    <div class="card">
       <div class="section-label">📋 バイタル経過表<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllFlowParams()">表示項目を全選択/解除</button></div>
       <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">行をタップすると、その時刻の入力内容を編集できます</div>
       <div class="flow-param-select" id="flow-param-select"></div>
@@ -375,11 +380,6 @@
       <div style="overflow-x:auto;">
         <table class="flow-table" id="lab-flow-table"></table>
       </div>
-    </div>
-    <div class="card">
-      <div class="section-label">🗺️ 事案全体タイムライン俯瞰</div>
-      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">処置・薬剤・バイタル・検査・評価を1本の時間軸にまとめて表示します。マーカーをタップすると詳細の編集画面へ移動します</div>
-      <div style="overflow-x:auto;"><div id="overview-timeline"></div></div>
     </div>
     <button class="btn" onclick="switchTab('sec6')">次へ (医学的評価) ➔</button>
   </div>
