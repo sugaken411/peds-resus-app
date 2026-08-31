@@ -74,6 +74,15 @@
     .flow-table th { background: var(--bg); font-weight: 700; }
     .flow-row-editable { cursor: pointer; }
     .flow-row-editable:hover { background: var(--med-blue, #eef6ff); }
+
+    #overview-timeline { min-width: 600px; }
+    .ov-axis { position: relative; height: 20px; margin-left: 92px; margin-bottom: 4px; border-bottom: 1px solid var(--line); font-size: 10px; color: var(--sub); }
+    .ov-tick { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+    .ov-lane { display: flex; align-items: center; min-height: 30px; border-bottom: 1px solid var(--line); }
+    .ov-lane-label { width: 92px; flex-shrink: 0; font-size: 11px; font-weight: 700; color: var(--sub); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ov-lane-track { position: relative; flex: 1; height: 30px; }
+    .ov-marker { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 11px; height: 11px; border-radius: 50%; cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,0.25); transition: 0.1s; }
+    .ov-marker:hover { width: 16px; height: 16px; z-index: 2; }
     
     .chip-tx { background: #fff; border: 1px solid var(--blue); color: var(--blue); } .chip-tx.active { background: var(--blue); color: #fff; }
     .chip-tx-opt { background: #fff; border: 1px solid #d48806; color: #d48806; }
@@ -364,6 +373,11 @@
       <div style="overflow-x:auto;">
         <table class="flow-table" id="lab-flow-table"></table>
       </div>
+    </div>
+    <div class="card">
+      <div class="section-label">🗺️ 事案全体タイムライン俯瞰</div>
+      <div style="font-size:11px; color:var(--sub); margin-bottom:8px;">処置・薬剤・バイタル・検査・評価を1本の時間軸にまとめて表示します。マーカーをタップすると詳細の編集画面へ移動します</div>
+      <div style="overflow-x:auto;"><div id="overview-timeline"></div></div>
     </div>
     <button class="btn" onclick="switchTab('sec6')">次へ (医学的評価) ➔</button>
   </div>
@@ -1283,6 +1297,63 @@
     chartBp = new Chart(ctx2, { type: 'line', data: { labels: times, datasets: [ { label: 'SYS', data: bpsData, borderColor: '#f59e0b' }, { label: 'DIA', data: bpdData, borderColor: '#1d4ed8' } ]}, options: { responsive: true, maintainAspectRatio: false } });
     renderFlowParamSelect(); renderFlowTable();
     renderLabParamSelect(); renderLabFlowTable();
+    renderOverviewTimeline();
+  }
+
+  // ----- 事案全体タイムライン俯瞰（カテゴリ別スイムレーン表示） -----
+  const OVERVIEW_LANES = [
+    { cat: '処置', color: '#007aff', icon: '💉' },
+    { cat: '薬剤', color: '#f59e0b', icon: '💊' },
+    { cat: '記事', color: '#6b7280', icon: '📝' },
+    { cat: 'バイタル', color: '#22c55e', icon: '❤️' },
+    { cat: '血液検査', color: '#a855f7', icon: '🩸' },
+    { cat: '画像・検査', color: '#0ea5e9', icon: '📷' },
+    { cat: '医学的評価', color: '#d32f2f', icon: '🩺' }
+  ];
+
+  function ovTimeToMinutes(t) {
+    const parts = String(t).split(':').map(Number);
+    return (parts[0] || 0) * 60 + (parts[1] || 0);
+  }
+
+  function renderOverviewTimeline() {
+    const el = document.getElementById('overview-timeline');
+    if (!el) return;
+    const evalRows = evalBlocks.filter(e => e.time).map(e => ({ time: e.time, cat: '医学的評価', contentText: e.title || '評価', evalId: e.id }));
+    const allItems = [...timelineArray, ...evalRows].filter(i => i.time);
+    if (allItems.length === 0) {
+      el.innerHTML = '<div style="text-align:center; color:var(--sub); padding:20px; font-size:12px;">記録がまだありません（時系列・バイタル・検査等を登録すると表示されます）</div>';
+      return;
+    }
+    const minutesArr = allItems.map(i => ovTimeToMinutes(i.time));
+    let minM = Math.min(...minutesArr), maxM = Math.max(...minutesArr);
+    if (maxM === minM) maxM += 60;
+    const pad = (maxM - minM) * 0.05;
+    minM -= pad; maxM += pad;
+    const span = maxM - minM;
+
+    let axisHtml = '<div class="ov-axis">';
+    const startHour = Math.floor(minM / 60), endHour = Math.ceil(maxM / 60);
+    for (let h = startHour; h <= endHour; h++) {
+      const pos = ((h * 60 - minM) / span) * 100;
+      if (pos < -1 || pos > 101) continue;
+      axisHtml += `<div class="ov-tick" style="left:${pos}%">${String(((h % 24) + 24) % 24).padStart(2, '0')}:00</div>`;
+    }
+    axisHtml += '</div>';
+
+    const lanesHtml = OVERVIEW_LANES.map(lane => {
+      const items = allItems.filter(i => i.cat === lane.cat);
+      if (items.length === 0) return '';
+      const markers = items.map(i => {
+        const pos = ((ovTimeToMinutes(i.time) - minM) / span) * 100;
+        const label = String(i.contentText || '').replace(/"/g, '&quot;');
+        const clickHandler = i.evalId ? `editEvalBlockFromTimeline(${i.evalId})` : `editTimelineRow(${i.rowId})`;
+        return `<div class="ov-marker" style="left:${pos}%; background:${lane.color};" title="${i.time} ${label}" onclick="${clickHandler}"></div>`;
+      }).join('');
+      return `<div class="ov-lane"><div class="ov-lane-label">${lane.icon} ${lane.cat}</div><div class="ov-lane-track">${markers}</div></div>`;
+    }).join('');
+
+    el.innerHTML = axisHtml + lanesHtml;
   }
 
   // ----- バイタル経過表（一般経過表スタイル・表示項目選択式） -----
