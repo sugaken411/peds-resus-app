@@ -928,7 +928,7 @@
           timelineArray = fullParsed.filter(x => x.type !== 'eval');
           const restoredEvals = fullParsed.filter(x => x.type === 'eval');
           if (restoredEvals.length > 0) evalBlocks = restoredEvals.map(x => ({ id: x.id, title: x.title||'', time: x.time||'', a: x.a||'', b: x.b||'', c: x.c||'', d: x.d||'', e: x.e||'', f: x.f||'' }));
-          renderTimeline(); renderEvalBlocks();
+          renderTimeline(); renderEvalBlocks(); syncDrugChipHighlights();
         }
         applyStaffRestore(d);
         refreshPreviewIfActive();
@@ -1036,7 +1036,19 @@
     if(!dose) return alert("用量を入力してください");
     let time = document.getElementById("tl-time-3").value; if(!time) { setNow(); time = document.getElementById("tl-time-3").value; }
     timelineArray.push({ rowId: Date.now(), time: time, cat: "薬剤", contentText: `${name} ${dose}${unit}`, rawValues: {} });
+    syncDrugChipHighlights();
     renderTimeline(); document.getElementById('panel-drug-prompt').style.display = 'none';
+  }
+  // タイムラインに登録済みの薬剤名をチップの点灯状態に反映する
+  // （新規登録直後だけでなく、過去記録の復元時にも呼び出す）
+  function syncDrugChipHighlights() {
+    // 薬剤名にスペースを含む場合もあるため前方一致で判定する（分割・完全一致だと崩れる）
+    const drugEntries = timelineArray.filter(t => t.cat === "薬剤");
+    document.querySelectorAll('#box-drug-chips .chip').forEach(c => {
+      const name = c.dataset.search;
+      const used = drugEntries.some(t => t.contentText === name || t.contentText.startsWith(name + ' '));
+      c.classList.toggle('on', used);
+    });
   }
 
   // ■ 検査マスタ連動動的生成
