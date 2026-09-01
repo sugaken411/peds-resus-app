@@ -1,4 +1,4 @@
-// バージョン: V6.36 (debug_dump_ids削除、fetch_historyに使用薬剤集計usedDrugsを追加)
+// バージョン: V6.37 (物品マスタの対象身長・対象年齢・院内採用列をgetMasterDataで読込)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -621,7 +621,12 @@ function getMasterData() {
       for (var i = 1; i < eVals.length; i++) {
         var r = eVals[i]; if (!r || r.length < 3) continue;
         if (hmE.hasOwnProperty('大項目') && r[hmE['大項目']]) {
-          data.equipment.push({ category: String(safeGet(r, hmE, '区分(ABCDE)')), name: String(safeGet(r, hmE, '大項目')).trim(), size: String(safeGet(r, hmE, 'サイズ・規格')) + (safeGet(r, hmE, '単位') ? ' ' + safeGet(r, hmE, '単位') : ''), minW: parseFloat(safeGet(r, hmE, '対象体重_下限(kg)')) || 0, maxW: parseFloat(safeGet(r, hmE, '対象体重_上限(kg)')) || 9999, note: String(safeGet(r, hmE, '備考')) });
+          // 対象身長・対象年齢はシート上には以前から用意されていたが、
+          // これまでgetMasterData()側で読み込んでおらず未使用のまま放置されていた。
+          // 体重は測定/推定値として最も信頼できる主指標のまま維持しつつ、
+          // 身長・年齢は「体重で選んだサイズが年齢・身長的に妥当か」の
+          // クロスチェック用の補助情報としてフロント側に渡す。
+          data.equipment.push({ category: String(safeGet(r, hmE, '区分(ABCDE)')), name: String(safeGet(r, hmE, '大項目')).trim(), size: String(safeGet(r, hmE, 'サイズ・規格')) + (safeGet(r, hmE, '単位') ? ' ' + safeGet(r, hmE, '単位') : ''), minW: parseFloat(safeGet(r, hmE, '対象体重_下限(kg)')) || 0, maxW: parseFloat(safeGet(r, hmE, '対象体重_上限(kg)')) || 9999, minH: parseFloat(safeGet(r, hmE, '対象身長_下限(cm)')) || 0, maxH: parseFloat(safeGet(r, hmE, '対象身長_上限(cm)')) || 9999, minAge: parseFloat(safeGet(r, hmE, '対象年齢_下限(歳)')) || 0, maxAge: parseFloat(safeGet(r, hmE, '対象年齢_上限(歳)')) || 999, inStock: String(safeGet(r, hmE, '院内採用(◯/×)')), note: String(safeGet(r, hmE, '備考')) });
         }
       }
     }

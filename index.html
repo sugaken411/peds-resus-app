@@ -829,6 +829,25 @@
     if(val >= max) return max; for(let i=0; i<steps.length; i++) { if(val <= steps[i]) return steps[i]; } return max;
   }
 
+  // 物品サイズは体重を主指標として選定している（実測/推定を問わず体重が
+  // 最も信頼できる指標という前提は維持）が、体格が年齢・身長の目安から
+  // 大きく外れる患児（低身長・肥満・るいそう等）では、体重だけで選んだ
+  // サイズが実際の解剖学的サイズと合わない場合がある。
+  // マスタ側には対象身長・対象年齢の列が既に用意されていたため、
+  // 選定を上書きはせず「体重基準ではこのサイズだが、年齢/身長的には
+  // 目安から外れている」という注意喚起のみ追加する（見落とし防止）。
+  function ageHeightCrossCheck(e, ht, ageY) {
+    if (!e) return '';
+    let warn = [];
+    if (ageY > 0 && Number.isFinite(e.minAge) && Number.isFinite(e.maxAge) && (ageY < e.minAge || ageY > e.maxAge)) {
+      warn.push(`年齢目安:${e.minAge}〜${e.maxAge}歳`);
+    }
+    if (ht > 0 && Number.isFinite(e.minH) && Number.isFinite(e.maxH) && (ht < e.minH || ht > e.maxH)) {
+      warn.push(`身長目安:${e.minH}〜${e.maxH}cm`);
+    }
+    return warn.length ? `⚠️ 体重基準のサイズですが${warn.join('・')}から外れています。体格を確認` : '';
+  }
+
   // ■ 全5ページ＋ME依頼書のプレビュー完全同期計算ロジック（完全復元）
   function syncToPrintLayout() {
     try {
@@ -873,8 +892,9 @@
 
       let safeTube = "換算不能"; let tubeItem = master.equipment.find(e => e.name && e.name.includes("気管チューブ") && wt >= e.minW && wt <= e.maxW); if(tubeItem) safeTube = tubeItem.size;
       let tubeDepth = (wt > 0) ? (appState.ageY >= 1 ? ((appState.ageY * 0.5) + 12).toFixed(1) : ((wt * 0.5) + 8).toFixed(1)) : '--';
+      let tubeWarn = ageHeightCrossCheck(tubeItem, ht, appState.ageY);
 
-      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left:4px solid #d32f2f;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f;"><tr><th>除細動 (J)</th><td>初回: <b>${j1} J</b> ➔ 2回目: <b>${j2} J</b></td><th>アドレナリン(1万倍希釈)</th><td>1回: <b style="font-size:16px; color:#d32f2f;">${adreVal} mL</b></td></tr><tr><th>気管チューブ</th><td><b>${safeTube}</b></td><th>固定長 (口角)</th><td><b>${tubeDepth} cm</b></td></tr></table>`;
+      let safetyNetHTML = `<div class="p-sec-title" style="background:#ffebeb; color:#d32f2f; border-left:4px solid #d32f2f;">🚨 【全例確認】急変時(CPA) セーフティネット</div><table class="p-table" style="border:2px solid #d32f2f;"><tr><th>除細動 (J)</th><td>初回: <b>${j1} J</b> ➔ 2回目: <b>${j2} J</b></td><th>アドレナリン(1万倍希釈)</th><td>1回: <b style="font-size:16px; color:#d32f2f;">${adreVal} mL</b></td></tr><tr><th>気管チューブ</th><td><b>${safeTube}</b>${tubeWarn ? `<div style="font-size:10px; color:#d32f2f; font-weight:bold;">${tubeWarn}</div>` : ''}</td><th>固定長 (口角)</th><td><b>${tubeDepth} cm</b></td></tr></table>`;
 
       let page1HTML = `<div class="p-title">小児救急事前準備作戦盤 【1. 基本情報・統括指示書】</div><table class="p-table"><tr><th>年齢</th><td>${document.getElementById("lbl-age").textContent}</td><th>${bwLabel}</th><td class="p-large-text" style="color:var(--brand);">${wt>0?wt.toFixed(1):'--'} kg</td></tr><tr><th>${bhLabel}</th><td>${ht>0?ht.toFixed(1):'--'} cm</td><th>性別</th><td>${document.querySelector('#g-sex .active')?.textContent||'不明'}</td></tr><tr><th>入電種別</th><td>${originStr} (${facility})</td><th>ETA</th><td>${appState.etaText||'--'}</td></tr><tr><th>バイタル評価</th><td colspan="3">${vitalsHTML}</td></tr><tr><th>酸素投与</th><td colspan="3">${o2Text}</td></tr><tr><th>要請状況・経過</th><td colspan="3" style="white-space:pre-wrap;">${document.getElementById("v-case-summary").value}</td></tr><tr><th>AMPLE</th><td colspan="3">${ampleHTML}</td></tr></table><div class="p-sec-title">■ 初療スタッフ配置（コンタクトリスト）</div><table class="p-table"><tr><th>統括</th><td>${roles.leader.join(', ')||"未指定"}</td><th>気道</th><td>${roles.airway.join(', ')||"未指定"}</td></tr><tr><th>圧迫</th><td>${roles.cpr.join(', ')||"未指定"}</td><th>薬剤</th><td>${roles.route.join(', ')||"未指定"}</td></tr><tr><th>記録</th><td>${roles.record.join(', ')||"未指定"}</td></tr></table>${safetyNetHTML}`;
 
@@ -893,7 +913,8 @@
       let page4HTML = `<div class="p-title">小児救急事前準備作戦盤 【4. ベッドサイド静注用量表 (持続)】</div><table class="p-table"><thead><tr><th>薬剤名</th><th colspan="6">流量換算マトリックス</th></tr></thead><tbody>${dRowsCont || '<tr><td colspan="7" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
 
       let eRows = ""; master.equipment.filter(e=>appState.checkedItems[e.name] && wt>=e.minW && wt<=e.maxW).forEach(e => {
-        eRows += `<tr><td>${e.category}</td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}</td></tr>`;
+        const warn = ageHeightCrossCheck(e, ht, appState.ageY);
+        eRows += `<tr><td>${e.category}</td><td><b>${e.name}</b></td><td class="p-large-text" style="color:#2e7d32;">${e.size}</td><td>${e.note||'-'}${warn ? `<br><span style="color:#d32f2f; font-weight:bold;">${warn}</span>` : ''}</td></tr>`;
       });
       let page5HTML = `<div class="p-title">小児救急資機材サイズ適合推奨表 【5. 物品適合サイズ指示書】</div><table class="p-table"><thead><tr><th>区分</th><th>物品名</th><th>適合サイズ規格</th><th>備考</th></tr></thead><tbody>${eRows || '<tr><td colspan="4" style="text-align:center;">なし</td></tr>'}</tbody></table>`;
 
