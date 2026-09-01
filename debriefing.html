@@ -401,15 +401,15 @@
         <b>何を：</b>下のタグから「今回の事案で話題に上がった観点」を選び（複数選択可）、話し合った具体的な内容を下の記述欄に記載してください
       </div>
       <div class="chip-grid" id="eval-tags-grid">
-        <div class="chip text-tag" title="モニター・輸液ポンプ・人工呼吸器など機材面での課題や気づき" onclick="this.classList.toggle('on')">システム・機器</div>
-        <div class="chip text-tag" title="院内プロトコル・マニュアル・運用ルールに関する課題や気づき" onclick="this.classList.toggle('on')">プロトコル・運用</div>
-        <div class="chip text-tag" title="スタッフ間の声かけ・情報共有・クローズドループコミュニケーションなど" onclick="this.classList.toggle('on')">チーム連携・通信</div>
-        <div class="chip text-tag" title="指揮命令系統・役割分担・意思決定プロセスに関する評価" onclick="this.classList.toggle('on')">リーダーシップ</div>
-        <div class="chip text-tag" title="個々のスタッフの臨床知識・手技の習熟度に関する振り返り" onclick="this.classList.toggle('on')">知識・手技スキル</div>
-        <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on')">安全管理</div>
+        <div class="chip text-tag" title="モニター・輸液ポンプ・人工呼吸器など機材面での課題や気づき" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">システム・機器</div>
+        <div class="chip text-tag" title="院内プロトコル・マニュアル・運用ルールに関する課題や気づき" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">プロトコル・運用</div>
+        <div class="chip text-tag" title="スタッフ間の声かけ・情報共有・クローズドループコミュニケーションなど" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">チーム連携・通信</div>
+        <div class="chip text-tag" title="指揮命令系統・役割分担・意思決定プロセスに関する評価" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">リーダーシップ</div>
+        <div class="chip text-tag" title="個々のスタッフの臨床知識・手技の習熟度に関する振り返り" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">知識・手技スキル</div>
+        <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">安全管理</div>
       </div>
       <button type="button" class="btn small" id="btn-ai-summary" style="background:var(--brand); color:#fff; width:100%; margin-bottom:8px;" onclick="generateAiSummary()">🤖 タイムライン・評価からAIで下書きを生成</button>
-      <textarea id="v-team" rows="4" placeholder="【詳細分析】上で選んだ観点について、現場での実際の動き・クローズドループの成否など、話し合った具体的な内容を記録"></textarea>
+      <div id="team-eval-inputs"></div>
       <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】マスタデータや本アプリ自体への改善要望があれば記載"></textarea>
       <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
     </div>
@@ -463,7 +463,7 @@
   let masterPewsMaster = []; let masterVentilators = [];
   let currentCaseData = {}; 
   let timelineArray = [];
-  let evalBlocks = [ { id: 1, title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" } ];
+  let evalBlocks = [ { id: 1, title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "", g: "" } ];
   let temporaryExams = []; let editingRowId = null;
   let chartHrSpo2 = null; let chartBp = null; let currentAiImageBase64 = null; let currentAiMimeType = null;
 
@@ -510,7 +510,7 @@
 
   window.onload = () => {
     document.getElementById("d-date").valueAsDate = new Date();
-    renderEvalBlocks(); loadMasterData(); updateCaseBanner(); initLocPicker(); initOxPicker();
+    renderEvalBlocks(); renderTeamEvalInputs(); loadMasterData(); updateCaseBanner(); initLocPicker(); initOxPicker();
     const urlId = new URLSearchParams(location.search).get('id');
     if (urlId) autoLoadCaseFromUrl(urlId);
     // ユーザー操作（入力・チップ選択）はすべて「未保存」扱いにする。
@@ -874,15 +874,45 @@
     }
   }
 
-  // 「チーム連携評価」は保存のたびに "【視点】タグ\n本文" という形で
-  // タグ行を先頭に組み立てて送信している。復元時にこの文字列をそのまま
-  // v-teamへ戻すと、次回保存でまた新しいタグ行が前に足され「【視点】…
-  // 【視点】…」と際限なく積み重なってしまう。そこで復元時は先頭のタグ行を
-  // 分離し、チップ選択状態と本文だけを別々に戻す。
+  // 以前は選んだ観点（タグ）が何個あっても入力欄は共通の1つだけで、
+  // 全部同じ欄に書くしかなかった。タグごとに個別の入力欄を持たせ、
+  // 選択中のタグの数だけ欄が展開されるようにする。
+  // __general__は特定のタグに紐づかない全体メモ・AI下書き用の欄で、常に表示する。
+  let teamEvalTexts = { __general__: '' };
+
+  function renderTeamEvalInputs() {
+    const onTags = Array.from(document.querySelectorAll('#eval-tags-grid .chip.on')).map(c => c.textContent);
+    const box = document.getElementById('team-eval-inputs');
+    let html = `
+      <div style="margin-bottom:8px;">
+        <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">全体メモ・AI下書き（特定の観点に限らない内容）</label>
+        <textarea rows="3" placeholder="全体的な所感やAIが生成した下書きなど" oninput="teamEvalTexts.__general__=this.value; markDirty();">${teamEvalTexts.__general__ || ''}</textarea>
+      </div>`;
+    if (onTags.length === 0) {
+      html += `<div style="font-size:12px; color:var(--sub); padding:8px;">上のタグから観点を選ぶと、観点ごとの入力欄がここに表示されます</div>`;
+    } else {
+      html += onTags.map(tag => `
+        <div style="margin-bottom:8px;">
+          <label style="font-size:11px; font-weight:700; color:var(--brand); display:block; margin-bottom:2px;">🏷️ ${tag}</label>
+          <textarea rows="3" placeholder="「${tag}」について話し合った具体的な内容を記録" oninput="teamEvalTexts[${JSON.stringify(tag)}]=this.value; markDirty();">${teamEvalTexts[tag] || ''}</textarea>
+        </div>`).join('');
+    }
+    box.innerHTML = html;
+  }
+
+  // 「チーム連携評価」は保存のたびに観点(タグ)ごとの入力内容をJSON化して送信する。
+  // 過去（タグ共通1本の自由記述だった時代）に保存されたデータも読めるよう、
+  // JSONでなければ旧形式として全文を__general__に読み込むフォールバックを残す。
   function parseTeamValue(raw) {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object' && parsed.texts) {
+        return { tags: parsed.tags || [], texts: parsed.texts };
+      }
+    } catch (e) { /* 旧形式にフォールバック */ }
     const m = String(raw || '').match(/^【視点】([^\n]*)\n([\s\S]*)$/);
-    if (m) return { tags: m[1] ? m[1].split('/').filter(Boolean) : [], text: m[2] };
-    return { tags: [], text: raw || '' };
+    if (m) return { tags: m[1] ? m[1].split('/').filter(Boolean) : [], texts: { __general__: m[2] } };
+    return { tags: [], texts: { __general__: raw || '' } };
   }
 
   function selectCase(item) {
@@ -919,15 +949,19 @@
         if (d.team) {
           const parsed = parseTeamValue(d.team);
           document.querySelectorAll('#eval-tags-grid .chip').forEach(c => c.classList.toggle('on', parsed.tags.includes(c.textContent)));
-          document.getElementById("v-team").value = parsed.text;
+          teamEvalTexts = Object.assign({ __general__: '' }, parsed.texts);
+          renderTeamEvalInputs();
         }
         if(d.dDate) document.getElementById("d-date").value = d.dDate; if(d.dTime) document.getElementById("d-time").value = d.dTime; if(d.dEndTime) document.getElementById("d-end-time").value = d.dEndTime; if(d.dPlace) document.getElementById("d-place").value = d.dPlace;
+        // 開始/終了時刻を直接valueで復元しただけではonchangeが発火しないため、
+        // 所要時間の自動計算が反映されないまま止まっていた。明示的に呼び出す。
+        calcDuration();
         if(d.timeline) {
           let fullParsed = [];
           try { fullParsed = JSON.parse(d.timeline); } catch(e) {}
           timelineArray = fullParsed.filter(x => x.type !== 'eval');
           const restoredEvals = fullParsed.filter(x => x.type === 'eval');
-          if (restoredEvals.length > 0) evalBlocks = restoredEvals.map(x => ({ id: x.id, title: x.title||'', time: x.time||'', a: x.a||'', b: x.b||'', c: x.c||'', d: x.d||'', e: x.e||'', f: x.f||'' }));
+          if (restoredEvals.length > 0) evalBlocks = restoredEvals.map(x => ({ id: x.id, title: x.title||'', time: x.time||'', a: x.a||'', b: x.b||'', c: x.c||'', d: x.d||'', e: x.e||'', f: x.f||'', g: x.g||'' }));
           renderTimeline(); renderEvalBlocks(); syncDrugChipHighlights();
         }
         applyStaffRestore(d);
@@ -1273,7 +1307,8 @@
     { key: 'c', label: 'C: 循環 (Circulation)', ph: '循環動態・輸液/薬剤対応の妥当性など' },
     { key: 'd', label: 'D: 意識/中枢神経 (Disability)', ph: '意識レベル・瞳孔・神経学的評価など' },
     { key: 'e', label: 'E: 体表/体温 (Exposure)', ph: '外傷所見・体温管理・皮膚所見など' },
-    { key: 'f', label: 'F: 家族対応・その他 (Family/Other)', ph: '家族への説明・その他特記事項' }
+    { key: 'f', label: 'F: 家族対応・その他 (Family/Other)', ph: '家族への説明・その他特記事項' },
+    { key: 'g', label: 'G: その他自由記載', ph: 'ABCDEF以外で気づいた点があれば自由に記載' }
   ];
 
   function renderEvalBlocks() {
@@ -1301,7 +1336,7 @@
     }).join("");
   }
   function setEvalTimingPreset(i, val) { evalBlocks[i].title = (val === 'カスタム入力') ? '' : val; renderEvalBlocks(); renderTimeline(); }
-  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "" }); renderEvalBlocks(); markDirty(); }
+  function addEvalBlock() { evalBlocks.push({ id: Date.now(), title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "", g: "" }); renderEvalBlocks(); markDirty(); }
   function removeEvalBlock(i) {
     const removed = evalBlocks[i]; if (!removed) return;
     evalBlocks.splice(i, 1); renderEvalBlocks(); renderTimeline(); markDirty();
@@ -1519,10 +1554,11 @@
     .then(res => res.json())
     .then(res => {
       if (res.status === 'success' && res.data && res.data.summary) {
-        const current = document.getElementById('v-team').value.trim();
-        document.getElementById('v-team').value = current ? (current + '\n\n【AI下書き（要確認・編集してください）】\n' + res.data.summary) : res.data.summary;
+        const current = (teamEvalTexts.__general__ || '').trim();
+        teamEvalTexts.__general__ = current ? (current + '\n\n【AI下書き（要確認・編集してください）】\n' + res.data.summary) : res.data.summary;
+        renderTeamEvalInputs();
         markDirty();
-        alert("AIによる下書きを詳細分析欄に追記しました。内容を必ずご確認・編集のうえご利用ください。");
+        alert("AIによる下書きを「全体メモ・AI下書き」欄に追記しました。内容を必ずご確認・編集のうえご利用ください。");
       } else {
         alert("AI下書きの生成に失敗しました。\n" + (res.message || "不明なエラーです。"));
       }
@@ -1579,7 +1615,14 @@
 
     let combined = [];
     timelineArray.forEach(t => combined.push({ time: t.time, html: `<tr><td style="text-align:center;font-weight:bold;">${t.time}</td><td style="color:var(--blue);font-weight:bold;text-align:center;">${t.cat}</td><td>${t.contentText}</td></tr>` }));
-    evalBlocks.forEach(e => { if(e.a) combined.push({ time: e.time||"99:99", html: `<tr style="background:#e8f5e9;"><td style="text-align:center;font-weight:bold;">${e.time||'--'}</td><td style="color:var(--brand);font-weight:bold;text-align:center;">医学評価</td><td><b>[${e.title}]</b> ${e.a}</td></tr>` }); });
+    // 以前はe.a（Aの内容）しか見ておらず、B〜Gに記載してもレポートに一切反映
+    // されていなかった。記載済みの全項目を拾って表示する（renderTimeline()と同じ方式）。
+    evalBlocks.forEach(e => {
+      const filled = ABCDEF_FIELDS.filter(f => e[f.key]);
+      if (filled.length === 0) return;
+      const summary = filled.map(f => `<b>${f.key.toUpperCase()}:</b> ${e[f.key]}`).join('<br>');
+      combined.push({ time: e.time||"99:99", html: `<tr style="background:#e8f5e9;"><td style="text-align:center;font-weight:bold;">${e.time||'--'}</td><td style="color:var(--brand);font-weight:bold;text-align:center;">医学評価</td><td><b>[${e.title}]</b><br>${summary}</td></tr>` });
+    });
     combined.sort((a,b) => a.time.localeCompare(b.time));
 
     document.getElementById("print-area").innerHTML = `
@@ -1605,7 +1648,8 @@
         <h3>■ 3. CRMチーム連携・視点別評価</h3>
         <table class="p-table">
           <tr><th>振り返り視点</th><td>${tags.join(' / ') || '指定なし'}</td></tr>
-          <tr><th>連携詳細分析</th><td>${document.getElementById("v-team").value.replace(/\n/g, '<br>')}</td></tr>
+          ${(teamEvalTexts.__general__||'').trim() ? `<tr><th>全体メモ</th><td>${teamEvalTexts.__general__.replace(/\n/g, '<br>')}</td></tr>` : ''}
+          ${tags.map(tag => (teamEvalTexts[tag]||'').trim() ? `<tr><th>${tag}</th><td>${teamEvalTexts[tag].replace(/\n/g, '<br>')}</td></tr>` : '').join('')}
           <tr><th>マスタ改善提案</th><td>${document.getElementById("v-gap-master").value.replace(/\n/g, '<br>')}</td></tr>
           <tr><th>🌟次回アクション</th><td style="font-weight:bold; color:var(--brand); background:var(--brand-light);">${document.getElementById("v-action").value.replace(/\n/g, '<br>')}</td></tr>
         </table>
@@ -1627,7 +1671,7 @@
         debriefStaffs: debriefs.join(', ') + " " + document.getElementById("v-staff-other").value,
         summary: currentCaseData.summary||"", timeline: fullTimeline,
         gapBad: document.getElementById("v-gap-bad").value, gapGood: document.getElementById("v-gap-good").value, gapMaster: document.getElementById("v-gap-master").value,
-        team: "【視点】" + tags.join("/") + "\n" + document.getElementById("v-team").value,
+        team: JSON.stringify({ tags: tags, texts: teamEvalTexts }),
         action: document.getElementById("v-action").value, recorder: recorder, actualStaffs: actuals.join(', '),
         actualDiff: document.getElementById("v-actual-diff").value, dDate: document.getElementById("d-date").value, dTime: document.getElementById("d-time").value, dEndTime: document.getElementById("d-end-time").value, dDuration: document.getElementById("d-duration").value, dPlace: document.getElementById("d-place").value,
         status: statusFlag
