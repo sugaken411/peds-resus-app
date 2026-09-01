@@ -1,4 +1,4 @@
-// バージョン: V6.35 (debug_dump_ids一時デバッグ用アクションを削除)
+// バージョン: V6.36 (debug_dump_ids削除、fetch_historyに使用薬剤集計usedDrugsを追加)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -227,7 +227,11 @@ function doPost(e) {
       var sStatus = parsedPayload.debriefStatus || ""; // "完了" | "未完了" | ""(全て)
 
       // 振り返り状況を要請番号ごとに1回だけ集計（完了ステータスの事案IDセットを作成）
+      // ついでに、振り返りのタイムラインJSONから実際に投与された薬剤名も
+      // 事案ごとに集計しておく（検索コンソールで「使用した薬剤で検索」を
+      // 可能にするため。用量までは検索対象にせず薬剤名のみで十分という判断）。
       var debriefStatusMap = {};
+      var debriefDrugsMap = {};
       try {
         var debriefSheetForStatus = ss.getSheetByName('振り返りアーカイブ');
         if (debriefSheetForStatus) {
@@ -238,6 +242,21 @@ function doPost(e) {
             var dIdS = safeGet(dRowS, hmDebriefStatus, '要請番号');
             var dStatusS = String(safeGet(dRowS, hmDebriefStatus, 'ステータス')).trim();
             if (dIdS) debriefStatusMap[dIdS] = dStatusS === '完了' ? '完了' : '未完了';
+            if (dIdS) {
+              try {
+                var tlJson = safeGet(dRowS, hmDebriefStatus, 'タイムラインJSON');
+                if (tlJson) {
+                  var tlParsed = JSON.parse(tlJson);
+                  var drugNames = tlParsed.filter(function(t) { return t.cat === '薬剤' && t.contentText; })
+                    .map(function(t) { return String(t.contentText).split(' ')[0]; });
+                  if (drugNames.length > 0) {
+                    var existing = debriefDrugsMap[dIdS] ? debriefDrugsMap[dIdS].split(',') : [];
+                    var merged = existing.concat(drugNames).filter(function(v, idx, arr) { return arr.indexOf(v) === idx; });
+                    debriefDrugsMap[dIdS] = merged.join(',');
+                  }
+                }
+              } catch (eTl) { /* 個別事案のJSON壊れは無視して続行 */ }
+            }
           }
         }
       } catch (eStatus) { Logger.log("振り返り状況集計エラー: " + eStatus.toString()); }
@@ -263,7 +282,8 @@ function doPost(e) {
         results.push({
           id: id, date: date, age: safeGet(row, hm, '年齢/月齢'), weight: safeGet(row, hm, '計算体重'), sex: safeGet(row, hm, '性別'), summary: summary, keywords: keywords, preTx: safeGet(row, hm, '搬入前処置'), protocol: safeGet(row, hm, '想定シナリオ・薬剤物品詳細'), vitals: safeGet(row, hm, 'バイタル'), pat: safeGet(row, hm, 'PAT'), caseType: safeGet(row, hm, '事案種別'), facility: safeGet(row, hm, '紹介元医療機関'), debriefStatus: debriefStatus,
           roles: { leader: safeGet(row, hm, '統括'), airway: safeGet(row, hm, '気道管理'), cpr: safeGet(row, hm, '胸骨圧迫'), route: safeGet(row, hm, 'ルート・薬剤'), record: safeGet(row, hm, '記録') },
-          fullState: safeGet(row, hm, '完全復元用JSON')
+          fullState: safeGet(row, hm, '完全復元用JSON'),
+          usedDrugs: debriefDrugsMap[id] || ''
         });
       }
       results.reverse();

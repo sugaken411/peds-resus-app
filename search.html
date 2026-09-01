@@ -116,6 +116,10 @@
         <label>月で探す</label>
         <input type="month" id="q-month" onchange="executeSearch()">
       </div>
+      <div class="filter-item">
+        <label>使用した薬剤で検索</label>
+        <input type="text" id="q-drug" placeholder="例: アトロピン" oninput="executeSearch()">
+      </div>
     </div>
 
     <div class="filter-item" style="margin-bottom: 12px;">
@@ -233,6 +237,7 @@
     const freeW = document.getElementById("q-free").value.trim().toLowerCase();
     const qId = document.getElementById("q-id").value.trim();
     const qMonth = document.getElementById("q-month").value; // YYYY-MM
+    const qDrug = document.getElementById("q-drug").value.trim();
 
     const results = allResults.filter(r => {
       if (qId && !String(r.id || "").includes(qId)) return false;
@@ -240,6 +245,9 @@
         const normalizedDate = String(r.date || "").replace(/\//g, "-");
         if (!normalizedDate.startsWith(qMonth)) return false;
       }
+      // usedDrugsは振り返り（デブリーフィング）のタイムラインから実際に
+      // 投与記録された薬剤名を集計したもの。作戦盤の想定薬剤（protocol）とは別物。
+      if (qDrug && !String(r.usedDrugs || "").includes(qDrug)) return false;
       if (statusFilter) {
         const isDone = r.debriefStatus === "完了";
         if (statusFilter === "完了" && !isDone) return false;
@@ -287,6 +295,7 @@
           <span><b>紹介元:</b> ${escapeHtml(r.facility) || '-'}</span>
         </div>
         <div class="rc-context">${escapeHtml(r.summary) || '概要の記載なし'}</div>
+        ${r.usedDrugs ? `<div class="rc-meta"><span><b>使用薬剤（振り返り記録）:</b> ${escapeHtml(r.usedDrugs.split(',').join('、'))}</span></div>` : ''}
         ${keywordChips ? `<div class="rc-tags">${keywordChips}</div>` : ''}
         <div class="rc-actions">
           <button type="button" class="btn-detail" onclick="toggleDetail('${cardId}', '${encodeURIComponent(r.id)}')">📖 振り返り詳細を見る</button>
