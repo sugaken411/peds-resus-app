@@ -986,7 +986,12 @@
       freeStaff: Array.from(document.querySelectorAll('#free-staff-tbody tr')).map(tr => ({
         name: tr.querySelector('.free-name')?.value || '',
         roles: Array.from(tr.querySelectorAll('.staff-check:checked')).map(cb => cb.dataset.role)
-      })).filter(r => r.name)
+      })).filter(r => r.name),
+      // appState.checkedItemsには各シナリオに紐づく個別の薬剤・物品名しか
+      // 記録されず、シナリオ・セットのチップ自体が選択されていたかどうかは
+      // 別途保持しないと復元できない（クリックしたシナリオ名自体は
+      // checkedItemsのキーには入らないため）
+      activeScenarios: Array.from(document.querySelectorAll('#box-scenarios .chip.on, #box-sets .chip.on')).map(c => c.textContent)
     };
   }
 
@@ -1094,12 +1099,23 @@
         (fs.roles || []).forEach(role => { const cb = tr.querySelector(`.staff-check[data-role="${role}"]`); if (cb) cb.checked = true; });
       });
     }
+    // シナリオ/セットのチップ自体をまず復元する（クリックで紐づく個別品目も
+    // 一括トグルされるので、この後の個別品目チェックが上書き修正できる）
+    if (snap.activeScenarios) {
+      snap.activeScenarios.forEach(name => {
+        const chip = Array.from(document.querySelectorAll('#box-scenarios .chip, #box-sets .chip')).find(c => c.textContent === name);
+        if (chip && !chip.classList.contains('on')) chip.click();
+      });
+    }
     if (snap.appState && snap.appState.checkedItems) {
       Object.keys(snap.appState.checkedItems).forEach(name => {
-        if (!snap.appState.checkedItems[name]) return;
+        const shouldBeOn = snap.appState.checkedItems[name];
         let chip = Array.from(document.querySelectorAll('#box-scenarios .chip, #box-sets .chip')).find(c => c.textContent === name);
         if (!chip) chip = document.querySelector(`.chip-item[data-name="${CSS.escape(name)}"]`);
-        if (chip && !chip.classList.contains('on')) chip.click();
+        if (!chip) return;
+        const isOn = chip.classList.contains('on');
+        if (shouldBeOn && !isOn) chip.click();
+        else if (!shouldBeOn && isOn) chip.click();
       });
     }
     if (snap.appState && snap.appState.keywords) {
