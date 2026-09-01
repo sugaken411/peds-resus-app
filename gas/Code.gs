@@ -1,4 +1,4 @@
-// バージョン: V6.37 (物品マスタの対象身長・対象年齢・院内採用列をgetMasterDataで読込)
+// バージョン: V6.38 (マスタ＿セットの同名ヘッダー衝突でシナリオ/セットの紐づけ項目がほぼ消えていたバグを修正)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -635,10 +635,22 @@ function getMasterData() {
     var sheetSet = ss.getSheetByName('マスタ＿セット');
     if (sheetSet) {
       var hmS = getHeaderMap(sheetSet); var sVals = sheetSet.getDataRange().getValues();
+      // このシートは項目数に上限を設けないため「含まれる項目名」という
+      // 同名ヘッダーがD列以降に何十列も並ぶ構造になっている。
+      // getHeaderMap()はヘッダー文字列をキーにした単純なマップなので、
+      // 同名ヘッダーが複数あると後の列が前の列を上書きしてしまい、
+      // hmS['含まれる項目名']は「最初の」列ではなく「最後の」列のインデックスに
+      // なっていた。その結果ほぼ全ての行で実際の項目データより後ろから
+      // 読み始めることになり、シナリオ/セットの紐づけ項目がほぼ空になっていた
+      // （データ自体はシートに残っており消えていない）。
+      // ヘッダー行を直接走査して最初の出現列を使うことで回避する。
+      var headerRowSet = sVals[0] || [];
+      var firstItemCol = -1;
+      for (var hc = 0; hc < headerRowSet.length; hc++) { if (String(headerRowSet[hc]).trim() === '含まれる項目名') { firstItemCol = hc; break; } }
       for (var i = 1; i < sVals.length; i++) {
         var r = sVals[i]; if (!r || r.length < 2) continue;
         if (hmS.hasOwnProperty('セット名') && r[hmS['セット名']]) {
-          var items = []; if (hmS.hasOwnProperty('含まれる項目名')) { for (var j = hmS['含まれる項目名']; j < r.length; j++) { if (r[j]) items.push(String(r[j]).trim()); } }
+          var items = []; if (firstItemCol !== -1) { for (var j = firstItemCol; j < r.length; j++) { if (r[j]) items.push(String(r[j]).trim()); } }
           data.scenarios.push({ name: String(r[hmS['セット名']]).trim(), type: String(safeGet(r, hmS, '区分')), items: items });
         }
       }
