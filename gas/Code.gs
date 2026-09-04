@@ -1,4 +1,4 @@
-// バージョン: V6.40 (症例評価A-F・初回バイタル・初回血液検査の未使用列をタイムラインJSONから自動集計)
+// バージョン: V6.41 (「タイムライン明細」正規化シートを新設し、振り返り保存のたびに1事案1時点1項目=1行で同期)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -132,6 +132,62 @@ function extractDebriefSummaryFields(timeline) {
   });
 
   return result;
+}
+
+// タイムラインの生のフィールド名(v-hr, test_pH 等)を、スプレッドシート上で
+// 読める日本語の項目名に変換する。血液・画像検査は元々マスタの正式名称が
+// キーに含まれているので、prefix(test_/img_)を外すだけでよい。
+var VITAL_FIELD_LABELS = { 'v-hr': 'HR', 'v-spo2': 'SpO2', 'v-rr': 'RR', 'v-bps': 'BP収縮', 'v-bpd': 'BP拡張', 'v-bp-mean': 'BP平均', 'v-bt': 'BT', 'v-jcs': '意識レベル', 'v-pews': 'PEWS', 'v-ox-fio2': 'FiO2', 'v-ox-device': '酸素デバイス' };
+var EVAL_FIELD_LABELS = { a: '評価A(気道)', b: '評価B(呼吸)', c: '評価C(循環)', d: '評価D(意識)', e: '評価E(体表)', f: '評価F(家族対応)', g: '評価G(自由記載)' };
+
+// 「タイムライン明細」シート（1事案1時点1項目=1行の正規化データ）を、
+// 指定した事案(id)の分だけ最新のtimelineの内容で置き換える。
+// 途中保存を何度も押しても重複が積み上がらないよう、その事案の既存行は
+// 一旦すべて削除してから、現在のtimelineの内容で作り直す（差分更新はしない）。
+function syncTimelineDetail(ss, id, timeline) {
+  var headers = ['要請番号', '時刻', '区分', '項目名', '値'];
+  var sheet = ensureSheetWithHeaders(ss, 'タイムライン明細', headers);
+  var hm = getHeaderMap(sheet);
+  var lastRow = sheet.getLastRow();
+  var kept = [];
+  if (lastRow > 1) {
+    var existing = sheet.getRange(2, 1, lastRow - 1, sheet.getLastColumn()).getValues();
+    for (var i = 0; i < existing.length; i++) {
+      if (safeGet(existing[i], hm, '要請番号') !== id) kept.push(existing[i]);
+    }
+  }
+
+  var newRows = [];
+  function addRow(time, cat, item, val) {
+    if (val === undefined || val === null || val === '') return;
+    var row = new Array(headers.length).fill('');
+    row[hm['要請番号']] = id; row[hm['時刻']] = time; row[hm['区分']] = cat; row[hm['項目名']] = item; row[hm['値']] = val;
+    newRows.push(row);
+  }
+
+  timeline.forEach(function(t) {
+    if (t.type === 'eval') {
+      Object.keys(EVAL_FIELD_LABELS).forEach(function(key) { addRow(t.time, '医学的評価', EVAL_FIELD_LABELS[key], t[key]); });
+      return;
+    }
+    if (t.cat === 'バイタル' || t.cat === '血液検査' || t.cat === '画像・検査') {
+      var raw = t.rawValues || {};
+      Object.keys(raw).forEach(function(k) {
+        if (k === 'temp') return; // 画像検査の一時項目リストは構造が異なるため対象外
+        var label = k.indexOf('test_') === 0 ? k.substring(5)
+          : k.indexOf('img_') === 0 ? k.substring(4)
+          : (VITAL_FIELD_LABELS[k] || k);
+        addRow(t.time, t.cat, label, raw[k]);
+      });
+    } else if (t.cat) {
+      // 処置・薬剤・記事はテキストそのものが内容なので、区分名を項目名として1行にする
+      addRow(t.time, t.cat, t.cat, t.contentText);
+    }
+  });
+
+  var all = kept.concat(newRows);
+  sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), headers.length).clearContent();
+  if (all.length > 0) sheet.getRange(2, 1, all.length, headers.length).setValues(all);
 }
 
 // シートに指定した列見出しが無ければ、末尾に新しい列を追加してから
@@ -434,6 +490,16 @@ function doPost(e) {
       var newRow = createRowData(hm, dataDict);
       if (targetRow > -1) dbSheet.getRange(targetRow, 1, 1, newRow.length).setValues([newRow]);
       else dbSheet.appendRow(newRow);
+
+      // タイムラインJSON（1セルに全時点をまとめて格納）は、スプレッドシート単体では
+      // ピボットやグラフ化ができず、内容を見るにもJSONを開く必要があった。
+      // 「タイムライン明細」シートに1事案1時点1項目=1行の正規化した形でも
+      // 保存しておくことで、スプレッドシート上でそのままフィルタ・ソート・
+      // 折れ線グラフ化ができるようにする（症例評価A-F等の「初回値」列は
+      // このシートさえあれば代替できるが、素早く一覧参照できる利点があるため
+      // 両方残す）。
+      if (p.timeline && p.timeline.length > 0) syncTimelineDetail(ss, p.id, p.timeline);
+
       return ContentService.createTextOutput(JSON.stringify({ status: "success" })).setMimeType(ContentService.MimeType.JSON);
     }
 
