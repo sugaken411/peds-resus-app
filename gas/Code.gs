@@ -1,4 +1,4 @@
-// バージョン: V6.39 (AI下書き生成: Gemini高負荷エラー時に自動リトライ)
+// バージョン: V6.40 (症例評価A-F・初回バイタル・初回血液検査の未使用列をタイムラインJSONから自動集計)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -82,6 +82,56 @@ function getHeaderMap(sheet) {
     if (headers[i]) map[String(headers[i]).trim()] = i;
   }
   return map;
+}
+
+// 振り返りのタイムラインJSONから、スプレッドシート上で一括処理・
+// ソート・フィルタしやすいよう「初回」の値だけを抜き出す。
+// ・症例評価A〜F: 最も時刻の早いABCDEF評価(type==='eval')の各項目
+// ・初回バイタル各項目: 時刻順に見て、その項目が最初に入力された値
+//   （1件のバイタル登録に全項目が揃っているとは限らないため、
+//   　項目ごとに独立して「最初に値が入った時刻」を探す）
+// ・初回血液検査各項目: 同様に項目（検査名）ごとに最初の値を探す
+function extractDebriefSummaryFields(timeline) {
+  var result = {
+    evalA: '', evalB: '', evalC: '', evalD: '', evalE: '', evalF: '',
+    hr: '', spo2: '', rr: '', bpSys: '', bpDia: '', bt: '', loc: '', pews: '',
+    ph: '', pco2: '', po2: '', hco3: '', be: '', lac: '', wbc: '', hb: '', plt: '', crp: ''
+  };
+  if (!timeline || timeline.length === 0) return result;
+
+  var evalItems = timeline.filter(function(t) { return t.type === 'eval' && t.time; }).sort(function(a, b) { return String(a.time).localeCompare(String(b.time)); });
+  if (evalItems.length > 0) {
+    var first = evalItems[0];
+    result.evalA = first.a || ''; result.evalB = first.b || ''; result.evalC = first.c || '';
+    result.evalD = first.d || ''; result.evalE = first.e || ''; result.evalF = first.f || '';
+  }
+
+  var vitals = timeline.filter(function(t) { return t.cat === 'バイタル' && t.time; }).sort(function(a, b) { return String(a.time).localeCompare(String(b.time)); });
+  var vitalMap = { hr: 'v-hr', spo2: 'v-spo2', rr: 'v-rr', bpSys: 'v-bps', bpDia: 'v-bpd', bt: 'v-bt', loc: 'v-jcs', pews: 'v-pews' };
+  Object.keys(vitalMap).forEach(function(key) {
+    var rawKey = vitalMap[key];
+    for (var i = 0; i < vitals.length; i++) {
+      var v = vitals[i].rawValues && vitals[i].rawValues[rawKey];
+      if (v !== undefined && v !== null && v !== '') { result[key] = v; break; }
+    }
+  });
+
+  var bloodTests = timeline.filter(function(t) { return t.cat === '血液検査' && t.time; }).sort(function(a, b) { return String(a.time).localeCompare(String(b.time)); });
+  // マスタ＿検査の正式名称と完全一致させる（"BE (Base Excess)"と
+  // "BE(ecf) (細胞外液基剰塩基)"のように前方一致だと紛れる項目があるため）
+  var testMap = {
+    ph: 'pH', pco2: 'pCO2', po2: 'pO2', hco3: 'HCO3-', be: 'BE (Base Excess)', lac: 'Lactate (乳酸値)',
+    wbc: 'WBC (白血球数)', hb: 'Hb (ヘモグロビン)', plt: 'Plt (血小板数)', crp: 'CRP'
+  };
+  Object.keys(testMap).forEach(function(key) {
+    var rawKey = 'test_' + testMap[key];
+    for (var i = 0; i < bloodTests.length; i++) {
+      var raw = bloodTests[i].rawValues || {};
+      if (raw[rawKey] !== undefined && raw[rawKey] !== null && raw[rawKey] !== '') { result[key] = raw[rawKey]; break; }
+    }
+  });
+
+  return result;
 }
 
 // シートに指定した列見出しが無ければ、末尾に新しい列を追加してから
@@ -327,6 +377,13 @@ function doPost(e) {
         ? JSON.stringify(p.timeline)
         : keepIfEmpty('', 'タイムラインJSON');
 
+      // 症例評価A〜F・初回バイタル・初回血液検査の各列は、以前から
+      // シートに用意されていたが、これまでコードから一切書き込まれて
+      // いなかった（未使用の空列）。タイムラインJSONの中に同じ情報が
+      // 既にあるため、スプレッドシート単体でも読みやすく・一括処理
+      // しやすいよう、保存のたびにここから要約して書き込む。
+      var summaryFields = extractDebriefSummaryFields(p.timeline || []);
+
       var dataDict = {
         'タイムスタンプ': Utilities.formatDate(new Date(), "Asia/Tokyo", "yyyy/MM/dd HH:mm:ss"),
         '要請番号': p.id || '',
@@ -348,7 +405,31 @@ function doPost(e) {
         '終了時間': keepIfEmpty(p.dEndTime || '', '終了時間'),
         '所要時間': keepIfEmpty(p.dDuration || '', '所要時間'),
         '場所': keepIfEmpty(p.dPlace || '', '場所'),
-        'ステータス': p.status || ''
+        'ステータス': p.status || '',
+        '症例評価A': keepIfEmpty(summaryFields.evalA, '症例評価A'),
+        '症例評価B': keepIfEmpty(summaryFields.evalB, '症例評価B'),
+        '症例評価C': keepIfEmpty(summaryFields.evalC, '症例評価C'),
+        '症例評価D': keepIfEmpty(summaryFields.evalD, '症例評価D'),
+        '症例評価E': keepIfEmpty(summaryFields.evalE, '症例評価E'),
+        '症例評価F': keepIfEmpty(summaryFields.evalF, '症例評価F'),
+        '初回_HR': keepIfEmpty(summaryFields.hr, '初回_HR'),
+        '初回_SpO2': keepIfEmpty(summaryFields.spo2, '初回_SpO2'),
+        '初回_RR': keepIfEmpty(summaryFields.rr, '初回_RR'),
+        '初回_BP収縮': keepIfEmpty(summaryFields.bpSys, '初回_BP収縮'),
+        '初回_BP拡張': keepIfEmpty(summaryFields.bpDia, '初回_BP拡張'),
+        '初回_BT': keepIfEmpty(summaryFields.bt, '初回_BT'),
+        '初回_意識レベル': keepIfEmpty(summaryFields.loc, '初回_意識レベル'),
+        '初回_PEWS': keepIfEmpty(summaryFields.pews, '初回_PEWS'),
+        '初回_pH': keepIfEmpty(summaryFields.ph, '初回_pH'),
+        '初回_pCO2': keepIfEmpty(summaryFields.pco2, '初回_pCO2'),
+        '初回_pO2': keepIfEmpty(summaryFields.po2, '初回_pO2'),
+        '初回_HCO3': keepIfEmpty(summaryFields.hco3, '初回_HCO3'),
+        '初回_BE': keepIfEmpty(summaryFields.be, '初回_BE'),
+        '初回_Lac': keepIfEmpty(summaryFields.lac, '初回_Lac'),
+        '初回_WBC': keepIfEmpty(summaryFields.wbc, '初回_WBC'),
+        '初回_Hb': keepIfEmpty(summaryFields.hb, '初回_Hb'),
+        '初回_Plt': keepIfEmpty(summaryFields.plt, '初回_Plt'),
+        '初回_CRP': keepIfEmpty(summaryFields.crp, '初回_CRP')
       };
       var newRow = createRowData(hm, dataDict);
       if (targetRow > -1) dbSheet.getRange(targetRow, 1, 1, newRow.length).setValues([newRow]);
