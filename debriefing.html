@@ -104,9 +104,24 @@
     .print-report { background: #fff; border: 1px solid #000; padding: 20px; font-size: 12px; line-height: 1.4; color: #000; margin-bottom: 16px; }
     .print-report h2 { text-align: center; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; font-size: 16px; }
     .print-report h3 { font-size: 13px; background: #eee; padding: 4px 8px; border-left: 4px solid #000; margin-top: 16px; margin-bottom: 8px; font-weight: bold; }
-    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; } 
+    .p-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 11px; }
     .p-table th, .p-table td { border: 1px solid #000; padding: 6px; text-align: left; vertical-align: top; }
     .p-table th { background: #f0f0f0; font-weight: bold; }
+
+    /* 作戦盤(index.html)のプレビューページをまとめて印刷できるよう、
+       同じクラス名でそのページのHTMLをそのまま流し込めるようにしておく。 */
+    .preview-page { background: #fff; border: 1px solid #000; padding: 20px; margin-bottom: 20px; font-size: 12px; line-height: 1.4; color: #000; page-break-after: always; }
+    .preview-page.status-custom { border-color: #d48806; }
+    .p-title { font-size: 15px; text-align: center; font-weight: 900; border-bottom: 2px solid #000; padding-bottom: 4px; margin-bottom: 12px; }
+    .p-sec-title { font-size: 13px; font-weight: bold; background: #eee; padding: 4px 8px; margin-bottom: 6px; border-left: 4px solid #000; }
+    .p-large-text { font-size: 14px; font-weight: bold; }
+    /* index.html側の色定義（--brandが赤/緑で意味が違うなど、変数名が
+       衝突している）をこのセクション内だけ上書きし、元の見た目のまま
+       流し込めるようにする。 */
+    #plan-print-section {
+      page-break-after: always;
+      --brand: #d32f2f; --brand-light: #fef2f2; --success: #22c55e;
+    }
 
     #global-loader { position:fixed; inset:0; background:rgba(255,255,255,0.95); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; }
     .spinner { width: 40px; height: 40px; border: 4px solid var(--blue); border-radius: 50%; border-top-color: transparent; animation: spin 1s linear infinite; } @keyframes spin { 100% { transform: rotate(360deg); } }
@@ -442,6 +457,10 @@
   </div>
 
   <div id="tab-sec8" class="tab-content">
+    <label class="no-print" style="display:flex; align-items:center; gap:8px; font-size:12px; font-weight:bold; color:var(--ink); background:var(--bg); padding:8px 10px; border-radius:8px; margin-bottom:10px; cursor:pointer;">
+      <input type="checkbox" id="chk-include-plan" checked onchange="generatePreview()" style="width:auto; margin:0;">
+      🚑 作戦盤（準備・想定内容）もまとめて印刷する
+    </label>
     <div class="card" style="padding:0; border:none; box-shadow:none;">
       <div id="print-area"></div>
     </div>
@@ -1008,6 +1027,31 @@
   // 別タブを開かなくても同じ画面内で作戦盤のプレビューを開閉できるようにする。
   // index.html側の印刷プレビュー生成ロジックをそのまま再利用したいので、
   // 複製せずiframeで埋め込む方式にした（?caseId=で同じ復元の仕組みが働く）。
+  // 「8.確認・送信」タブでまとめて印刷できるよう、作戦盤(index.html)の
+  // プレビューHTML（#mirror-preview-area、印刷用ページ1〜5相当）を
+  // iframeから取得する。まだiframeを開いていない（=src未設定）場合は
+  // ここで読み込み、load完了を待ってから中身を取り出す。
+  function getPlanPreviewHtml() {
+    return new Promise((resolve) => {
+      if (!currentCaseData || !currentCaseData.id) { resolve(''); return; }
+      const iframe = document.getElementById("plan-preview-iframe");
+      const extract = () => {
+        try {
+          const area = iframe.contentDocument.getElementById('mirror-preview-area');
+          resolve(area ? area.innerHTML : '');
+        } catch (e) { resolve(''); }
+      };
+      if (iframe.hasAttribute("src") && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
+        extract();
+      } else {
+        iframe.addEventListener('load', extract, { once: true });
+        // 読み込みが何らかの理由で完了しない場合に備え、印刷が止まらないようタイムアウトも設ける
+        setTimeout(() => resolve(''), 5000);
+        if (!iframe.hasAttribute("src")) iframe.src = "index.html?caseId=" + encodeURIComponent(currentCaseData.id);
+      }
+    });
+  }
+
   function togglePlanPreview() {
     const area = document.getElementById("plan-preview-area");
     const btn = document.getElementById("btn-toggle-plan-preview");
@@ -1659,7 +1703,7 @@
     }).finally(() => { btn.textContent = old; });
   }
 
-  function generatePreview() {
+  async function generatePreview() {
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark')?.textContent || "未指定";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
     let debriefs = []; document.querySelectorAll('#box-staff-debrief .chip.on').forEach(c=>debriefs.push(c.textContent));
@@ -1677,7 +1721,16 @@
     });
     combined.sort((a,b) => a.time.localeCompare(b.time));
 
+    // 「作戦盤もまとめて印刷する」がオンなら、作戦盤(index.html)の印刷用HTML
+    // （iframe内の#mirror-preview-area、ページ1〜5相当）を取得して先頭に差し込む。
+    // 事案未選択や読込失敗時は空文字が返るだけで、デブリーフィング側の
+    // レポート生成は通常どおり続行する。
+    const includePlan = document.getElementById("chk-include-plan")?.checked;
+    const planHtml = includePlan ? await getPlanPreviewHtml() : '';
+    const planSectionHtml = planHtml ? `<div id="plan-print-section">${planHtml}</div>` : '';
+
     document.getElementById("print-area").innerHTML = `
+      ${planSectionHtml}
       <div class="print-report">
         <h2>小児初療・一般経過表／デブリーフィングレポート</h2>
         <table class="p-table">
