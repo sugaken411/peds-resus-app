@@ -138,7 +138,7 @@
 <header>
   <a href="portal.html" class="hdr-btn">🏠 ポータル</a>
   <div class="title-box">初療デブリーフィング<div class="master-time" id="disp-master-time">📡 同期中...</div></div>
-  <button class="hdr-btn no-print" onclick="window.print()">🖨️ 印刷</button>
+  <button class="hdr-btn no-print" id="btn-print" onclick="printAll()">🖨️ 印刷</button>
 </header>
 
 <div class="tab-container">
@@ -965,6 +965,11 @@
     document.getElementById("plan-preview-area").style.display = "none";
     document.getElementById("plan-preview-iframe").removeAttribute("src");
     document.getElementById("btn-toggle-plan-preview").textContent = "▼ 作戦盤プレビューを表示";
+    // 作戦盤マスタデータの取得（JSONP経由でGASへ）はネットワーク状況次第で
+    // 数秒かかることがある。8.確認・送信タブに来てから読み込み始めると
+    // 印刷ボタンを押した瞬間に間に合わないことがあったため、事案選択の
+    // 時点で裏側で先読みを開始しておく（表示上は何も変わらない）。
+    document.getElementById("plan-preview-iframe").src = "index.html?caseId=" + encodeURIComponent(item.id);
     prefillActualStaffFromBriefing();
 
     // 復元データの取得中にタブを切り替えられると、確認・送信プレビューなどが
@@ -1035,20 +1040,23 @@
     return new Promise((resolve) => {
       if (!currentCaseData || !currentCaseData.id) { resolve(''); return; }
       const iframe = document.getElementById("plan-preview-iframe");
-      const extract = () => {
+      // iframeの'load'イベントは、index.html内部でマスタデータをJSONPで
+      // 非同期取得し#mirror-preview-areaへ描画し終わる「前」に発火してしまう
+      // （静的HTML/スクリプトの読み込み完了 = loadイベントであり、
+      // その後に動的に追加されるJSONPの<script>タグの完了は待ってくれない）。
+      // そのため'load'を待つだけでは中身が空のまま印刷されてしまう不具合が
+      // 実際に発生した。中身が実際に埋まるまでポーリングして待つ方式に変更。
+      const deadline = Date.now() + 15000;
+      function poll() {
         try {
-          const area = iframe.contentDocument.getElementById('mirror-preview-area');
-          resolve(area ? area.innerHTML : '');
-        } catch (e) { resolve(''); }
-      };
-      if (iframe.hasAttribute("src") && iframe.contentDocument && iframe.contentDocument.readyState === 'complete') {
-        extract();
-      } else {
-        iframe.addEventListener('load', extract, { once: true });
-        // 読み込みが何らかの理由で完了しない場合に備え、印刷が止まらないようタイムアウトも設ける
-        setTimeout(() => resolve(''), 5000);
-        if (!iframe.hasAttribute("src")) iframe.src = "index.html?caseId=" + encodeURIComponent(currentCaseData.id);
+          const area = iframe.contentDocument && iframe.contentDocument.getElementById('mirror-preview-area');
+          if (area && area.innerHTML.trim()) { resolve(area.innerHTML); return; }
+        } catch (e) { /* まだ参照できない場合は無視して待つ */ }
+        if (Date.now() > deadline) { resolve(''); return; }
+        setTimeout(poll, 150);
       }
+      if (!iframe.hasAttribute("src")) iframe.src = "index.html?caseId=" + encodeURIComponent(currentCaseData.id);
+      poll();
     });
   }
 
@@ -1701,6 +1709,24 @@
     }).catch(err => {
       alert("通信エラーのため解析できませんでした。\n" + err.message);
     }).finally(() => { btn.textContent = old; });
+  }
+
+  // ヘッダーの🖨️印刷ボタンはこれまでwindow.print()を直接呼んでいたが、
+  // generatePreview()が非同期（作戦盤プレビューのiframe読込を待つ）に
+  // なったため、印刷内容の生成が終わる前に印刷ダイアログが開いてしまい
+  // 「作戦盤を含めてチェックしたのに反映されない」状態になっていた。
+  // 印刷前に必ずgeneratePreview()の完了を待つようにする。
+  async function printAll() {
+    const btn = document.getElementById('btn-print');
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = "準備中...";
+    try {
+      switchTab('sec8'); // 印刷対象は#tab-sec8のみ表示されるCSSのため、必ず切り替えてから生成する
+      await generatePreview();
+    } finally {
+      btn.disabled = false; btn.textContent = orig;
+    }
+    window.print();
   }
 
   async function generatePreview() {
