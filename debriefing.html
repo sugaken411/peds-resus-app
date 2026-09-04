@@ -429,8 +429,10 @@
         <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">安全管理</div>
       </div>
       <div id="team-eval-inputs"></div>
-      <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】マスタデータや本アプリ自体への改善要望があれば記載"></textarea>
-      <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
+      <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">🛠️ アプリ・マスタへの改修提案（マスタデータや本アプリ自体への改善要望）</label>
+      <textarea id="v-gap-master" rows="2" placeholder="例：〇〇の薬剤が選択肢にない、など" style="margin-bottom:10px;"></textarea>
+      <label style="font-size:11px; font-weight:700; color:var(--brand); display:block; margin-bottom:2px;">🎯 次回へのチームアクションプラン（誰が・何をするか）</label>
+      <textarea id="v-action" rows="3" placeholder="次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
       <button type="button" class="btn small ghost ai-summary-btn" id="btn-ai-summary" style="color:var(--brand); border-color:var(--brand); width:100%; margin-top:8px;" onclick="generateAiSummary()">🤖 タイムライン・評価からAIで下書きを生成（試験運用）</button>
     </div>
 
@@ -908,24 +910,46 @@
   // __general__は特定のタグに紐づかない全体メモ・AI下書き用の欄で、常に表示する。
   let teamEvalTexts = { __general__: '' };
 
+  function escapeHtml(str) {
+    return String(str == null ? '' : str)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   function renderTeamEvalInputs() {
     const onTags = Array.from(document.querySelectorAll('#eval-tags-grid .chip.on')).map(c => c.textContent);
     const box = document.getElementById('team-eval-inputs');
-    let html = `
-      <div style="margin-bottom:8px;">
-        <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">全体メモ・AI下書き（特定の観点に限らない内容）</label>
-        <textarea rows="3" placeholder="全体的な所感やAIが生成した下書きなど" oninput="teamEvalTexts.__general__=this.value; markDirty();">${teamEvalTexts.__general__ || ''}</textarea>
-      </div>`;
+    let html = '';
     if (onTags.length === 0) {
       html += `<div style="font-size:12px; color:var(--sub); padding:8px;">上のタグから観点を選ぶと、観点ごとの入力欄がここに表示されます</div>`;
     } else {
       html += onTags.map(tag => `
         <div style="margin-bottom:8px;">
-          <label style="font-size:11px; font-weight:700; color:var(--brand); display:block; margin-bottom:2px;">🏷️ ${tag}</label>
-          <textarea rows="3" placeholder="「${tag}」について話し合った具体的な内容を記録" oninput="teamEvalTexts[${JSON.stringify(tag)}]=this.value; markDirty();">${teamEvalTexts[tag] || ''}</textarea>
+          <label style="font-size:11px; font-weight:700; color:var(--brand); display:block; margin-bottom:2px;">🏷️ ${escapeHtml(tag)}</label>
+          <textarea rows="3" class="team-eval-tag" data-tag="${escapeHtml(tag)}" placeholder="「${escapeHtml(tag)}」について話し合った具体的な内容を記録">${escapeHtml(teamEvalTexts[tag] || '')}</textarea>
         </div>`).join('');
     }
+    // 全体メモは「試験運用」のAI下書きの置き場も兼ねるため、特定の観点の
+    // 下書きより目立ちにくい一番下に配置する（ユーザー要望）。
+    html += `
+      <div style="margin-bottom:8px;">
+        <label style="font-size:11px; font-weight:700; color:var(--sub); display:block; margin-bottom:2px;">全体メモ・AI下書き（特定の観点に限らない内容）</label>
+        <textarea rows="3" class="team-eval-general" placeholder="全体的な所感やAIが生成した下書きなど">${escapeHtml(teamEvalTexts.__general__ || '')}</textarea>
+      </div>`;
     box.innerHTML = html;
+    // 以前はinput要素にoninput="teamEvalTexts[${JSON.stringify(tag)}]=..."という
+    // インラインハンドラを埋め込んでいたが、JSON.stringify(tag)が生成する二重引用符が
+    // oninput属性自体を囲む二重引用符と衝突し、属性値が途中で閉じられてしまうため
+    // 実際には正しく動作していなかった（全体メモだけキーに引用符が要らず無事だった）。
+    // これがタグ別入力が保存されなかった不具合の直接の原因。
+    // innerHTML設定後にaddEventListenerで登録する方式にして、この種の
+    // クォート衝突が原理的に起こらないようにする。
+    const genArea = box.querySelector('.team-eval-general');
+    if (genArea) genArea.addEventListener('input', () => { teamEvalTexts.__general__ = genArea.value; markDirty(); });
+    box.querySelectorAll('.team-eval-tag').forEach(ta => {
+      const tag = ta.dataset.tag;
+      ta.addEventListener('input', () => { teamEvalTexts[tag] = ta.value; markDirty(); });
+    });
   }
 
   // 「チーム連携評価」は保存のたびに観点(タグ)ごとの入力内容をJSON化して送信する。
@@ -1729,6 +1753,14 @@
     window.print();
   }
 
+  // 印刷レポートに差し込む自由記述欄は、先頭/末尾の余分な空行（誤操作で
+  // Enterを押してから書き始めた場合など）をそのまま反映すると不自然な
+  // 改行に見えるため、trimしてから<br>化する。HTMLエスケープも行い、
+  // "<"や"&"等を含む記述で表示が崩れることも防ぐ。
+  function printText(str) {
+    return escapeHtml(String(str || '').trim()).replace(/\n/g, '<br>');
+  }
+
   async function generatePreview() {
     let recorder = document.querySelector('#box-staff-recorder .chip.on-dark')?.textContent || "未指定";
     let actuals = []; document.querySelectorAll('#box-staff-actual .chip.on-blue').forEach(c=>actuals.push(c.textContent));
@@ -1768,9 +1800,9 @@
         
         <h3>■ 1. 実際の対応と事前準備とのギャップ</h3>
         <table class="p-table">
-          <tr><th>実対応スタッフ</th><td>${actuals.join(', ')}</td></tr>
-          <tr><th>想定との相違点</th><td>${document.getElementById("v-actual-diff").value.replace(/\n/g, '<br>')}</td></tr>
-          <tr><th>準備の課題/良点</th><td><b>不足:</b> ${document.getElementById("v-gap-bad").value}<br><b>良点:</b> ${document.getElementById("v-gap-good").value}</td></tr>
+          <tr><th>実対応スタッフ</th><td>${escapeHtml(actuals.join(', '))}</td></tr>
+          <tr><th>想定との相違点</th><td>${printText(document.getElementById("v-actual-diff").value)}</td></tr>
+          <tr><th>準備の課題/良点</th><td><b>不足:</b> ${printText(document.getElementById("v-gap-bad").value)}<br><b>良点:</b> ${printText(document.getElementById("v-gap-good").value)}</td></tr>
         </table>
 
         <h3>■ 2. 一般経過表 (タイムライン・データ)</h3>
@@ -1778,11 +1810,11 @@
         
         <h3>■ 3. CRMチーム連携・視点別評価</h3>
         <table class="p-table">
-          <tr><th>振り返り視点</th><td>${tags.join(' / ') || '指定なし'}</td></tr>
-          ${(teamEvalTexts.__general__||'').trim() ? `<tr><th>全体メモ</th><td>${teamEvalTexts.__general__.replace(/\n/g, '<br>')}</td></tr>` : ''}
-          ${tags.map(tag => (teamEvalTexts[tag]||'').trim() ? `<tr><th>${tag}</th><td>${teamEvalTexts[tag].replace(/\n/g, '<br>')}</td></tr>` : '').join('')}
-          <tr><th>マスタ改善提案</th><td>${document.getElementById("v-gap-master").value.replace(/\n/g, '<br>')}</td></tr>
-          <tr><th>🌟次回アクション</th><td style="font-weight:bold; color:var(--brand); background:var(--brand-light);">${document.getElementById("v-action").value.replace(/\n/g, '<br>')}</td></tr>
+          <tr><th>振り返り視点</th><td>${escapeHtml(tags.join(' / ')) || '指定なし'}</td></tr>
+          ${tags.map(tag => (teamEvalTexts[tag]||'').trim() ? `<tr><th>${escapeHtml(tag)}</th><td>${printText(teamEvalTexts[tag])}</td></tr>` : '').join('')}
+          ${(teamEvalTexts.__general__||'').trim() ? `<tr><th>全体メモ</th><td>${printText(teamEvalTexts.__general__)}</td></tr>` : ''}
+          <tr><th>マスタ改善提案</th><td>${printText(document.getElementById("v-gap-master").value)}</td></tr>
+          <tr><th>🌟次回アクション</th><td style="font-weight:bold; color:var(--brand); background:var(--brand-light);">${printText(document.getElementById("v-action").value)}</td></tr>
         </table>
       </div>`;
   }
