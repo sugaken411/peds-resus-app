@@ -1,4 +1,4 @@
-// バージョン: V6.38 (マスタ＿セットの同名ヘッダー衝突でシナリオ/セットの紐づけ項目がほぼ消えていたバグを修正)
+// バージョン: V6.39 (AI下書き生成: Gemini高負荷エラー時に自動リトライ)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -370,11 +370,22 @@ function doPost(e) {
           + "良かった点と気付いた点（改善余地）をバランス良く含めてください。マークダウン不可。出力は次のJSON形式のみ: {\"summary\": \"...\"}\n\n"
           + "【タイムライン】\n" + JSON.stringify(parsedPayload.timeline || []) + "\n\n"
           + "【医学的評価(ABCDEF)】\n" + JSON.stringify(parsedPayload.evalBlocks || []);
-        var summaryRes = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + apiKey, {
-          method: "post", contentType: "application/json", muteHttpExceptions: true,
-          payload: JSON.stringify({ contents: [{ parts: [{ text: summaryPrompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } })
-        });
-        var summaryJson = JSON.parse(summaryRes.getContentText()); if (summaryJson.error) throw new Error(summaryJson.error.message);
+        // Gemini側が「高負荷」で一時的に失敗することがあり(This model is
+        // currently experiencing high demand...)、その場合は少し待って
+        // 再試行すれば通ることが多いため、最大2回まで自動リトライする。
+        var summaryJson = null; var summaryLastErr = null;
+        for (var attempt = 1; attempt <= 2; attempt++) {
+          var summaryRes = UrlFetchApp.fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=" + apiKey, {
+            method: "post", contentType: "application/json", muteHttpExceptions: true,
+            payload: JSON.stringify({ contents: [{ parts: [{ text: summaryPrompt }] }], generationConfig: { temperature: 0.3, responseMimeType: "application/json" } })
+          });
+          summaryJson = JSON.parse(summaryRes.getContentText());
+          if (!summaryJson.error) { summaryLastErr = null; break; }
+          summaryLastErr = summaryJson.error;
+          if (attempt < 2 && /high demand|overloaded|503/i.test(summaryLastErr.message || '')) { Utilities.sleep(2000); continue; }
+          break;
+        }
+        if (summaryLastErr) throw new Error(summaryLastErr.message);
         var summaryClean = summaryJson.candidates[0].content.parts[0].text;
         var summaryMatch = summaryClean.match(/\{[\s\S]*\}/);
         if (summaryMatch) summaryClean = summaryMatch[0];

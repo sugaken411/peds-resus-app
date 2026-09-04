@@ -428,10 +428,10 @@
         <div class="chip text-tag" title="個々のスタッフの臨床知識・手技の習熟度に関する振り返り" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">知識・手技スキル</div>
         <div class="chip text-tag" title="感染対策・医療安全・ヒヤリハットなど安全管理面の気づき" onclick="this.classList.toggle('on'); renderTeamEvalInputs(); markDirty();">安全管理</div>
       </div>
-      <button type="button" class="btn small" id="btn-ai-summary" style="background:var(--brand); color:#fff; width:100%; margin-bottom:8px;" onclick="generateAiSummary()">🤖 タイムライン・評価からAIで下書きを生成</button>
       <div id="team-eval-inputs"></div>
       <textarea id="v-gap-master" rows="2" placeholder="【アプリ・マスタへの改修提案】マスタデータや本アプリ自体への改善要望があれば記載"></textarea>
       <textarea id="v-action" rows="3" placeholder="【🎯 次回へのチームアクションプラン】次回同様の事案に備えて、誰が・何をするかを具体的に記載"></textarea>
+      <button type="button" class="btn small ghost ai-summary-btn" id="btn-ai-summary" style="color:var(--brand); border-color:var(--brand); width:100%; margin-top:8px;" onclick="generateAiSummary()">🤖 タイムライン・評価からAIで下書きを生成（試験運用）</button>
     </div>
 
     <div class="card">
