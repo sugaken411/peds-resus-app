@@ -243,6 +243,7 @@
         <div style="font-size:12px; font-weight:bold; color:var(--blue); margin-right:4px;">測定時刻</div>
         <input type="time" id="tl-time-4" style="width:120px; margin:0;" onchange="syncTime(this.value)">
         <button class="btn small ghost" onclick="setNow()">現在時刻</button>
+        <button class="btn small ghost" onclick="setFirstVitalTime()">初回バイタル時刻</button>
       </div>
 
       <select id="data-category-select" onchange="switchDataCategory(this.value)" style="background:var(--med-blue); color:var(--med-blue-text); border-color:var(--blue); font-weight:bold;">
@@ -503,8 +504,12 @@
 
   function forceNum(el) {
     let val = el.value; if(!val) return;
-    val = val.replace(/[Ａ-Ｚａ-ｚ０-９：・／．]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+    val = val.replace(/[Ａ-Ｚａ-ｚ０-９：・／．－]/g, function(s) { return String.fromCharCode(s.charCodeAt(0) - 0xFEE0); });
+    // BE(ベースエクセス)など負の値を取り得る検査項目があるため、先頭のマイナスは
+    // 許容する（以前は無条件に除去しており、マイナス値が一切入力できなかった）。
+    const isNegative = val.trim().charAt(0) === '-';
     val = val.replace(/[^0-9.]/g, '');
+    if (isNegative) val = '-' + val;
     if (el.value !== val) el.value = val;
   }
 
@@ -987,6 +992,15 @@
   function syncTime(val) { document.getElementById("tl-time-3").value = val; document.getElementById("tl-time-4").value = val; }
   function setNow() { const now = new Date(); syncTime(`${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`); }
 
+  // スタッフ要望：検査データ入力のたびに「現在時刻（携帯の時刻）」がデフォルトに
+  // なってしまい、実際にカルテを見ながら遡って入力する運用と噛み合わないため、
+  // 既に登録済みのバイタル初回時刻を基準に選べるようにしてほしいとのこと。
+  function setFirstVitalTime() {
+    const vitals = timelineArray.filter(t => t.cat === 'バイタル').sort((a, b) => a.time.localeCompare(b.time));
+    if (vitals.length === 0) { alert("まだバイタルサインが登録されていません。先にバイタルを登録してください。"); return; }
+    syncTime(vitals[0].time);
+  }
+
   function switchTlPanel(type) {
     document.querySelectorAll('#tl-cat-group-3 .group-btn').forEach(b => b.classList.remove('active'));
     document.getElementById(`btn-cat-${type}`).classList.add('active');
@@ -999,6 +1013,13 @@
     ['panel-data-vital', 'panel-data-blood', 'panel-data-imaging'].forEach(p => document.getElementById(p).style.display = 'none');
     document.getElementById(`panel-data-${val}`).style.display = 'block';
     currentDataCategory = val;
+    // 血液・画像検査タブに切り替えた時、測定時刻がまだ未入力なら
+    // 現在時刻ではなくバイタル初回時刻を初期値として使う
+    // （携帯の現在時刻が毎回選ばれてしまう問題への対応）。
+    if ((val === 'blood' || val === 'imaging') && !document.getElementById('tl-time-4').value) {
+      const vitals = timelineArray.filter(t => t.cat === 'バイタル').sort((a, b) => a.time.localeCompare(b.time));
+      if (vitals.length > 0) syncTime(vitals[0].time);
+    }
   }
 
   // ■ 処置マスタ
