@@ -158,8 +158,12 @@
       <div class="card">
         <div class="section-label" style="color:var(--blue); border-bottom-color:var(--blue);">📋 作戦指示内容 (Plan)</div>
         <div class="data-preview" id="v-fetched-data"></div>
-        <div style="text-align:right;">
-          <a id="link-to-plan" href="index.html" target="_blank" class="btn small ghost" style="color:var(--blue); border-color:var(--blue); text-decoration:none;">🔗 この事案で作戦盤を開く</a>
+        <div style="text-align:right; display:flex; gap:8px; justify-content:flex-end;">
+          <button type="button" class="btn small ghost" style="color:var(--blue); border-color:var(--blue);" onclick="togglePlanPreview()" id="btn-toggle-plan-preview">▼ 作戦盤プレビューを表示</button>
+          <a id="link-to-plan" href="index.html" target="_blank" class="btn small ghost" style="color:var(--blue); border-color:var(--blue); text-decoration:none;">🔗 別タブで開く</a>
+        </div>
+        <div id="plan-preview-area" style="display:none; margin-top:10px; border:1px solid var(--line); border-radius:8px; overflow:hidden;">
+          <iframe id="plan-preview-iframe" style="width:100%; height:70vh; border:none; display:block;"></iframe>
         </div>
         <div class="section-label" style="margin-top:16px;">🚑 実対応スタッフ</div>
         <div style="font-size:11px; color:var(--sub); margin:-4px 0 8px;">この事案の対応に実際に当たったスタッフを選択（振り返りへの出席有無は問いません）</div>
@@ -937,6 +941,11 @@
     document.getElementById("mock-data-area").style.display = "block";
     document.getElementById("v-fetched-data").innerText = `【年齢/体重】 ${item.age} / ${item.weight}kg\n【搬入前処置】 ${item.preTx}\n【作戦盤リスト】\n${item.protocol}`;
     document.getElementById("link-to-plan").href = "index.html?caseId=" + encodeURIComponent(item.id);
+    // 事案が変わったら、開いていたプレビューは古い事案のままなので一旦閉じる
+    // （次に開いた時に新しい事案のiframeを読み込み直させる）。
+    document.getElementById("plan-preview-area").style.display = "none";
+    document.getElementById("plan-preview-iframe").removeAttribute("src");
+    document.getElementById("btn-toggle-plan-preview").textContent = "▼ 作戦盤プレビューを表示";
     prefillActualStaffFromBriefing();
 
     // 復元データの取得中にタブを切り替えられると、確認・送信プレビューなどが
@@ -995,6 +1004,28 @@
   // スタッフ要望：検査データ入力のたびに「現在時刻（携帯の時刻）」がデフォルトに
   // なってしまい、実際にカルテを見ながら遡って入力する運用と噛み合わないため、
   // 既に登録済みのバイタル初回時刻を基準に選べるようにしてほしいとのこと。
+  // 振り返り時に「作戦盤で何を準備・想定していたか」をすぐ横で見比べられるよう、
+  // 別タブを開かなくても同じ画面内で作戦盤のプレビューを開閉できるようにする。
+  // index.html側の印刷プレビュー生成ロジックをそのまま再利用したいので、
+  // 複製せずiframeで埋め込む方式にした（?caseId=で同じ復元の仕組みが働く）。
+  function togglePlanPreview() {
+    const area = document.getElementById("plan-preview-area");
+    const btn = document.getElementById("btn-toggle-plan-preview");
+    const isOpen = area.style.display !== "none";
+    if (isOpen) {
+      area.style.display = "none";
+      btn.textContent = "▼ 作戦盤プレビューを表示";
+    } else {
+      if (!currentCaseData || !currentCaseData.id) { alert("事案が選択されていません"); return; }
+      const iframe = document.getElementById("plan-preview-iframe");
+      // iframe.src（プロパティ）はsrc属性が未設定でも親ページのURLを
+      // デフォルト値として返してしまうため、hasAttribute()で確認する。
+      if (!iframe.hasAttribute("src")) iframe.src = "index.html?caseId=" + encodeURIComponent(currentCaseData.id);
+      area.style.display = "block";
+      btn.textContent = "▲ 作戦盤プレビューを閉じる";
+    }
+  }
+
   function setFirstVitalTime() {
     const vitals = timelineArray.filter(t => t.cat === 'バイタル').sort((a, b) => a.time.localeCompare(b.time));
     if (vitals.length === 0) { alert("まだバイタルサインが登録されていません。先にバイタルを登録してください。"); return; }
