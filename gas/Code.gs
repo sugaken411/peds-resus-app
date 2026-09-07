@@ -1,4 +1,4 @@
-// バージョン: V6.41 (「タイムライン明細」正規化シートを新設し、振り返り保存のたびに1事案1時点1項目=1行で同期)
+// バージョン: V6.42 (バイタル推移グラフ自動生成: NA()処理で欠測点をスキップし折れ線を接続)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -188,6 +188,64 @@ function syncTimelineDetail(ss, id, timeline) {
   var all = kept.concat(newRows);
   sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), headers.length).clearContent();
   if (all.length > 0) sheet.getRange(2, 1, all.length, headers.length).setValues(all);
+}
+
+// 「タイムライン明細」の1事案分（バイタル区分）を時刻×項目のクロス集計表に
+// 変換し、折れ線グラフ付きの専用シートを作る（毎回作り直す）。
+// ある時刻にその項目の入力が無かったマス目は、空文字ではなく数式文字列
+// "=NA()" を書き込む。空白セルのままだと折れ線グラフがそこで途切れて
+// しまうが、Googleスプレッドシートのグラフは#N/A（NA()の結果）を
+// 「データが無い点」として自動的に読み飛ばし、前後の点を直線でつなぐため、
+// 入力が飛び飛びでも線が途切れず表示される。
+function buildTrendChartSheet(ss, id) {
+  if (!id) throw new Error("要請番号が指定されていません");
+  var detailSheet = ss.getSheetByName('タイムライン明細');
+  if (!detailSheet) throw new Error("タイムライン明細シートが見つかりません（先に振り返りを1件保存してください）");
+  var hm = getHeaderMap(detailSheet);
+  var vals = detailSheet.getDataRange().getValues();
+  var rows = vals.filter(function(r, i) { return i > 0 && safeGet(r, hm, '要請番号') === id && safeGet(r, hm, '区分') === 'バイタル'; });
+  if (rows.length === 0) throw new Error("この事案のバイタル記録が見つかりません（先にタイムラインにバイタルを登録・保存してください）");
+
+  var times = []; var items = []; var timeSeen = {}; var itemSeen = {}; var matrix = {};
+  rows.forEach(function(r) {
+    var rawTime = safeGet(r, hm, '時刻');
+    var time = (rawTime instanceof Date) ? formatTimeForInput(rawTime) : String(rawTime);
+    var item = safeGet(r, hm, '項目名');
+    var val = safeGet(r, hm, '値');
+    if (!timeSeen[time]) { timeSeen[time] = true; times.push(time); }
+    if (!itemSeen[item]) { itemSeen[item] = true; items.push(item); }
+    if (!matrix[time]) matrix[time] = {};
+    matrix[time][item] = val;
+  });
+  times.sort(); items.sort();
+
+  var sheetName = 'バイタル推移_' + id;
+  var old = ss.getSheetByName(sheetName);
+  if (old) ss.deleteSheet(old); // 毎回作り直す（グラフを含め古い内容を残さない）
+  var sheet = ss.insertSheet(sheetName);
+
+  var header = ['時刻'].concat(items);
+  var table = [header];
+  times.forEach(function(t) {
+    var row = [t];
+    items.forEach(function(item) {
+      row.push(matrix[t].hasOwnProperty(item) ? matrix[t][item] : '=NA()');
+    });
+    table.push(row);
+  });
+  sheet.getRange(1, 1, table.length, header.length).setValues(table);
+
+  var chart = sheet.newChart().asLineChart()
+    .addRange(sheet.getRange(1, 1, table.length, header.length))
+    .setPosition(2, header.length + 2, 0, 0)
+    .setOption('title', id + ' バイタル推移')
+    .setOption('hAxis.title', '時刻').setOption('vAxis.title', '値')
+    .setOption('interpolateNulls', true)
+    .setOption('width', 800).setOption('height', 450)
+    .build();
+  sheet.insertChart(chart);
+
+  return { sheetName: sheetName, sheetId: sheet.getSheetId(), url: ss.getUrl() + '#gid=' + sheet.getSheetId() };
 }
 
 // シートに指定した列見出しが無ければ、末尾に新しい列を追加してから
@@ -570,6 +628,12 @@ function doPost(e) {
     // 8. ポータル情報取得（お知らせ・マニュアル・未完了アラート）
     if (parsedPayload.action === "fetch_portal_data") {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", data: getPortalData(ss) })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 9. バイタル推移グラフ作成（タイムライン明細から時刻×項目の表とグラフをシートに生成）
+    if (parsedPayload.action === "build_trend_chart") {
+      var chartResult = buildTrendChartSheet(ss, parsedPayload.id);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", chart: chartResult })).setMimeType(ContentService.MimeType.JSON);
     }
 
   } catch (err) {

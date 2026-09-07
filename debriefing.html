@@ -392,6 +392,9 @@
       <div class="section-label">📈 バイタルサイン動態（グラフ）</div>
       <div class="chart-box"><canvas id="chart-hr-spo2"></canvas></div>
       <div class="chart-box"><canvas id="chart-bp"></canvas></div>
+      <button type="button" class="btn small ghost" style="color:var(--blue); border-color:var(--blue); width:100%; margin-top:8px;" onclick="buildTrendChartSheet(this)">📊 スプレッドシートにも折れ線グラフを作成（分析・共有用）</button>
+      <div style="font-size:10px; color:var(--sub); margin-top:4px;">入力が飛んでいる時点があっても、線が途切れず前後をつないで表示されます</div>
+      <a id="trend-chart-link" href="#" target="_blank" style="display:none; margin-top:8px; text-align:center; font-weight:bold; color:var(--blue);">🔗 作成したグラフを開く</a>
     </div>
     <div class="card">
       <div class="section-label">🩸 検査値経過表（採血・血ガス）<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllLabParams()">表示項目を全選択/解除</button></div>
@@ -1695,6 +1698,31 @@
       alert("通信エラーのためAI下書きを生成できませんでした。\n" + err.message);
     })
     .finally(() => { btn.disabled = false; btn.textContent = origText; });
+  }
+
+  // スプレッドシート上に、この事案のバイタル推移（時刻×項目のクロス集計＋
+  // 折れ線グラフ）をまとめたシートを作成/更新する。分析・共有・印刷など、
+  // アプリ内グラフとは別にスプレッドシート単体で扱いたい場合に使う。
+  function buildTrendChartSheet(btn) {
+    if (!currentCaseData || !currentCaseData.id) { alert("事案が選択されていません"); return; }
+    const orig = btn.textContent;
+    btn.disabled = true; btn.textContent = "作成中...";
+    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "build_trend_chart", id: currentCaseData.id }) })
+      .then(res => res.json())
+      .then(res => {
+        if (res.status === "success") {
+          // fetchの非同期コールバック内でwindow.open()を呼ぶとブラウザの
+          // ポップアップブロック（特にSafari/iOS）に阻まれることがあるため、
+          // リンクを表示してユーザー自身にタップしてもらう方式にする。
+          const link = document.getElementById('trend-chart-link');
+          link.href = res.chart.url; link.style.display = 'block';
+          alert("スプレッドシートに折れ線グラフを作成しました。下のリンクから開けます。");
+        } else {
+          alert("グラフの作成に失敗しました。\n" + (res.message || "不明なエラーです。"));
+        }
+      })
+      .catch(err => { alert("通信エラーのためグラフを作成できませんでした。\n" + err.message); })
+      .finally(() => { btn.disabled = false; btn.textContent = orig; });
   }
 
   // AI抽出ロジック
