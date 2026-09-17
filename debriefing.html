@@ -390,11 +390,9 @@
     </div>
     <div class="card">
       <div class="section-label">📈 バイタルサイン動態（グラフ）</div>
-      <div class="chart-box"><canvas id="chart-hr-spo2"></canvas></div>
-      <div class="chart-box"><canvas id="chart-bp"></canvas></div>
-      <button type="button" class="btn small ghost" style="color:var(--blue); border-color:var(--blue); width:100%; margin-top:8px;" onclick="buildTrendChartSheet(this)">📊 スプレッドシートにも折れ線グラフを作成（分析・共有用）</button>
-      <div style="font-size:10px; color:var(--sub); margin-top:4px;">入力が飛んでいる時点があっても、線が途切れず前後をつないで表示されます</div>
-      <a id="trend-chart-link" href="#" target="_blank" style="display:none; margin-top:8px; text-align:center; font-weight:bold; color:var(--blue);">🔗 作成したグラフを開く</a>
+      <div id="chart-vital-select" style="margin-bottom:8px;"></div>
+      <div class="chart-box"><canvas id="chart-vitals"></canvas></div>
+      <div style="font-size:10px; color:var(--sub); margin-top:4px;">入力が飛んでいる時点があっても、線は途切れず前後をつないで表示されます。上のチェックで表示する項目を切り替えられます</div>
     </div>
     <div class="card">
       <div class="section-label">🩸 検査値経過表（採血・血ガス）<button class="hdr-btn" style="color:var(--blue); background:var(--bg); font-size:11px; padding:6px 10px; border-radius:8px;" onclick="toggleAllLabParams()">表示項目を全選択/解除</button></div>
@@ -494,7 +492,16 @@
   let timelineArray = [];
   let evalBlocks = [ { id: 1, title: "搬入時", time: "", a: "", b: "", c: "", d: "", e: "", f: "", g: "" } ];
   let temporaryExams = []; let editingRowId = null;
-  let chartHrSpo2 = null; let chartBp = null; let currentAiImageBase64 = null; let currentAiMimeType = null;
+  let chartVitals = null; let vitalTrendSelected = null; let currentAiImageBase64 = null; let currentAiMimeType = null;
+  const VITAL_TREND_ITEMS = [
+    { key: 'v-hr', label: 'HR', color: '#d32f2f' },
+    { key: 'v-spo2', label: 'SpO2', color: '#007aff' },
+    { key: 'v-rr', label: 'RR', color: '#22c55e' },
+    { key: 'v-bps', label: 'BP収縮', color: '#f59e0b' },
+    { key: 'v-bpd', label: 'BP拡張', color: '#1d4ed8' },
+    { key: 'v-bt', label: 'BT', color: '#a855f7' },
+    { key: 'v-pews', label: 'PEWS', color: '#64748b' }
+  ];
 
   // ----- 未保存変更の検知・離脱時の警告（Office等で見慣れた「未保存」の合図） -----
   let isDirty = false;
@@ -1485,18 +1492,32 @@
     }, 50);
   }
 
-  function renderCharts() {
-    let times = []; let hrData = []; let spo2Data = []; let bpsData = []; let bpdData = [];
-    timelineArray.filter(t => t.cat === 'バイタル').sort((a,b) => a.time.localeCompare(b.time)).forEach(t => {
-      times.push(t.time);
-      hrData.push(t.rawValues['v-hr']); spo2Data.push(t.rawValues['v-spo2']);
-      bpsData.push(t.rawValues['v-bps']); bpdData.push(t.rawValues['v-bpd']);
+  function renderVitalTrendSelect() {
+    if (!vitalTrendSelected) {
+      vitalTrendSelected = {};
+      VITAL_TREND_ITEMS.forEach(v => { vitalTrendSelected[v.key] = (v.key === 'v-hr' || v.key === 'v-spo2'); });
+    }
+    const box = document.getElementById('chart-vital-select');
+    box.innerHTML = VITAL_TREND_ITEMS.map(v => `<label style="display:inline-flex; align-items:center; gap:4px; margin-right:12px; margin-bottom:4px; font-size:12px; cursor:pointer;"><input type="checkbox" data-vkey="${v.key}" ${vitalTrendSelected[v.key] ? 'checked' : ''}> <span style="color:${v.color}; font-weight:bold;">${v.label}</span></label>`).join('');
+    box.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => { vitalTrendSelected[cb.dataset.vkey] = cb.checked; renderCharts(); });
     });
-    if(chartHrSpo2) chartHrSpo2.destroy(); if(chartBp) chartBp.destroy();
-    const ctx1 = document.getElementById('chart-hr-spo2').getContext('2d');
-    chartHrSpo2 = new Chart(ctx1, { type: 'line', data: { labels: times, datasets: [ { label: 'HR', data: hrData, borderColor: '#d32f2f' }, { label: 'SpO2', data: spo2Data, borderColor: '#007aff' } ]}, options: { responsive: true, maintainAspectRatio: false } });
-    const ctx2 = document.getElementById('chart-bp').getContext('2d');
-    chartBp = new Chart(ctx2, { type: 'line', data: { labels: times, datasets: [ { label: 'SYS', data: bpsData, borderColor: '#f59e0b' }, { label: 'DIA', data: bpdData, borderColor: '#1d4ed8' } ]}, options: { responsive: true, maintainAspectRatio: false } });
+  }
+
+  function renderCharts() {
+    renderVitalTrendSelect();
+    const vitalRows = timelineArray.filter(t => t.cat === 'バイタル').sort((a,b) => a.time.localeCompare(b.time));
+    const times = vitalRows.map(t => t.time);
+    const datasets = VITAL_TREND_ITEMS.filter(v => vitalTrendSelected[v.key]).map(v => ({
+      label: v.label,
+      borderColor: v.color,
+      spanGaps: true,
+      tension: 0.2,
+      data: vitalRows.map(t => { const val = t.rawValues ? t.rawValues[v.key] : undefined; return (val === undefined || val === null || val === '') ? null : parseFloat(val); })
+    }));
+    if (chartVitals) chartVitals.destroy();
+    const ctx = document.getElementById('chart-vitals').getContext('2d');
+    chartVitals = new Chart(ctx, { type: 'line', data: { labels: times, datasets }, options: { responsive: true, maintainAspectRatio: false, spanGaps: true } });
     renderFlowParamSelect(); renderFlowTable();
     renderLabParamSelect(); renderLabFlowTable();
     renderOverviewTimeline();
@@ -1698,31 +1719,6 @@
       alert("通信エラーのためAI下書きを生成できませんでした。\n" + err.message);
     })
     .finally(() => { btn.disabled = false; btn.textContent = origText; });
-  }
-
-  // スプレッドシート上に、この事案のバイタル推移（時刻×項目のクロス集計＋
-  // 折れ線グラフ）をまとめたシートを作成/更新する。分析・共有・印刷など、
-  // アプリ内グラフとは別にスプレッドシート単体で扱いたい場合に使う。
-  function buildTrendChartSheet(btn) {
-    if (!currentCaseData || !currentCaseData.id) { alert("事案が選択されていません"); return; }
-    const orig = btn.textContent;
-    btn.disabled = true; btn.textContent = "作成中...";
-    fetch(GAS_API_URL, { method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "build_trend_chart", id: currentCaseData.id }) })
-      .then(res => res.json())
-      .then(res => {
-        if (res.status === "success") {
-          // fetchの非同期コールバック内でwindow.open()を呼ぶとブラウザの
-          // ポップアップブロック（特にSafari/iOS）に阻まれることがあるため、
-          // リンクを表示してユーザー自身にタップしてもらう方式にする。
-          const link = document.getElementById('trend-chart-link');
-          link.href = res.chart.url; link.style.display = 'block';
-          alert("スプレッドシートに折れ線グラフを作成しました。下のリンクから開けます。");
-        } else {
-          alert("グラフの作成に失敗しました。\n" + (res.message || "不明なエラーです。"));
-        }
-      })
-      .catch(err => { alert("通信エラーのためグラフを作成できませんでした。\n" + err.message); })
-      .finally(() => { btn.disabled = false; btn.textContent = orig; });
   }
 
   // AI抽出ロジック

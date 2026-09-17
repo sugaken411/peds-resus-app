@@ -805,7 +805,7 @@
     } catch(e) {}
   }
 
-  function setOxDevice(val, btnEl) { tBtn('g-ox-device', val, btnEl); document.getElementById("panel-vent").style.display = (val === '人工呼吸器') ? 'block' : 'none'; syncToPrintLayout(); }
+  function setOxDevice(val, btnEl) { tBtn('g-ox-device', val, btnEl); document.getElementById("panel-vent").style.display = (val === '人工呼吸器') ? 'block' : 'none'; if (val === '人工呼吸器') renderVentilatorOptions(); syncToPrintLayout(); }
   function setMeReq(val, btnEl) { tBtn('g-me-req', val, btnEl); document.getElementById("panel-me-details").style.display = (val === '必要') ? 'block' : 'none'; syncToPrintLayout(); }
   function setO2Flow(val, btnEl) { document.getElementById('v-ox-flow-free').value = val; syncToPrintLayout(); }
 

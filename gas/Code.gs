@@ -1,4 +1,4 @@
-// バージョン: V6.42 (バイタル推移グラフ自動生成: NA()処理で欠測点をスキップし折れ線を接続)
+// バージョン: V6.45 (マスタ＿管理を人工呼吸器/設定シートに分割、スプレッドシート側のバイタル推移グラフ機能を削除しアプリ内グラフに統合)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -188,64 +188,6 @@ function syncTimelineDetail(ss, id, timeline) {
   var all = kept.concat(newRows);
   sheet.getRange(2, 1, Math.max(sheet.getLastRow() - 1, 1), headers.length).clearContent();
   if (all.length > 0) sheet.getRange(2, 1, all.length, headers.length).setValues(all);
-}
-
-// 「タイムライン明細」の1事案分（バイタル区分）を時刻×項目のクロス集計表に
-// 変換し、折れ線グラフ付きの専用シートを作る（毎回作り直す）。
-// ある時刻にその項目の入力が無かったマス目は、空文字ではなく数式文字列
-// "=NA()" を書き込む。空白セルのままだと折れ線グラフがそこで途切れて
-// しまうが、Googleスプレッドシートのグラフは#N/A（NA()の結果）を
-// 「データが無い点」として自動的に読み飛ばし、前後の点を直線でつなぐため、
-// 入力が飛び飛びでも線が途切れず表示される。
-function buildTrendChartSheet(ss, id) {
-  if (!id) throw new Error("要請番号が指定されていません");
-  var detailSheet = ss.getSheetByName('タイムライン明細');
-  if (!detailSheet) throw new Error("タイムライン明細シートが見つかりません（先に振り返りを1件保存してください）");
-  var hm = getHeaderMap(detailSheet);
-  var vals = detailSheet.getDataRange().getValues();
-  var rows = vals.filter(function(r, i) { return i > 0 && safeGet(r, hm, '要請番号') === id && safeGet(r, hm, '区分') === 'バイタル'; });
-  if (rows.length === 0) throw new Error("この事案のバイタル記録が見つかりません（先にタイムラインにバイタルを登録・保存してください）");
-
-  var times = []; var items = []; var timeSeen = {}; var itemSeen = {}; var matrix = {};
-  rows.forEach(function(r) {
-    var rawTime = safeGet(r, hm, '時刻');
-    var time = (rawTime instanceof Date) ? formatTimeForInput(rawTime) : String(rawTime);
-    var item = safeGet(r, hm, '項目名');
-    var val = safeGet(r, hm, '値');
-    if (!timeSeen[time]) { timeSeen[time] = true; times.push(time); }
-    if (!itemSeen[item]) { itemSeen[item] = true; items.push(item); }
-    if (!matrix[time]) matrix[time] = {};
-    matrix[time][item] = val;
-  });
-  times.sort(); items.sort();
-
-  var sheetName = 'バイタル推移_' + id;
-  var old = ss.getSheetByName(sheetName);
-  if (old) ss.deleteSheet(old); // 毎回作り直す（グラフを含め古い内容を残さない）
-  var sheet = ss.insertSheet(sheetName);
-
-  var header = ['時刻'].concat(items);
-  var table = [header];
-  times.forEach(function(t) {
-    var row = [t];
-    items.forEach(function(item) {
-      row.push(matrix[t].hasOwnProperty(item) ? matrix[t][item] : '=NA()');
-    });
-    table.push(row);
-  });
-  sheet.getRange(1, 1, table.length, header.length).setValues(table);
-
-  var chart = sheet.newChart().asLineChart()
-    .addRange(sheet.getRange(1, 1, table.length, header.length))
-    .setPosition(2, header.length + 2, 0, 0)
-    .setOption('title', id + ' バイタル推移')
-    .setOption('hAxis.title', '時刻').setOption('vAxis.title', '値')
-    .setOption('interpolateNulls', true)
-    .setOption('width', 800).setOption('height', 450)
-    .build();
-  sheet.insertChart(chart);
-
-  return { sheetName: sheetName, sheetId: sheet.getSheetId(), url: ss.getUrl() + '#gid=' + sheet.getSheetId() };
 }
 
 // シートに指定した列見出しが無ければ、末尾に新しい列を追加してから
@@ -630,12 +572,6 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify({ status: "success", data: getPortalData(ss) })).setMimeType(ContentService.MimeType.JSON);
     }
 
-    // 9. バイタル推移グラフ作成（タイムライン明細から時刻×項目の表とグラフをシートに生成）
-    if (parsedPayload.action === "build_trend_chart") {
-      var chartResult = buildTrendChartSheet(ss, parsedPayload.id);
-      return ContentService.createTextOutput(JSON.stringify({ status: "success", chart: chartResult })).setMimeType(ContentService.MimeType.JSON);
-    }
-
   } catch (err) {
     sendAdminEmail("doPost内処理エラー", err.toString() + "\n" + err.stack);
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: err.toString() })).setMimeType(ContentService.MimeType.JSON);
@@ -779,16 +715,31 @@ function getMasterData() {
           var eReg = String(r[4]).trim(); var eName = String(r[5]).trim();
           if (eReg !== "" && eName !== "") { if (!data.emsList[eReg]) data.emsList[eReg] = []; data.emsList[eReg].push(eName); }
         }
-        if (r.length > 10 && r[6] != null && r[7] != null) {
-          var maker = String(r[6]).trim(); var model = String(r[7]).trim();
-          if (maker !== "" && model !== "") {
-            data.ventilators.push({ maker: maker, model: model, minW: parseFloat(r[8]) || 0, maxW: parseFloat(r[9]) || 999, desc: String(r[10] || "").trim() });
-          }
+      }
+    }
+
+    // 1b. 人工呼吸器マスタ（旧: マスタ＿管理に同居していたものを独立シート化）
+    var sheetVent = ss.getSheetByName('マスタ＿人工呼吸器');
+    if (sheetVent) {
+      var hmV = getHeaderMap(sheetVent); var vVals = sheetVent.getDataRange().getValues();
+      for (var i = 1; i < vVals.length; i++) {
+        var r = vVals[i]; if (!r || r.length < 2) continue;
+        var maker = String(safeGet(r, hmV, 'メーカー')).trim(); var model = String(safeGet(r, hmV, '機種')).trim();
+        if (maker !== "" && model !== "") {
+          data.ventilators.push({ maker: maker, model: model, minW: parseFloat(safeGet(r, hmV, '対象体重_下限(kg)')) || 0, maxW: parseFloat(safeGet(r, hmV, '対象体重_上限(kg)')) || 999, desc: String(safeGet(r, hmV, '説明')).trim() });
         }
-        if (r.length > 12 && r[11] != null && r[12] != null) {
-          var sKey = String(r[11]).trim(); var sVal = String(r[12]).trim();
-          if (sKey !== "") data.settings[sKey] = isNaN(parseFloat(sVal)) ? sVal : parseFloat(sVal);
-        }
+      }
+    }
+
+    // 1c. 各種計算設定マスタ（旧: マスタ＿管理に同居していたものを独立シート化）
+    var sheetCfg = ss.getSheetByName('マスタ＿設定');
+    if (sheetCfg) {
+      var hmCfg = getHeaderMap(sheetCfg); var cfgVals = sheetCfg.getDataRange().getValues();
+      for (var i = 1; i < cfgVals.length; i++) {
+        var r = cfgVals[i]; if (!r || r.length < 2) continue;
+        var sKey = String(safeGet(r, hmCfg, '設定キー')).trim();
+        var sVal = safeGet(r, hmCfg, '値');
+        if (sKey !== "" && sVal !== "") data.settings[sKey] = isNaN(parseFloat(sVal)) ? sVal : parseFloat(sVal);
       }
     }
 
