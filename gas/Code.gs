@@ -1,4 +1,4 @@
-// バージョン: V6.45 (マスタ＿管理を人工呼吸器/設定シートに分割、スプレッドシート側のバイタル推移グラフ機能を削除しアプリ内グラフに統合)
+// バージョン: V6.46 (薬剤・物品マスタに院内採用/常備(救命センター)の2列を追加)
 // ※このファイルはリポジトリ管理用のミラーです。実際の反映には
 //   script.google.com のプロジェクトに貼り付けて「新しいデプロイ」または
 //   既存デプロイの「新バージョン」として公開する必要があります。
@@ -31,6 +31,16 @@ function safeGet(row, hm, key) {
     return (val === null || val === undefined) ? '' : val;
   }
   return '';
+}
+
+// 「院内採用(有/無)」「常備_救命センター(有/無)」列を読み取る。
+// 列が未入力（空欄）の行は「有」扱いとする（新規追加した列のため、
+// 既存の全行にいきなり未採用/常備なしの警告バッジが出るのを避けるため）。
+// 明示的に「無」と入力された行だけ警告バッジ対象になる。
+function readStockFlags(r, hm) {
+  var approvedVal = String(safeGet(r, hm, '院内採用(有/無)')).trim();
+  var stockedVal = String(safeGet(r, hm, '常備_救命センター(有/無)')).trim();
+  return { approved: approvedVal !== '無', stocked: stockedVal !== '無' };
 }
 
 // スプレッドシートが日付入力を自動でDate型に変換した場合、表示用にYYYY/MM/DD文字列へ正規化する
@@ -768,7 +778,8 @@ function getMasterData() {
         var r = vals[i]; if (!r || r.length < 5) continue;
         if (hm.hasOwnProperty('商品名(代表)') && r[hm['商品名(代表)']]) {
           var productDose = (parseFloat(safeGet(r, hm, '製品用量')) || 1) * (String(safeGet(r, hm, '製品単位')).trim().toLowerCase() === 'g' ? 1000 : 1);
-          data.drugs.push({ type: "単発薬", category: String(safeGet(r, hm, '区分')), btnName: String(safeGet(r, hm, '表示名') || safeGet(r, hm, '商品名(代表)')).trim(), name: String(safeGet(r, hm, '商品名(代表)')).trim(), spec: safeGet(r, hm, '製品用量') + safeGet(r, hm, '製品単位'), comp: String(safeGet(r, hm, '組成・希釈方法')).trim(), stdDose: parseFloat(safeGet(r, hm, '標準投与量')) || 0, unit: String(safeGet(r, hm, '投与量単位')), concMg: productDose, concVol: parseFloat(safeGet(r, hm, '製品容量(mL)')) || 1, maxDose: parseFloat(safeGet(r, hm, '最大投与量(上限)')) || 9999, note: String(safeGet(r, hm, '備考')) });
+          var flagsSingle = readStockFlags(r, hm);
+          data.drugs.push({ type: "単発薬", category: String(safeGet(r, hm, '区分')), btnName: String(safeGet(r, hm, '表示名') || safeGet(r, hm, '商品名(代表)')).trim(), name: String(safeGet(r, hm, '商品名(代表)')).trim(), spec: safeGet(r, hm, '製品用量') + safeGet(r, hm, '製品単位'), comp: String(safeGet(r, hm, '組成・希釈方法')).trim(), stdDose: parseFloat(safeGet(r, hm, '標準投与量')) || 0, unit: String(safeGet(r, hm, '投与量単位')), concMg: productDose, concVol: parseFloat(safeGet(r, hm, '製品容量(mL)')) || 1, maxDose: parseFloat(safeGet(r, hm, '最大投与量(上限)')) || 9999, note: String(safeGet(r, hm, '備考')), approved: flagsSingle.approved, stocked: flagsSingle.stocked });
         }
       }
     }
@@ -782,7 +793,8 @@ function getMasterData() {
         if (hmC.hasOwnProperty('商品名(代表)') && r[hmC['商品名(代表)']]) {
           var productDoseC = (parseFloat(safeGet(r, hmC, '原液薬量')) || 1) * (String(safeGet(r, hmC, '薬量単位')).trim().toLowerCase() === 'g' ? 1000 : 1);
           var steps = []; for (var j = 1; j <= 10; j++) { var stepKey = 'Step' + j; if (hmC.hasOwnProperty(stepKey) && r[hmC[stepKey]] !== "") steps.push(parseFloat(r[hmC[stepKey]])); }
-          data.drugs.push({ type: "持続薬", category: String(safeGet(r, hmC, '区分')), btnName: String(safeGet(r, hmC, '表示名') || safeGet(r, hmC, '商品名(代表)')).trim(), name: String(safeGet(r, hmC, '商品名(代表)')).trim(), comp: String(safeGet(r, hmC, '組成・希釈（表示用）')).trim(), stdDose: 0, unit: String(safeGet(r, hmC, '処方単位') || 'γ'), concMg: productDoseC, concVol: parseFloat(safeGet(r, hmC, '総液量')) || 1, maxDose: 9999, note: String(safeGet(r, hmC, '備考')), steps: steps });
+          var flagsCont = readStockFlags(r, hmC);
+          data.drugs.push({ type: "持続薬", category: String(safeGet(r, hmC, '区分')), btnName: String(safeGet(r, hmC, '表示名') || safeGet(r, hmC, '商品名(代表)')).trim(), name: String(safeGet(r, hmC, '商品名(代表)')).trim(), comp: String(safeGet(r, hmC, '組成・希釈（表示用）')).trim(), stdDose: 0, unit: String(safeGet(r, hmC, '処方単位') || 'γ'), concMg: productDoseC, concVol: parseFloat(safeGet(r, hmC, '総液量')) || 1, maxDose: 9999, note: String(safeGet(r, hmC, '備考')), steps: steps, approved: flagsCont.approved, stocked: flagsCont.stocked });
         }
       }
     }
@@ -799,7 +811,8 @@ function getMasterData() {
           // 体重は測定/推定値として最も信頼できる主指標のまま維持しつつ、
           // 身長・年齢は「体重で選んだサイズが年齢・身長的に妥当か」の
           // クロスチェック用の補助情報としてフロント側に渡す。
-          data.equipment.push({ category: String(safeGet(r, hmE, '区分(ABCDE)')), name: String(safeGet(r, hmE, '大項目')).trim(), size: String(safeGet(r, hmE, 'サイズ・規格')) + (safeGet(r, hmE, '単位') ? ' ' + safeGet(r, hmE, '単位') : ''), minW: parseFloat(safeGet(r, hmE, '対象体重_下限(kg)')) || 0, maxW: parseFloat(safeGet(r, hmE, '対象体重_上限(kg)')) || 9999, minH: parseFloat(safeGet(r, hmE, '対象身長_下限(cm)')) || 0, maxH: parseFloat(safeGet(r, hmE, '対象身長_上限(cm)')) || 9999, minAge: parseFloat(safeGet(r, hmE, '対象年齢_下限(歳)')) || 0, maxAge: parseFloat(safeGet(r, hmE, '対象年齢_上限(歳)')) || 999, inStock: String(safeGet(r, hmE, '院内採用(◯/×)')), note: String(safeGet(r, hmE, '備考')) });
+          var flagsEq = readStockFlags(r, hmE);
+          data.equipment.push({ category: String(safeGet(r, hmE, '区分(ABCDE)')), name: String(safeGet(r, hmE, '大項目')).trim(), size: String(safeGet(r, hmE, 'サイズ・規格')) + (safeGet(r, hmE, '単位') ? ' ' + safeGet(r, hmE, '単位') : ''), minW: parseFloat(safeGet(r, hmE, '対象体重_下限(kg)')) || 0, maxW: parseFloat(safeGet(r, hmE, '対象体重_上限(kg)')) || 9999, minH: parseFloat(safeGet(r, hmE, '対象身長_下限(cm)')) || 0, maxH: parseFloat(safeGet(r, hmE, '対象身長_上限(cm)')) || 9999, minAge: parseFloat(safeGet(r, hmE, '対象年齢_下限(歳)')) || 0, maxAge: parseFloat(safeGet(r, hmE, '対象年齢_上限(歳)')) || 999, note: String(safeGet(r, hmE, '備考')), approved: flagsEq.approved, stocked: flagsEq.stocked });
         }
       }
     }

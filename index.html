@@ -64,8 +64,11 @@
     .chip-scenario { background: var(--card); } .chip-scenario.on { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
     .chip-scenario.on.modified { background: var(--warn-light); border-color: #d48806; color: #d48806; }
     .chip-item { background: var(--card); } .chip-item.on { background: var(--med-blue); border-color: var(--blue); color: var(--blue); }
-    .chip-item.on.chip-manual { background: var(--warn-light); border-color: #d48806; color: #d48806; } 
-    
+    .chip-item.on.chip-manual { background: var(--warn-light); border-color: #d48806; color: #d48806; }
+    .stock-badge { display:inline-block; margin-left:4px; padding:1px 5px; border-radius:6px; font-size:9px; font-weight:bold; vertical-align:middle; }
+    .stock-badge-warn { background:#fff3cd; color:#8a6314; }
+    .stock-badge-none { background:#fde2e1; color:#c0392b; }
+
     .gcs-row { display: flex; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); } .gcs-title { font-size: 14px; font-weight: bold; width: 20px; color: var(--brand); }
     .gcs-seg { flex: 1; display: flex; background: #e5e5ea; border-radius: 8px; padding: 2px; }
     .gcs-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: bold; cursor: pointer; border: none; background: transparent; color: var(--sub); border-radius: 6px; }
@@ -510,6 +513,19 @@
     if(Object.keys(HOSPITAL_DB).length > 0) document.getElementById("g-hosp-cat").innerHTML = Object.keys(HOSPITAL_DB).map(cat => `<div class="chip" onclick="expandHosp('${cat}', this)">${cat}</div>`).join("");
     if(Object.keys(EMS_DB).length > 0) document.getElementById("g-ems-region").innerHTML = Object.keys(EMS_DB).map(reg => `<div class="chip" onclick="expandEms('${reg}', this)">${reg}</div>`).join("");
     
+    function escapeHtml(str) {
+      return String(str == null ? '' : str)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    // 院内採用/常備の警告バッジ。列が未入力（undefined）の場合は「有」扱いなので
+    // バッジを出さない。明示的に「無」が入力されている場合のみ表示する。
+    function stockBadgeHtml(approved, stocked) {
+      if (approved === false) return '<span class="stock-badge stock-badge-none" title="院内未採用：使用前に必ず確認してください">未採用</span>';
+      if (stocked === false) return '<span class="stock-badge stock-badge-warn" title="救命センターに常備なし：取り寄せが必要です">⚠️常備なし</span>';
+      return '';
+    }
+
     // シナリオ・セット・薬品・物品
     const setBox = document.getElementById("box-sets"); setBox.innerHTML = ""; const sBox = document.getElementById("box-scenarios"); sBox.innerHTML = "";
     if (master.scenarios) {
@@ -528,7 +544,8 @@
     const dBoxCont = document.getElementById("box-drugs-cont"); dBoxCont.innerHTML = "";
     if (master.drugs) {
       master.drugs.forEach(d => {
-        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = d.btnName; chip.textContent = d.btnName;
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = d.btnName;
+        chip.innerHTML = escapeHtml(d.btnName) + stockBadgeHtml(d.approved, d.stocked);
         chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[d.btnName] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); };
         if (d.type === "単発薬") dBoxSingle.appendChild(chip); else dBoxCont.appendChild(chip);
       });
@@ -536,7 +553,11 @@
     const eBox = document.getElementById("box-equip"); eBox.innerHTML = "";
     if (master.equipment) {
       [...new Set(master.equipment.map(e => e.name))].filter(Boolean).forEach(name => {
-        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name; chip.textContent = name;
+        const rows = master.equipment.filter(e => e.name === name);
+        const approved = !rows.some(e => e.approved === false);
+        const stocked = !rows.some(e => e.stocked === false);
+        let chip = document.createElement('div'); chip.className = "chip chip-item"; chip.dataset.name = name;
+        chip.innerHTML = escapeHtml(name) + stockBadgeHtml(approved, stocked);
         chip.onclick = function() { chip.classList.toggle('on'); appState.checkedItems[name] = chip.classList.contains('on'); updateCustomStatus(); calcPeds(); }; eBox.appendChild(chip);
       });
     }
